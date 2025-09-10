@@ -1,0 +1,7 @@
+Dentro de la prescripción:
+- Agregar Opciones o botones para Agregar una
+- segunda medida de lentes usando modal
+- tercera medida de lentes usando modal
+- al seleccionar un numero de sobre en prescripciones, autocompletar con los
+datos del cliente asignado a ese sobre.
+
