@@ -278,7 +278,7 @@
 import { ref, onMounted, computed, nextTick } from "vue";
 import { supabase } from "../lib/supabaseClient.js";
 import BaseModal from "./BaseModal.vue";
-import AutoComplete from "./AutoComplete.vue";
+import AutoComplete from "./Autocomplete.vue";
 
 // Estados principales
 const ordenes = ref([]);
