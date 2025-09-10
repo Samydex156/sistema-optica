@@ -188,7 +188,7 @@ import { ref, onMounted, reactive, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { supabase } from '../lib/supabaseClient';
 import BaseModal from './BaseModal.vue';
-import AutoComplete from './AutoComplete.vue';
+import AutoComplete from './Autocomplete.vue';
 
 const route = useRoute();
 const router = useRouter();
