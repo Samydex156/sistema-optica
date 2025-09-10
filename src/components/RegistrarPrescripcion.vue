@@ -228,7 +228,7 @@
 import { ref, onMounted, reactive, computed, nextTick } from 'vue';
 import { supabase } from '../lib/supabaseClient.js';
 import BaseModal from './BaseModal.vue';
-import AutoComplete from './AutoComplete.vue';
+import AutoComplete from './Autocomplete.vue';
 
 // --- ESTADO GENERAL ---
 const prescripciones = ref([]);

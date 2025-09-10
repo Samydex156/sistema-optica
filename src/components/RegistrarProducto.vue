@@ -155,7 +155,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick, computed } from "vue";
 import { supabase } from "../lib/supabaseClient.js";
-import AutoComplete from "./AutoComplete.vue";
+import AutoComplete from "./Autocomplete.vue";
 import BaseModal from "./BaseModal.vue";
 
 // --- ESTADO GENERAL ---
