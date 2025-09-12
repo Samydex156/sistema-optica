@@ -28,7 +28,6 @@
             <th>#</th>
             <th>Nombre Completo</th>
             <th>Teléfono</th>
-            <th>Fecha Registro</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -37,7 +36,7 @@
             <td data-label="#">{{ index + 1 }}</td>
             <td data-label="Nombre">{{ cliente.nombre_cliente }} {{ cliente.apellido_paterno_cliente }} {{ cliente.apellido_materno_cliente || '' }}</td>
             <td data-label="Teléfono">{{ cliente.telefono_cliente || '-' }}</td>
-            <td data-label="Registro">{{ formatearFecha(cliente.fecha_registro_cliente) }}</td>
+
             <td data-label="Acciones" class="actions-cell">
               <button @click="irAPanelCliente(cliente.cod_cliente)" class="btn-icon btn-panel" title="Panel del Cliente">⚙️</button>
               <button @click="editarCliente(cliente)" class="btn-icon btn-edit" title="Editar Cliente">✏️</button>
