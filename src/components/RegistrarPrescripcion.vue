@@ -82,22 +82,19 @@
           </div>
         </div>
         <h4 class="form-section-header">Medidas de Lentes</h4>
-        <div class="form-section-header-container">
-          <button type="button" @click="agregarMedida" class="btn-add-medida">+ Agregar Medida</button>
-        </div>
-
+        
         <div v-for="(medida, index) in medidas" :key="index" class="medida-container">
           <div class="distancia-tipo">
             <div class="form-group">
               <label>TIPO / DISTANCIA</label>
               <AutoComplete v-model="medida.tipo_lente" :options="tipoLenteOptions"
-                placeholder="Seleccionar tipo de lente" />
+              placeholder="Seleccionar tipo de lente" />
             </div>
             <div class="form-group"><label>DIP Binocular (mm)</label><input v-model="medida.dip_lentes_binocular" type="number"
-                step="0.01" /></div>
-            <div class="form-group"><label>DIP OD Mono (mm)</label><input v-model="medida.dip_lentes_od_monocular"
+              step="0.01" /></div>
+              <div class="form-group"><label>DIP OD Mono (mm)</label><input v-model="medida.dip_lentes_od_monocular"
                 type="number" step="0.01" /></div>
-            <div class="form-group"><label>DIP OI Mono (mm)</label><input v-model="medida.dip_lentes_oi_monocular"
+                <div class="form-group"><label>DIP OI Mono (mm)</label><input v-model="medida.dip_lentes_oi_monocular"
                 type="number" step="0.01" /></div>
             <button type="button" @click="eliminarMedida(index)" v-if="medidas.length > 1"
               class="btn-desactivar btn-eliminar-medida">Eliminar</button>
@@ -111,12 +108,12 @@
                   <div class="form-group"><label>ESF</label><input v-model="medida.esf_od" placeholder="ESF" /></div>
                   <div class="form-group"><label>CIL</label><input v-model="medida.cil_od" placeholder="CIL" /></div>
                   <div class="form-group"><label>EJE</label><input v-model="medida.eje_od" type="number" min="0"
-                      max="180" placeholder="EJE" /></div>
-                  <div class="form-group"><label>ADIC</label><input v-model="medida.adic_od" placeholder="ADIC" /></div>
+                    max="180" placeholder="EJE" /></div>
+                    <div class="form-group"><label>ADIC</label><input v-model="medida.adic_od" placeholder="ADIC" /></div>
                   <div class="form-group"><label>PRISMA</label><input v-model="medida.prisma_od" placeholder="PRISMA"
-                      @input="onPrismaChange(medida, 'od')" /></div>
-                  <div class="form-group"><label>BASE</label>
-                    <AutoComplete v-model="medida.base_od" :options="baseOptions" placeholder="Base"
+                    @input="onPrismaChange(medida, 'od')" /></div>
+                    <div class="form-group"><label>BASE</label>
+                      <AutoComplete v-model="medida.base_od" :options="baseOptions" placeholder="Base"
                       :disabled="!medida.prisma_od || medida.prisma_od === '0.00'" />
                   </div>
                   <div class="form-group"><label>ALTURA</label><input v-model="medida.altura_od" placeholder="ALTURA" />
@@ -131,35 +128,39 @@
                   <div class="form-group"><label>ESF</label><input v-model="medida.esf_oi" placeholder="ESF" /></div>
                   <div class="form-group"><label>CIL</label><input v-model="medida.cil_oi" placeholder="CIL" /></div>
                   <div class="form-group"><label>EJE</label><input v-model="medida.eje_oi" type="number" min="0"
-                      max="180" placeholder="EJE" /></div>
-                  <div class="form-group"><label>ADIC</label><input v-model="medida.adic_oi" placeholder="ADIC" /></div>
-                  <div class="form-group"><label>PRISMA</label><input v-model="medida.prisma_oi" placeholder="PRISMA"
+                    max="180" placeholder="EJE" /></div>
+                    <div class="form-group"><label>ADIC</label><input v-model="medida.adic_oi" placeholder="ADIC" /></div>
+                    <div class="form-group"><label>PRISMA</label><input v-model="medida.prisma_oi" placeholder="PRISMA"
                       @input="onPrismaChange(medida, 'oi')" /></div>
-                  <div class="form-group"><label>BASE</label>
-                    <AutoComplete v-model="medida.base_oi" :options="baseOptions" placeholder="Base"
+                      <div class="form-group"><label>BASE</label>
+                        <AutoComplete v-model="medida.base_oi" :options="baseOptions" placeholder="Base"
                       :disabled="!medida.prisma_oi || medida.prisma_oi === '0.00'" />
-                  </div>
-                  <div class="form-group"><label>ALTURA</label><input v-model="medida.altura_oi" placeholder="ALTURA" />
+                    </div>
+                    <div class="form-group"><label>ALTURA</label><input v-model="medida.altura_oi" placeholder="ALTURA" />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-            </div>
-        </div>
+          </div>
 
-        <h4 class="form-section-header">Notas Adicionales</h4>
-        <div class="form-group">
-          <textarea v-model="formData.observacion_prescripcion" placeholder="Observaciones generales..."
+          <div class="form-section-header-container">
+            <button type="button" @click="agregarMedida" class="btn-add-medida">+ Agregar Medida</button>
+          </div>
+          
+          <h4 class="form-section-header">Notas Adicionales</h4>
+          <div class="form-group">
+            <textarea v-model="formData.observacion_prescripcion" placeholder="Observaciones generales..."
             rows="3"></textarea>
-        </div>
-      </form>
-      <template #footer>
-        <button @click="guardarPrescripcion" class="btn-guardar">{{ editId ? 'Actualizar' : 'Guardar' }}</button>
-        <button @click="mostrarModalFormulario = false" class="btn-cancelar">Cancelar</button>
-      </template>
-    </BaseModal>
+          </div>
+        </form>
+        <template #footer>
+          <button @click="guardarPrescripcion" class="btn-guardar">{{ editId ? 'Actualizar' : 'Guardar' }}</button>
+          <button @click="mostrarModalFormulario = false" class="btn-cancelar">Cancelar</button>
+        </template>
+      </BaseModal>
 
-    <BaseModal v-model="mostrarModalDetalles" title="Detalles de Prescripción" size="lg">
+      <BaseModal v-model="mostrarModalDetalles" title="Detalles de Prescripción" size="lg">
       <div v-if="prescripcionSeleccionada" class="detalles-content">
         <div class="info-grid">
           <div><label>Nro. Receta:</label><span>{{ prescripcionSeleccionada.cod_receta }}</span></div>
@@ -727,7 +728,8 @@ td button:not(.btn-desactivar):hover {
 }
 
 .btn-add-medida {
-  padding: 4px 10px;
+  margin-top: 2rem;
+  padding: 10px 10px;
   font-size: 12px;
   background-color: #28a745;
   color: white;

@@ -77,27 +77,26 @@
 
         <div class="form-section-header-container">
             <h4 class="form-section-header">Medidas de Lentes</h4>
-            <button type="button" @click="agregarMedida" class="btn-add-medida">+ Agregar Medida</button>
         </div>
-
+        
         <div v-for="(medida, index) in medidas" :key="index" class="medida-container">
-            <div class="distancia-tipo">
-              <div class="form-group">
-                <label>TIPO / DISTANCIA</label>
-                <AutoComplete v-model="medida.tipo_lente" :options="tipoLenteOptions" placeholder="Seleccionar tipo"/>
-              </div>
+          <div class="distancia-tipo">
+            <div class="form-group">
+              <label>TIPO / DISTANCIA</label>
+              <AutoComplete v-model="medida.tipo_lente" :options="tipoLenteOptions" placeholder="Seleccionar tipo"/>
+            </div>
               <div class="form-group"><label>DIP Binocular (mm)</label><input v-model="medida.dip_lentes_binocular" type="number" step="0.01" class="form-input"/></div>
               <div class="form-group"><label>DIP OD Mono (mm)</label><input v-model="medida.dip_lentes_od_monocular" type="number" step="0.01" class="form-input"/></div>
               <div class="form-group"><label>DIP OI Mono (mm)</label><input v-model="medida.dip_lentes_oi_monocular" type="number" step="0.01" class="form-input"/></div>
               <button type="button" @click="eliminarMedida(index)" v-if="medidas.length > 1" class="btn-desactivar btn-eliminar-medida">Eliminar</button>
             </div>
-
+            
             <div class="form-column-ojos">
-                <div class="ojo-section">
-                  <h5 class="ojo-header">Ojo Derecho (OD)</h5>
-                  <div class="medidas-grid">
-                    <div class="form-row-strict">
-                      <div class="form-group"><label>ESF</label><input v-model="medida.esf_od" placeholder="ESF" class="form-input"/></div>
+              <div class="ojo-section">
+                <h5 class="ojo-header">Ojo Derecho (OD)</h5>
+                <div class="medidas-grid">
+                  <div class="form-row-strict">
+                    <div class="form-group"><label>ESF</label><input v-model="medida.esf_od" placeholder="ESF" class="form-input"/></div>
                       <div class="form-group"><label>CIL</label><input v-model="medida.cil_od" placeholder="CIL" class="form-input"/></div>
                       <div class="form-group"><label>EJE</label><input v-model="medida.eje_od" type="number" min="0" max="180" placeholder="EJE" class="form-input"/></div>
                       <div class="form-group"><label>ADIC</label><input v-model="medida.adic_od" placeholder="ADIC" class="form-input"/></div>
@@ -110,7 +109,7 @@
                 <div class="ojo-section">
                   <h5 class="ojo-header">Ojo Izquierdo (OI)</h5>
                   <div class="medidas-grid">
-                     <div class="form-row-strict">
+                    <div class="form-row-strict">
                       <div class="form-group"><label>ESF</label><input v-model="medida.esf_oi" placeholder="ESF" class="form-input"/></div>
                       <div class="form-group"><label>CIL</label><input v-model="medida.cil_oi" placeholder="CIL" class="form-input"/></div>
                       <div class="form-group"><label>EJE</label><input v-model="medida.eje_oi" type="number" min="0" max="180" placeholder="EJE" class="form-input"/></div>
@@ -121,18 +120,21 @@
                     </div>
                   </div>
                 </div>
+              </div>
             </div>
-        </div>
-
-        <h4 class="form-section-header">Observaciones Adicionales</h4>
-        <div class="form-group">
-            <textarea v-model="formData.observacion_prescripcion" placeholder="Observaciones generales..." rows="3" class="form-input"></textarea>
-        </div>
-      </form>
-      <template #footer>
-        <button @click="guardarPrescripcion" class="btn-guardar">{{ editId ? 'Actualizar' : 'Guardar' }}</button>
-        <button @click="mostrarModalFormulario = false" class="btn-cancelar">Cancelar</button>
-      </template>
+            
+            <div class="form-section-header-container">
+                <button type="button" @click="agregarMedida" class="btn-add-medida">+ Agregar Medida</button>
+            </div>
+            <h4 class="form-section-header">Notas Adicionales</h4>
+            <div class="form-group">
+              <textarea v-model="formData.observacion_prescripcion" placeholder="Observaciones generales..." rows="3" class="form-input"></textarea>
+            </div>
+          </form>
+          <template #footer>
+            <button @click="guardarPrescripcion" class="btn-guardar">{{ editId ? 'Actualizar' : 'Guardar' }}</button>
+            <button @click="mostrarModalFormulario = false" class="btn-cancelar">Cancelar</button>
+          </template>
     </BaseModal>
     <BaseModal v-model="mostrarModalDetalles" title="Detalles de Prescripción" size="lg">
        <div v-if="prescripcionSeleccionada" class="detalles-content">
@@ -454,7 +456,7 @@ td button:not(.btn-desactivar) { background: #ffc107; color: #212529; }
 .form-group { display: flex; flex-direction: column; gap: 5px; }
 .form-group label { font-weight: 500; font-size: 13px; white-space: nowrap; }
 .form-input, .form-group textarea { padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 14px; }
-.form-section-header-container { display: flex; justify-content: space-between; align-items: center; }
+.form-section-header-container { margin: 1rem ; display: flex; justify-content: space-between; align-items: center; }
 .btn-add-medida { padding: 4px 10px; font-size: 12px; background-color: #28a745; color: white; border:none; cursor: pointer; border-radius: 4px; }
 .medida-container { border: 1px solid #e9ecef; border-radius: 6px; padding: 15px; margin-top: 1rem; background-color: #fcfcfc; }
 .distancia-tipo {
