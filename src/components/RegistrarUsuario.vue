@@ -7,10 +7,10 @@
       </div>
 
       <div class="auth-toggle">
-        <button @click="modoLogin = true" :class="{ active: modoLogin }">
+        <button @click="cambiarModo(true)" :class="{ active: modoLogin }">
           Iniciar Sesión
         </button>
-        <button @click="modoLogin = false" :class="{ active: !modoLogin }">
+        <button @click="cambiarModo(false)" :class="{ active: !modoLogin }">
           Registrarse
         </button>
       </div>
@@ -20,7 +20,14 @@
         <h3>Iniciar Sesión</h3>
         <input v-model="loginData.nombre_usuario" placeholder="Nombre de usuario" type="text" ref="nameUsuario"
           required />
-        <input v-model="loginData.password" placeholder="Contraseña" type="password" required />
+        <!-- INICIO: Campo de contraseña modificado -->
+        <div class="password-container">
+          <input v-model="loginData.password" placeholder="Contraseña" :type="passwordVisible ? 'text' : 'password'" required />
+          <span class="password-toggle-icon" @click="togglePasswordVisibility">
+            {{ passwordVisible ? '🙈' : '👁️' }}
+          </span>
+        </div>
+        <!-- FIN: Campo de contraseña modificado -->
         <button type="submit">Entrar</button>
       </form>
 
@@ -30,7 +37,14 @@
         <input v-model="registerData.nombre_usuario" placeholder="Nombre de usuario" type="text" ref="nameUsuario"
           required />
         <input v-model="registerData.email_usuario" placeholder="Email" type="email" required />
-        <input v-model="registerData.password_usuario" placeholder="Contraseña" type="password" required />
+        <!-- INICIO: Campo de contraseña modificado -->
+        <div class="password-container">
+          <input v-model="registerData.password_usuario" placeholder="Contraseña" :type="passwordVisible ? 'text' : 'password'" required />
+           <span class="password-toggle-icon" @click="togglePasswordVisibility">
+            {{ passwordVisible ? '🙈' : '👁️' }}
+          </span>
+        </div>
+        <!-- FIN: Campo de contraseña modificado -->
         <select v-model="registerData.rol_usuario" required>
           <option disabled value="">Seleccionar rol</option>
           <option v-for="rol in roles" :key="rol.cod_rol" :value="rol.cod_rol">
@@ -55,7 +69,7 @@
 
 <script setup>
 
-import { ref, onMounted, onUnmounted, nextTick, computed } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { useRouter } from 'vue-router';
 import { useAuth } from '../composables/useAuth';
 import { supabase } from "../lib/supabaseClient.js";
@@ -68,6 +82,7 @@ const router = useRouter();
 const modoLogin = ref(true);
 const mensaje = ref("");
 const esError = ref(false);
+const passwordVisible = ref(false); // --- NUEVO: Estado para visibilidad de contraseña
 
 // Datos de los formularios
 const loginData = ref({
@@ -169,16 +184,28 @@ function limpiarFormularioRegistro() {
   };
 }
 
+// --- NUEVO: Función para cambiar la visibilidad de la contraseña ---
+function togglePasswordVisibility() {
+  passwordVisible.value = !passwordVisible.value;
+}
+
+// --- NUEVO: Función para cambiar entre Login/Registro y hacer focus ---
+function cambiarModo(esLogin) {
+  modoLogin.value = esLogin;
+  passwordVisible.value = false; // Resetea la visibilidad al cambiar
+  nextTick(() => {
+    nameUsuario.value?.focus();
+  });
+}
+
 // Carga los datos necesarios al montar el componente
 onMounted(async () => {
   nextTick(() => {
-    nameUsuario.value.focus();
+    nameUsuario.value?.focus();
   });
 
   await cargarRoles();
   await cargarTiendas();
-
-
 });
 </script>
 
@@ -254,7 +281,29 @@ onMounted(async () => {
   border-radius: 4px;
   font-size: 1rem;
   width: 100%;
+  box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
 }
+
+/* --- INICIO: NUEVOS ESTILOS PARA EL CAMPO DE CONTRASEÑA --- */
+.password-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-container input {
+  padding-right: 2.5rem; /* Espacio para el ícono */
+}
+
+.password-toggle-icon {
+  position: absolute;
+  right: 0.8rem;
+  cursor: pointer;
+  user-select: none; /* Evita que el texto del ícono se seleccione */
+  color: #888;
+}
+/* --- FIN: NUEVOS ESTILOS --- */
+
 
 .auth-form button {
   padding: 0.8rem;
