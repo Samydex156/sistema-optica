@@ -461,6 +461,52 @@ function onPrismaChange(medida, ojo) {
   }
 }
 
+
+/**
+ * Verifica si un código de receta ya existe en la base de datos.
+ * @param {string} codigo - El código de receta a verificar.
+ * @returns {Promise<{duplicado: boolean, cliente?: string}>} - Un objeto indicando si es un duplicado y el nombre del cliente si lo es.
+ */
+async function verificarCodigoReceta(codigo) {
+  // Si el código está vacío o es solo un guión, no se considera para la validación.
+  if (!codigo || codigo.trim() === '' || codigo.trim() === '-') {
+    return { duplicado: false };
+  }
+
+  // Inicia la consulta a la base de datos
+  let query = supabase
+    .from('prescripcion_cliente')
+    .select(`
+      cod_receta,
+      clientes:cliente (nombre_cliente, apellido_paterno_cliente)
+    `)
+    .eq('cod_receta', codigo.trim());
+
+  // Si estamos editando, debemos excluir la prescripción actual de la búsqueda.
+  if (editId.value) {
+    query = query.neq('cod_prescripcion', editId.value);
+  }
+
+  const { data, error } = await query.limit(1).single();
+
+  // Ignoramos el error 'PGRST116' que significa que no se encontraron filas.
+  if (error && error.code !== 'PGRST116') { 
+    console.error("Error al verificar el código de receta:", error);
+    throw new Error('No se pudo verificar el código de receta. Inténtelo de nuevo.');
+  }
+
+  // Si se encontraron datos, el código ya existe.
+  if (data) {
+    const clienteNombre = `${data.clientes.nombre_cliente} ${data.clientes.apellido_paterno_cliente}`.trim();
+    return { duplicado: true, cliente: clienteNombre };
+  }
+
+  // Si no se encontraron datos, el código es único.
+  return { duplicado: false };
+}
+
+
+
 // --- ACCIONES CRUD ---
 async function guardarPrescripcion() {
   if (!formData.cliente) {
@@ -471,6 +517,22 @@ async function guardarPrescripcion() {
     alert('Todas las medidas deben tener un tipo de lente seleccionado.');
     return;
   }
+
+
+// --- INICIO: VALIDACIÓN DE CÓDIGO DE RECETA DUPLICADO ---
+  try {
+    const verificacion = await verificarCodigoReceta(formData.cod_receta);
+    if (verificacion.duplicado) {
+      alert(`El código de receta "${formData.cod_receta}" ya está en uso por el cliente: ${verificacion.cliente}. Por favor, ingrese un código diferente.`);
+      return; // Detenemos la ejecución
+    }
+  } catch (error) {
+    alert(error.message);
+    return;
+  }
+  // --- FIN: VALIDACIÓN DE CÓDIGO DE RECETA DUPLICADO ---
+
+
 
   try {
     const prescripcionData = {
