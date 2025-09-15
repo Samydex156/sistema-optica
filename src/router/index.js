@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { useAuth } from "../composables/useAuth"; // 1. Importar el composable
+import { useAuth } from "../composables/useAuth"; 
 
+// Importar componentes
 import RegistrarCliente from "../components/RegistrarCliente.vue";
 import RegistrarOrdenTrabajo from "../components/RegistrarOrdenTrabajo.vue";
 import RegistrarPrescripcion from "../components/RegistrarPrescripcion.vue";
@@ -9,29 +10,39 @@ import RegistrarProducto from "../components/RegistrarProducto.vue";
 import RegistrarUsuario from "../components/RegistrarUsuario.vue";
 import GestionCaracteristicas from "../components/GestionCaracteristicas.vue";
 import PanelCliente from "../components/PanelCliente.vue";
+// 1. Importar el nuevo componente del panel principal
+import PanelPrincipal from "../components/PanelPrincipal.vue";
 
 const routes = [
   {
     path: "/",
-    redirect: "/clientes", // Redirige a una página interna por defecto si ya estás logueado
+    // 2. Redirigir a la nueva página principal por defecto
+    redirect: "/panel", 
+  },
+  {
+    // 3. Añadir la nueva ruta para el panel
+    path: "/panel",
+    name: "PanelPrincipal",
+    component: PanelPrincipal,
+    meta: { requiresAuth: true },
   },
   {
     path: "/login",
     name: "Login",
     component: RegistrarUsuario,
-    meta: { requiresAuth: false }, // 2. Esta ruta NO requiere autenticación
+    meta: { requiresAuth: false },
   },
   {
     path: "/clientes",
     name: 'GestionClientes',
     component: RegistrarCliente,
-    meta: { requiresAuth: true }, // 3. Esta y las siguientes SÍ requieren autenticación
+    meta: { requiresAuth: true },
   },
   {
-    path: "/cliente/:id", // <-- Esta es la nueva ruta dinámica
+    path: "/cliente/:id",
     name: "PanelCliente",
     component: PanelCliente,
-    props: true, // <-- Esto pasa los params de la ruta (como :id) como props al componente
+    props: true,
   },
   {
     path: "/ordenes",
@@ -53,7 +64,6 @@ const routes = [
     component: GestionCaracteristicas,
     meta: { requiresAuth: true },
   },
-
   {
     path: "/practicas",
     component: EjerciciosComputed,
@@ -66,7 +76,7 @@ const router = createRouter({
   routes,
 });
 
-// 4. Guardia de navegación GLOBAL
+// Guardia de navegación GLOBAL
 router.beforeEach((to, from, next) => {
   const { isAuthenticated } = useAuth();
   const requiresAuth = to.meta.requiresAuth;
@@ -77,9 +87,10 @@ router.beforeEach((to, from, next) => {
     next("/login");
   }
   // Si el usuario está logueado e intenta acceder a /login, lo redirigimos
-  // a la página principal.
+  // a la página principal (el nuevo panel).
   else if (!requiresAuth && isAuthenticated.value && to.path === "/login") {
-    next("/clientes");
+    // 4. Cambiar la redirección al panel
+    next("/panel");
   }
   // En cualquier otro caso, permitimos la navegación.
   else {

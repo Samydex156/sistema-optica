@@ -20,14 +20,12 @@
         <h3>Iniciar Sesión</h3>
         <input v-model="loginData.nombre_usuario" placeholder="Nombre de usuario" type="text" ref="nameUsuario"
           required />
-        <!-- INICIO: Campo de contraseña modificado -->
         <div class="password-container">
           <input v-model="loginData.password" placeholder="Contraseña" :type="passwordVisible ? 'text' : 'password'" required />
           <span class="password-toggle-icon" @click="togglePasswordVisibility">
             {{ passwordVisible ? '🙈' : '👁️' }}
           </span>
         </div>
-        <!-- FIN: Campo de contraseña modificado -->
         <button type="submit">Entrar</button>
       </form>
 
@@ -37,14 +35,12 @@
         <input v-model="registerData.nombre_usuario" placeholder="Nombre de usuario" type="text" ref="nameUsuario"
           required />
         <input v-model="registerData.email_usuario" placeholder="Email" type="email" required />
-        <!-- INICIO: Campo de contraseña modificado -->
         <div class="password-container">
           <input v-model="registerData.password_usuario" placeholder="Contraseña" :type="passwordVisible ? 'text' : 'password'" required />
            <span class="password-toggle-icon" @click="togglePasswordVisibility">
             {{ passwordVisible ? '🙈' : '👁️' }}
           </span>
         </div>
-        <!-- FIN: Campo de contraseña modificado -->
         <select v-model="registerData.rol_usuario" required>
           <option disabled value="">Seleccionar rol</option>
           <option v-for="rol in roles" :key="rol.cod_rol" :value="rol.cod_rol">
@@ -68,23 +64,19 @@
 </template>
 
 <script setup>
-
 import { ref, onMounted, nextTick } from "vue";
 import { useRouter } from 'vue-router';
 import { useAuth } from '../composables/useAuth';
 import { supabase } from "../lib/supabaseClient.js";
 
-// Lógica de autenticación y enrutamiento
 const { login } = useAuth();
 const router = useRouter();
 
-// Estados del componente
 const modoLogin = ref(true);
 const mensaje = ref("");
 const esError = ref(false);
-const passwordVisible = ref(false); // --- NUEVO: Estado para visibilidad de contraseña
+const passwordVisible = ref(false);
 
-// Datos de los formularios
 const loginData = ref({
   nombre_usuario: "",
   password: ""
@@ -98,46 +90,33 @@ const registerData = ref({
   tienda_usuario: ""
 });
 
-// Datos para los selects del formulario de registro
 const roles = ref([]);
 const tiendas = ref([]);
-
-// para inicializar el focus
 const nameUsuario = ref(null);
 
-/**
- * Inicia sesión usando la función del composable de autenticación.
- */
 async function iniciarSesion() {
   try {
-
     const usuario = await login(loginData.value.nombre_usuario, loginData.value.password);
     mostrarMensaje(`Bienvenido, ${usuario.nombre_usuario}`, false);
-    // Redirige al dashboard o página principal tras un login exitoso.
-    router.push('/clientes');
+    // Redirige al panel principal tras un login exitoso.
+    router.push('/panel'); // <-- ¡CAMBIO IMPORTANTE AQUÍ!
   } catch (error) {
     mostrarMensaje(error.message, true);
   }
-
 }
 
-/**
- * Registra un nuevo usuario en la base de datos.
- */
 async function registrarUsuario() {
-
   if (!registerData.value.password_usuario) {
     mostrarMensaje("La contraseña es obligatoria.", true);
     return;
   }
   try {
-
     const { error } = await supabase
       .from("usuarios")
       .insert({
         nombre_usuario: registerData.value.nombre_usuario,
         email_usuario: registerData.value.email_usuario,
-        password_usuario: registerData.value.password_usuario, // En un proyecto real, esto debería estar hasheado.
+        password_usuario: registerData.value.password_usuario,
         rol_usuario: parseInt(registerData.value.rol_usuario),
         tienda_usuario: registerData.value.tienda_usuario ? parseInt(registerData.value.tienda_usuario) : null
       });
@@ -148,13 +127,11 @@ async function registrarUsuario() {
 
     mostrarMensaje("Usuario registrado con éxito. Ahora puedes iniciar sesión.", false);
     limpiarFormularioRegistro();
-    modoLogin.value = true; // Cambia a la vista de login
+    modoLogin.value = true;
   } catch (error) {
     mostrarMensaje(`Error al registrar: ${error.message}`, true);
   }
 }
-
-// --- Funciones Auxiliares ---
 
 async function cargarRoles() {
   const { data } = await supabase.from("roles").select("*");
@@ -184,21 +161,18 @@ function limpiarFormularioRegistro() {
   };
 }
 
-// --- NUEVO: Función para cambiar la visibilidad de la contraseña ---
 function togglePasswordVisibility() {
   passwordVisible.value = !passwordVisible.value;
 }
 
-// --- NUEVO: Función para cambiar entre Login/Registro y hacer focus ---
 function cambiarModo(esLogin) {
   modoLogin.value = esLogin;
-  passwordVisible.value = false; // Resetea la visibilidad al cambiar
+  passwordVisible.value = false;
   nextTick(() => {
     nameUsuario.value?.focus();
   });
 }
 
-// Carga los datos necesarios al montar el componente
 onMounted(async () => {
   nextTick(() => {
     nameUsuario.value?.focus();
@@ -210,6 +184,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Los estilos se mantienen igual que en tu archivo original */
 .auth-page-container {
   display: flex;
   justify-content: center;
@@ -281,10 +256,9 @@ onMounted(async () => {
   border-radius: 4px;
   font-size: 1rem;
   width: 100%;
-  box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+  box-sizing: border-box;
 }
 
-/* --- INICIO: NUEVOS ESTILOS PARA EL CAMPO DE CONTRASEÑA --- */
 .password-container {
   position: relative;
   display: flex;
@@ -292,18 +266,16 @@ onMounted(async () => {
 }
 
 .password-container input {
-  padding-right: 2.5rem; /* Espacio para el ícono */
+  padding-right: 2.5rem;
 }
 
 .password-toggle-icon {
   position: absolute;
   right: 0.8rem;
   cursor: pointer;
-  user-select: none; /* Evita que el texto del ícono se seleccione */
+  user-select: none;
   color: #888;
 }
-/* --- FIN: NUEVOS ESTILOS --- */
-
 
 .auth-form button {
   padding: 0.8rem;
