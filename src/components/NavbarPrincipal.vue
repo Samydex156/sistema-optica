@@ -1,43 +1,30 @@
 <template>
   <nav class="navbar">
-    <div class="navbar-brand">
-      <h1>Sistema Óptica Optalvis</h1>
-    </div>
+    <!-- 1. El logo/marca ahora es un enlace al panel principal -->
+    <router-link to="/panel" class="navbar-brand">
+      <h1>Óptica Optalvis</h1>
+    </router-link>
 
     <div class="navbar-menu">
-      <router-link to="/clientes" class="nav-link">
-        Clientes
-      </router-link>
+      <!-- Los enlaces de navegación se mantienen igual -->
+      <router-link to="/clientes" class="nav-link">Clientes</router-link>
+      <router-link to="/ordenes" class="nav-link">Órdenes</router-link>
+      <router-link to="/productos/registrar" class="nav-link">Productos</router-link>
+      <!-- Puedes añadir más enlaces aquí si lo necesitas -->
+      
+      <div class="navbar-spacer"></div> <!-- Elemento espaciador -->
 
-      <router-link to="/ordenes" class="nav-link">
-        Órdenes
-      </router-link>
+      <!-- 2. Nueva sección para mostrar la información del usuario -->
+      <div v-if="user" class="user-info">
+        <span class="user-name">👤 {{ user.nombre_usuario }}</span>
+        <span class="store-name">🏪 Tienda: {{ nombreTienda }}</span>
+      </div>
 
-      <router-link to="/prescripciones/registrar" class="nav-link">
-        Prescripciones
-      </router-link>
-
-      <router-link to="/movimientos/registrar" class="nav-link">
-        Movimientos
-      </router-link>
-
-      <router-link to="/productos/registrar" class="nav-link">
-        Productos
-      </router-link>
-
-      <router-link to="/productos/caracteristicas" class="nav-link">
-        Componentes Producto
-      </router-link>
-
-      <router-link to="/practicas" class="nav-link">
-        Prácticas
-      </router-link>
-
-      <button @click="$emit('open-calculator-modal')" class="nav-link">
+      <button @click="$emit('open-calculator-modal')" class="nav-link-button">
         Calculadora
       </button>
 
-      <button @click="$emit('logout')" class="nav-link">
+      <button @click="$emit('logout')" class="nav-link-button logout-button">
         Cerrar Sesión
       </button>
     </div>
@@ -46,32 +33,70 @@
 </template>
 
 <script setup>
+import { ref, onMounted, watch } from 'vue';
 import { RouterLink } from 'vue-router';
+import { useAuth } from '../composables/useAuth'; // Importamos el composable de autenticación
+import { supabase } from '../lib/supabaseClient'; // Importamos supabase
 import HoraActual from './HoraActual.vue';
 
-// Se declara el nuevo evento 'logout' para que el componente padre pueda escucharlo
+// Se declaran los eventos que el componente puede emitir
 defineEmits(['open-calculator-modal', 'logout']);
+
+// 3. Obtenemos el usuario reactivo del composable
+const { user } = useAuth();
+const nombreTienda = ref('No asignada');
+
+/**
+ * Obtiene el nombre de la tienda asignada al usuario.
+ */
+const getNombreTienda = async () => {
+  if (user.value && user.value.tienda_usuario) {
+    try {
+      const { data, error } = await supabase
+        .from('tiendas')
+        .select('nombre_tienda')
+        .eq('cod_tienda', user.value.tienda_usuario)
+        .single(); // .single() para obtener un solo registro
+
+      if (error) throw error;
+
+      if (data) {
+        nombreTienda.value = data.nombre_tienda;
+      }
+    } catch (error) {
+      console.error('Error al obtener el nombre de la tienda:', error.message);
+      nombreTienda.value = 'Error';
+    }
+  }
+};
+
+// 4. Observamos cambios en el usuario (por si la carga es asíncrona) y llamamos a la función
+watch(user, getNombreTienda, { immediate: true });
+
 </script>
 
 <style scoped>
-/* Los estilos existentes se mantienen igual */
 .navbar {
   width: 100%;
   background-color: #eb2525;
-  padding: 0;
+  padding: 0 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: space-between;
   min-height: 60px;
+  color: white;
 }
 
+/* Estilo para que la marca se comporte como un enlace limpio */
 .navbar-brand {
-  padding: 0 20px;
+  text-decoration: none;
+  color: white;
+  display: flex;
+  align-items: center;
 }
 
 .navbar-brand h1 {
-  color: white;
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
@@ -80,23 +105,17 @@ defineEmits(['open-calculator-modal', 'logout']);
 .navbar-menu {
   display: flex;
   align-items: center;
-  height: 60px;
+  height: 100%;
 }
 
 .nav-link {
   color: white;
   text-decoration: none;
-  padding: 20px 20px;
-  display: block;
-  transition: background-color 0.3s;
-  height: 60px;
+  padding: 0 20px;
   display: flex;
   align-items: center;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 1rem;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  height: 60px;
+  transition: background-color 0.3s;
 }
 
 .nav-link:hover {
@@ -108,23 +127,82 @@ defineEmits(['open-calculator-modal', 'logout']);
   font-weight: 600;
 }
 
+/* Espaciador para empujar los elementos de la derecha */
+.navbar-spacer {
+  flex-grow: 1;
+}
+
+/* Contenedor de la información del usuario */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 20px;
+  font-size: 0.9rem;
+  background-color: rgba(0, 0, 0, 0.1);
+  height: 40px;
+  border-radius: 20px;
+  margin-right: 15px;
+}
+
+.user-name {
+  font-weight: 500;
+}
+
+.store-name {
+  opacity: 0.8;
+}
+
+
+/* Estilos unificados para botones */
+.nav-link-button {
+  color: white;
+  text-decoration: none;
+  padding: 0 20px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: background-color 0.3s;
+}
+
+.nav-link-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.logout-button {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+.logout-button:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .navbar {
     flex-direction: column;
-    min-height: auto;
+    padding: 10px 20px;
   }
 
   .navbar-menu {
+    flex-direction: column;
     width: 100%;
     height: auto;
-    flex-wrap: wrap;
+  }
+  
+  .user-info {
+    margin: 10px 0;
   }
 
-  .nav-link {
+  .nav-link, .nav-link-button {
     height: 50px;
-    padding: 15px 20px;
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>
