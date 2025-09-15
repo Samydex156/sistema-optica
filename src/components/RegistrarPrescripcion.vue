@@ -58,6 +58,7 @@
       <p>No se encontraron prescripciones que coincidan con los filtros.</p>
     </div>
 
+    <!-- Modal para crear/editar prescripción -->
     <BaseModal v-model="mostrarModalFormulario" :title="tituloModalFormulario" size="lg">
       <form @submit.prevent="guardarPrescripcion" class="form-container">
         <h4 class="form-section-header">Información General</h4>
@@ -73,8 +74,17 @@
           </div>
           <div class="form-group">
             <label>Doctor Prescriptor:</label>
-            <AutoComplete v-model="formData.doctor_prescriptor" :options="doctoresOptions"
-              placeholder="Seleccionar doctor" />
+            <!-- --- INICIO: MODIFICACIÓN PARA AGREGAR DOCTOR --- -->
+            <div class="autocomplete-container">
+              <AutoComplete 
+                v-model="formData.doctor_prescriptor" 
+                :options="doctoresOptions"
+                placeholder="Seleccionar o escribir nuevo doctor"
+                @search-input="handleDoctorSearch"
+              />
+              <button type="button" @click="abrirModalNuevoDoctor" class="btn-add-inline" title="Agregar nuevo doctor">+</button>
+            </div>
+            <!-- --- FIN: MODIFICACIÓN PARA AGREGAR DOCTOR --- -->
           </div>
           <div class="form-group">
             <label>Fecha de Prescripción:</label>
@@ -160,6 +170,7 @@
         </template>
       </BaseModal>
 
+      <!-- Modal para detalles de prescripción -->
       <BaseModal v-model="mostrarModalDetalles" title="Detalles de Prescripción" size="lg">
       <div v-if="prescripcionSeleccionada" class="detalles-content">
         <div class="info-grid">
@@ -221,6 +232,29 @@
         <button @click="mostrarModalDetalles = false" class="btn-cancelar">Cerrar</button>
       </template>
     </BaseModal>
+    
+    <!-- --- INICIO: NUEVO MODAL PARA AGREGAR DOCTOR --- -->
+    <BaseModal v-model="mostrarModalNuevoDoctor" title="Registrar Nuevo Doctor">
+      <form @submit.prevent="guardarNuevoDoctor" class="form-container">
+        <div class="form-group">
+          <label for="nombre_doctor">Nombre Completo:</label>
+          <input id="nombre_doctor" v-model="nuevoDoctorData.nombre_doctor" required placeholder="Nombre del Doctor" class="filtro-input"/>
+        </div>
+        <div class="form-group">
+          <label for="telefono_doctor">Teléfono:</label>
+          <input id="telefono_doctor" v-model="nuevoDoctorData.telefono_doctor" placeholder="Teléfono (opcional)" class="filtro-input"/>
+        </div>
+        <div class="form-group">
+          <label for="especialidad_doctor">Especialidad:</label>
+          <input id="especialidad_doctor" v-model="nuevoDoctorData.especialidad_doctor" placeholder="Especialidad (opcional)" class="filtro-input"/>
+        </div>
+      </form>
+      <template #footer>
+        <button @click="guardarNuevoDoctor" class="btn-guardar">Guardar Doctor</button>
+        <button @click="mostrarModalNuevoDoctor = false" class="btn-cancelar">Cancelar</button>
+      </template>
+    </BaseModal>
+    <!-- --- FIN: NUEVO MODAL PARA AGREGAR DOCTOR --- -->
 
   </div>
 </template>
@@ -271,6 +305,18 @@ const getMedidaInicial = () => ({
   dip_lentes_binocular: null, dip_lentes_od_monocular: null, dip_lentes_oi_monocular: null
 });
 
+
+// --- NUEVO: ESTADO PARA EL MODAL DE NUEVO DOCTOR ---
+const mostrarModalNuevoDoctor = ref(false);
+const nuevoDoctorData = reactive({
+  nombre_doctor: '',
+  telefono_doctor: '',
+  especialidad_doctor: '',
+});
+const doctorSearchText = ref('');
+// --- FIN: NUEVO ESTADO ---
+
+
 // --- PROPIEDADES COMPUTADAS ---
 const tituloModalFormulario = computed(() => editId.value ? 'Editar Prescripción' : 'Registrar Nueva Prescripción');
 
@@ -302,7 +348,6 @@ const baseOptions = ref([{ value: 'NASAL', label: 'NASAL' }, { value: 'TEMPORAL'
 async function cargarPrescripciones() {
   cargando.value = true;
   try {
-    // 1. Obtener prescripciones con datos de cliente y doctor
     const { data: presData, error: presError } = await supabase
       .from('prescripcion_cliente')
       .select(`
@@ -313,15 +358,13 @@ async function cargarPrescripciones() {
       .order('fecha_prescripcion', { ascending: false });
 
     if (presError) throw presError;
-
-    // 2. Obtener todas las medidas de lentes
+    
     const { data: medidasData, error: medidasError } = await supabase
       .from('medida_lente')
       .select('prescripcion, tipo_lente');
 
     if (medidasError) throw medidasError;
 
-    // 3. Mapear las medidas a cada prescripción
     const medidasPorPrescripcion = medidasData.reduce((acc, medida) => {
       if (!acc[medida.prescripcion]) {
         acc[medida.prescripcion] = new Set();
@@ -330,7 +373,6 @@ async function cargarPrescripciones() {
       return acc;
     }, {});
 
-    // 4. Combinar todos los datos
     prescripciones.value = presData.map(p => ({
       ...p,
       cliente_nombre: p.clientes ? `${p.clientes.nombre_cliente} ${p.clientes.apellido_paterno_cliente}`.trim() : 'N/A',
@@ -501,6 +543,67 @@ async function eliminarPrescripcion(id) {
   }
 }
 
+// --- INICIO: NUEVAS FUNCIONES PARA GESTIONAR DOCTORES ---
+/**
+ * Captura el texto de búsqueda del componente AutoComplete.
+ * NOTA: Tu componente AutoComplete.vue debe emitir este evento.
+ * Ejemplo en AutoComplete.vue: emits: ['update:modelValue', 'searchInput']
+ * y al teclear: emit('searchInput', textoActual)
+ */
+function handleDoctorSearch(searchText) {
+  doctorSearchText.value = searchText;
+}
+
+function abrirModalNuevoDoctor() {
+  // Limpiar formulario de nuevo doctor
+  Object.assign(nuevoDoctorData, { nombre_doctor: '', telefono_doctor: '', especialidad_doctor: ''});
+  
+  // Pre-llenar con el texto de búsqueda si no es un doctor existente
+  const esDoctorExistente = doctores.value.some(d => d.nombre_doctor.toLowerCase() === doctorSearchText.value.toLowerCase());
+  if (doctorSearchText.value && !esDoctorExistente) {
+    nuevoDoctorData.nombre_doctor = doctorSearchText.value;
+  }
+  
+  mostrarModalNuevoDoctor.value = true;
+}
+
+async function guardarNuevoDoctor() {
+  if (!nuevoDoctorData.nombre_doctor.trim()) {
+    alert('El nombre del doctor no puede estar vacío.');
+    return;
+  }
+
+  try {
+    const { data: nuevoDoctor, error } = await supabase
+      .from('doctores')
+      .insert({
+        nombre_doctor: nuevoDoctorData.nombre_doctor.trim(),
+        telefono_doctor: nuevoDoctorData.telefono_doctor.trim() || '-',
+        especialidad_doctor: nuevoDoctorData.especialidad_doctor.trim() || '-'
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Agregar a la lista local para que esté disponible inmediatamente
+    doctores.value.push(nuevoDoctor);
+    // Opcional: re-ordenar la lista
+    doctores.value.sort((a, b) => a.nombre_doctor.localeCompare(b.nombre_doctor));
+    
+    // Seleccionar automáticamente el doctor recién creado
+    formData.doctor_prescriptor = nuevoDoctor.cod_doctor;
+
+    alert('Doctor guardado exitosamente.');
+    mostrarModalNuevoDoctor.value = false;
+
+  } catch (error) {
+    alert('Error al guardar el doctor: ' + error.message);
+  }
+}
+// --- FIN: NUEVAS FUNCIONES ---
+
+
 // --- FUNCIONES AUXILIARES ---
 const prepararDatosMedida = (medida) => ({
   tipo_lente: medida.tipo_lente,
@@ -570,6 +673,7 @@ button {
   border: 1px solid #ced4da;
   border-radius: 4px;
   font-size: 14px;
+  height: 38px;
 }
 
 .filtro-input {
@@ -663,6 +767,9 @@ td button:not(.btn-desactivar):hover {
 /* ESTILOS PARA EL FORMULARIO EN EL MODAL */
 .form-container {
   padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .form-section-header {
@@ -678,13 +785,11 @@ td button:not(.btn-desactivar):hover {
   margin-top: 0;
 }
 
-/* INICIO: CAMBIO DE CSS PARA FORMULARIO */
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* Fila estricta de 4 columnas */
+  grid-template-columns: repeat(4, 1fr);
   gap: 15px;
 }
-/* FIN: CAMBIO DE CSS PARA FORMULARIO */
 
 .form-group {
   display: flex;
@@ -702,7 +807,7 @@ td button:not(.btn-desactivar):hover {
 .form-group label {
   font-weight: 500;
   color: #333;
-  font-size: 13px; /* Un poco más pequeño para caber mejor */
+  font-size: 13px;
   white-space: nowrap;
 }
 
@@ -776,14 +881,12 @@ td button:not(.btn-desactivar):hover {
   gap: 15px;
 }
 
-/* INICIO: NUEVO ESTILO PARA FILA DE MEDIDAS ESTRICTA */
 .form-row-strict {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 10px;
   align-items: end;
 }
-/* FIN: NUEVO ESTILO */
 
 .btn-guardar {
   background: #007bff;
@@ -794,6 +897,37 @@ td button:not(.btn-desactivar):hover {
   background: #6c757d;
   color: white;
 }
+
+/* --- INICIO: NUEVOS ESTILOS PARA EL BOTÓN DE AGREGAR --- */
+.autocomplete-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.autocomplete-container > :first-child {
+    flex-grow: 1;
+}
+
+.btn-add-inline {
+  padding: 0;
+  width: 38px;
+  height: 38px;
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 38px;
+  text-align: center;
+  background-color: #28a745;
+  color: white;
+  border-radius: 4px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.btn-add-inline:hover {
+    background-color: #218838;
+}
+/* --- FIN: NUEVOS ESTILOS --- */
+
 
 /* ESTILOS PARA MODAL DE DETALLES */
 .detalles-content .info-grid {
@@ -876,7 +1010,6 @@ td button:not(.btn-desactivar):hover {
 
 /* RESPONSIVIDAD */
 @media (max-width: 1200px) {
-    /* En pantallas un poco más pequeñas, permitimos que las medidas de los ojos se dividan */
     .form-row-strict {
         grid-template-columns: repeat(4, 1fr);
     }
@@ -887,7 +1020,7 @@ td button:not(.btn-desactivar):hover {
     grid-template-columns: 1fr;
   }
   .form-grid {
-    grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablets */
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -899,7 +1032,7 @@ td button:not(.btn-desactivar):hover {
 
   .form-grid,
   .form-row-strict {
-    grid-template-columns: 1fr; /* 1 columna en móviles */
+    grid-template-columns: 1fr;
   }
 }
 </style>
