@@ -2,7 +2,7 @@
   <div class="dashboard-container">
     <header class="dashboard-header">
       <h1>Panel Principal</h1>
-      <p>Seleccione un módulo para comenzar a trabajar.</p>
+      <p>Seleccione un módulo para iniciar operaciones.</p>
     </header>
     <div class="modules-grid">
       <!-- Tarjeta para Inventarios -->
@@ -20,7 +20,7 @@
           👥
         </div>
         <h2>Clientes</h2>
-        <p>Administración de la cartera de clientes.</p>
+        <p>Gestión y registro de Recetas médicas de Clientes.</p>
       </div>
 
       <!-- Tarjeta para Caja -->
@@ -29,7 +29,7 @@
           🛒
         </div>
         <h2>Caja</h2>
-        <p>Registro de órdenes de trabajo.</p>
+        <p>Registro de órdenes de trabajo y pagos.</p>
       </div>
     </div>
   </div>
