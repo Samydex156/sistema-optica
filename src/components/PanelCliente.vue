@@ -53,8 +53,7 @@
       </div>
     </div>
 
-    <!-- Modal para crear/editar prescripción -->
-    <BaseModal v-model="mostrarModalFormulario" :title="tituloModalFormulario" size="lg">
+    <BaseModal v-model="mostrarModalFormulario" :title="tituloModalFormulario" size="xl">
       <form @submit.prevent="guardarPrescripcion" class="form-container">
         <h4 class="form-section-header">Información General</h4>
         <div class="form-grid">
@@ -68,7 +67,6 @@
             </div>
             <div class="form-group">
                 <label>Doctor Prescriptor:</label>
-                <!-- --- INICIO: MODIFICACIÓN PARA AGREGAR DOCTOR --- -->
                 <div class="autocomplete-container">
                   <AutoComplete 
                     v-model="formData.doctor_prescriptor" 
@@ -78,7 +76,6 @@
                   />
                   <button type="button" @click="abrirModalNuevoDoctor" class="btn-add-inline" title="Agregar nuevo doctor">+</button>
                 </div>
-                <!-- --- FIN: MODIFICACIÓN PARA AGREGAR DOCTOR --- -->
             </div>
             <div class="form-group">
                 <label>Fecha de Prescripción:</label>
@@ -94,61 +91,93 @@
           <div class="distancia-tipo">
             <div class="form-group">
               <label>TIPO / DISTANCIA</label>
-              <AutoComplete v-model="medida.tipo_lente" :options="tipoLenteOptions" placeholder="Seleccionar tipo"/>
+              <AutoComplete v-model="medida.tipo_lente" :options="tipoLenteDistanciaOptions" placeholder="Seleccionar tipo"/>
             </div>
-              <div class="form-group"><label>DIP Binocular (mm)</label><input v-model="medida.dip_lentes_binocular" type="number" step="0.01" class="form-input"/></div>
-              <div class="form-group"><label>DIP OD Mono (mm)</label><input v-model="medida.dip_lentes_od_monocular" type="number" step="0.01" class="form-input"/></div>
-              <div class="form-group"><label>DIP OI Mono (mm)</label><input v-model="medida.dip_lentes_oi_monocular" type="number" step="0.01" class="form-input"/></div>
-              <button type="button" @click="eliminarMedida(index)" v-if="medidas.length > 1" class="btn-desactivar btn-eliminar-medida">Eliminar</button>
-            </div>
-            
-            <div class="form-column-ojos">
+            <div class="form-group"><label>DIP Binocular (mm)</label><input v-model="medida.dip_lentes_binocular" type="number" step="0.01" class="form-input"/></div>
+            <div class="form-group"><label>DIP OD Mono (mm)</label><input v-model="medida.dip_lentes_od_monocular" type="number" step="0.01" class="form-input"/></div>
+            <div class="form-group"><label>DIP OI Mono (mm)</label><input v-model="medida.dip_lentes_oi_monocular" type="number" step="0.01" class="form-input"/></div>
+            <button type="button" @click="eliminarMedida(index)" v-if="medidas.length > 1" class="btn-desactivar btn-eliminar-medida">Eliminar</button>
+          </div>
+          <div class="form-column-ojos">
               <div class="ojo-section">
                 <h5 class="ojo-header">Ojo Derecho (OD)</h5>
                 <div class="medidas-grid">
                   <div class="form-row-strict">
                     <div class="form-group"><label>ESF</label><input v-model="medida.esf_od" placeholder="ESF" class="form-input"/></div>
-                      <div class="form-group"><label>CIL</label><input v-model="medida.cil_od" placeholder="CIL" class="form-input"/></div>
-                      <div class="form-group"><label>EJE</label><input v-model="medida.eje_od" type="number" min="0" max="180" placeholder="EJE" class="form-input"/></div>
-                      <div class="form-group"><label>ADIC</label><input v-model="medida.adic_od" placeholder="ADIC" class="form-input"/></div>
-                      <div class="form-group"><label>PRISMA</label><input v-model="medida.prisma_od" placeholder="PRISMA" @input="onPrismaChange(medida, 'od')" class="form-input"/></div>
-                      <div class="form-group"><label>BASE</label><AutoComplete v-model="medida.base_od" :options="baseOptions" placeholder="Base" :disabled="!medida.prisma_od || medida.prisma_od === '0.00'"/></div>
-                      <div class="form-group"><label>ALTURA</label><input v-model="medida.altura_od" placeholder="ALTURA" class="form-input"/></div>
-                    </div>
-                  </div>
-                </div>
-                <div class="ojo-section">
-                  <h5 class="ojo-header">Ojo Izquierdo (OI)</h5>
-                  <div class="medidas-grid">
-                    <div class="form-row-strict">
-                      <div class="form-group"><label>ESF</label><input v-model="medida.esf_oi" placeholder="ESF" class="form-input"/></div>
-                      <div class="form-group"><label>CIL</label><input v-model="medida.cil_oi" placeholder="CIL" class="form-input"/></div>
-                      <div class="form-group"><label>EJE</label><input v-model="medida.eje_oi" type="number" min="0" max="180" placeholder="EJE" class="form-input"/></div>
-                      <div class="form-group"><label>ADIC</label><input v-model="medida.adic_oi" placeholder="ADIC" class="form-input"/></div>
-                      <div class="form-group"><label>PRISMA</label><input v-model="medida.prisma_oi" placeholder="PRISMA" @input="onPrismaChange(medida, 'oi')" class="form-input"/></div>
-                      <div class="form-group"><label>BASE</label><AutoComplete v-model="medida.base_oi" :options="baseOptions" placeholder="Base" :disabled="!medida.prisma_oi || medida.prisma_oi === '0.00'"/></div>
-                      <div class="form-group"><label>ALTURA</label><input v-model="medida.altura_oi" placeholder="ALTURA" class="form-input"/></div>
-                    </div>
+                    <div class="form-group"><label>CIL</label><input v-model="medida.cil_od" placeholder="CIL" class="form-input"/></div>
+                    <div class="form-group"><label>EJE</label><input v-model="medida.eje_od" type="number" min="0" max="180" placeholder="EJE" class="form-input"/></div>
+                    <div class="form-group"><label>ADIC</label><input v-model="medida.adic_od" placeholder="ADIC" class="form-input"/></div>
+                    <div class="form-group"><label>PRISMA</label><input v-model="medida.prisma_od" placeholder="PRISMA" @input="onPrismaChange(medida, 'od')" class="form-input"/></div>
+                    <div class="form-group"><label>BASE</label><AutoComplete v-model="medida.base_od" :options="baseOptions" placeholder="Base" :disabled="!medida.prisma_od || medida.prisma_od === '0.00'"/></div>
+                    <div class="form-group"><label>ALTURA</label><input v-model="medida.altura_od" placeholder="ALTURA" class="form-input"/></div>
                   </div>
                 </div>
               </div>
-            </div>
+              <div class="ojo-section">
+                <h5 class="ojo-header">Ojo Izquierdo (OI)</h5>
+                <div class="medidas-grid">
+                  <div class="form-row-strict">
+                    <div class="form-group"><label>ESF</label><input v-model="medida.esf_oi" placeholder="ESF" class="form-input"/></div>
+                    <div class="form-group"><label>CIL</label><input v-model="medida.cil_oi" placeholder="CIL" class="form-input"/></div>
+                    <div class="form-group"><label>EJE</label><input v-model="medida.eje_oi" type="number" min="0" max="180" placeholder="EJE" class="form-input"/></div>
+                    <div class="form-group"><label>ADIC</label><input v-model="medida.adic_oi" placeholder="ADIC" class="form-input"/></div>
+                    <div class="form-group"><label>PRISMA</label><input v-model="medida.prisma_oi" placeholder="PRISMA" @input="onPrismaChange(medida, 'oi')" class="form-input"/></div>
+                    <div class="form-group"><label>BASE</label><AutoComplete v-model="medida.base_oi" :options="baseOptions" placeholder="Base" :disabled="!medida.prisma_oi || medida.prisma_oi === '0.00'"/></div>
+                    <div class="form-group"><label>ALTURA</label><input v-model="medida.altura_oi" placeholder="ALTURA" class="form-input"/></div>
+                  </div>
+                </div>
+              </div>
+          </div>
             
-            <div class="form-section-header-container">
-                <button type="button" @click="agregarMedida" class="btn-add-medida">+ Agregar Medida</button>
+          <div class="cristal-section">
+            <h5 class="cristal-header">Detalles del Cristal y Tratamientos</h5>
+            <div class="cristal-grid">
+                <div class="form-group">
+                    <label>Cantidad</label>
+                    <input v-model.number="medida.cantidad" type="number" min="1" class="form-input"/>
+                </div>
+                <div class="form-group">
+                    <label>Material</label>
+                    <AutoComplete v-model="medida.cod_material_cristal" :options="materialesOptions" placeholder="Seleccionar material"/>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Cristal</label>
+                    <AutoComplete v-model="medida.cod_tipo_lente" :options="tiposLenteOptions" placeholder="Seleccionar tipo"/>
+                </div>
+                <div class="form-group form-group-span-2">
+                    <label>Tratamientos</label>
+                    <MultiSelect 
+                        v-model="medida.tratamientos_seleccionados" 
+                        :options="tratamientosOptions"
+                        placeholder="Seleccionar tratamientos"
+                    />
+                </div>
+                 <div class="form-group">
+                    <label>Color</label>
+                    <AutoComplete v-model="medida.cod_color_cristal" :options="coloresOptions" placeholder="Seleccionar color"/>
+                </div>
+                <div class="form-group">
+                    <label>Nro. de Sobre</label>
+                    <input v-model="medida.nro_sobre" placeholder="Ej. S-456" class="form-input"/>
+                </div>
             </div>
-            <h4 class="form-section-header">Notas Adicionales</h4>
-            <div class="form-group">
-              <textarea v-model="formData.observacion_prescripcion" placeholder="Observaciones generales..." rows="3" class="form-input"></textarea>
-            </div>
-          </form>
-          <template #footer>
-            <button @click="guardarPrescripcion" class="btn-guardar">{{ editId ? 'Actualizar' : 'Guardar' }}</button>
-            <button @click="mostrarModalFormulario = false" class="btn-cancelar">Cancelar</button>
-          </template>
+          </div>
+        </div>
+            
+        <div class="form-section-header-container">
+            <button type="button" @click="agregarMedida" class="btn-add-medida">+ Agregar Medida</button>
+        </div>
+        <h4 class="form-section-header">Notas Adicionales</h4>
+        <div class="form-group">
+          <textarea v-model="formData.observacion_prescripcion" placeholder="Observaciones generales..." rows="3" class="form-input"></textarea>
+        </div>
+      </form>
+      <template #footer>
+        <button @click="guardarPrescripcion" class="btn-guardar">{{ editId ? 'Actualizar' : 'Guardar' }}</button>
+        <button @click="mostrarModalFormulario = false" class="btn-cancelar">Cancelar</button>
+      </template>
     </BaseModal>
 
-    <!-- Modal para detalles -->
     <BaseModal v-model="mostrarModalDetalles" title="Detalles de Prescripción" size="lg">
        <div v-if="prescripcionSeleccionada" class="detalles-content">
         <div class="info-grid">
@@ -163,8 +192,8 @@
         </div>
 
         <div class="medidas-section-detalle">
-            <h4>Medidas de Lentes</h4>
-            <div v-if="cargandoMedidas" class="loading">Cargando medidas...</div>
+            <h4>Medidas de Lentes y Cristales</h4>
+            <div v-if="cargandoMedidas" class="loading">Cargando detalles...</div>
             <div v-else-if="medidasModal.length > 0">
               <div v-for="medida in medidasModal" :key="medida.cod_medida_lente" class="medida-detalle-item">
                   <div class="medida-header-detalle"><span>{{ medida.tipo_lente }}</span></div>
@@ -186,7 +215,25 @@
                       <h6>DIP (mm):</h6>
                       <p><span>Binocular:</span> {{ medida.dip_lentes_binocular || 'N/A' }} | <span>OD Mono:</span> {{ medida.dip_lentes_od_monocular || 'N/A' }} | <span>OI Mono:</span> {{ medida.dip_lentes_oi_monocular || 'N/A' }}</p>
                   </div>
-              </div>
+                  <div class="cristal-detalle" v-if="medida.cristal && medida.cristal.cod_cristal_medida">
+                      <h6>Detalles del Cristal:</h6>
+                      <p>
+                          <span>Cantidad:</span> {{ medida.cristal.cantidad || 'N/A' }} |
+                          <span>Tipo:</span> {{ medida.cristal.tipo_lente?.nombre_tipo_lente || 'N/A' }} |
+                          <span>Material:</span> {{ medida.cristal.material_cristal?.nombre_material || 'N/A' }} |
+                          <span>Color:</span> {{ medida.cristal.color_cristal?.nombre_color || 'N/A' }} |
+                          <span>Sobre:</span> {{ medida.cristal.nro_sobre || 'N/A' }}
+                      </p>
+                      <div v-if="medida.tratamientos && medida.tratamientos.length > 0" class="tratamientos-detalle">
+                        <strong>Tratamientos:</strong>
+                        <span>{{ medida.tratamientos.map(t => t.tratamientos.nombre_tratamiento).join(', ') }}</span>
+                      </div>
+                      <div v-if="medida.cristal.descripcion_cristal" class="descripcion-detalle">
+                          <strong>Descripción:</strong>
+                          <p>{{ medida.cristal.descripcion_cristal }}</p>
+                      </div>
+                  </div>
+                  </div>
             </div>
             <div v-else class="sin-resultados"><p>No hay medidas registradas para esta prescripción.</p></div>
         </div>
@@ -196,7 +243,6 @@
         </template>
     </BaseModal>
 
-    <!-- --- INICIO: NUEVO MODAL PARA AGREGAR DOCTOR --- -->
     <BaseModal v-model="mostrarModalNuevoDoctor" title="Registrar Nuevo Doctor">
       <form @submit.prevent="guardarNuevoDoctor" class="form-container">
         <div class="form-group">
@@ -217,7 +263,6 @@
         <button @click="mostrarModalNuevoDoctor = false" class="btn-cancelar">Cancelar</button>
       </template>
     </BaseModal>
-    <!-- --- FIN: NUEVO MODAL PARA AGREGAR DOCTOR --- -->
 
   </div>
 </template>
@@ -228,6 +273,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { supabase } from '../lib/supabaseClient';
 import BaseModal from './BaseModal.vue';
 import AutoComplete from './Autocomplete.vue';
+import MultiSelect from './MultiSelect.vue'; // Asumimos que este componente existe
 
 const route = useRoute();
 const router = useRouter();
@@ -238,12 +284,15 @@ const cargandoPrescripciones = ref(false);
 const prescripcionesCliente = ref([]);
 const doctores = ref([]);
 
+// --- ESTADOS PARA DATOS DE CRISTALES Y TRATAMIENTOS ---
+const materiales = ref([]);
+const colores = ref([]);
+const tiposLente = ref([]);
+const tratamientos = ref([]);
+
 const mostrarModalFormulario = ref(false);
 const editId = ref(null);
-
-// --- INICIO: Referencia para el input de receta ---
 const recetaInputRef = ref(null);
-// --- FIN: Referencia para el input de receta ---
 
 const mostrarModalDetalles = ref(false);
 const prescripcionSeleccionada = ref(null);
@@ -259,7 +308,6 @@ const formData = reactive({
 
 const medidas = ref([]);
 
-// --- NUEVO: ESTADO PARA EL MODAL DE NUEVO DOCTOR ---
 const mostrarModalNuevoDoctor = ref(false);
 const nuevoDoctorData = reactive({
   nombre_doctor: '',
@@ -267,20 +315,38 @@ const nuevoDoctorData = reactive({
   especialidad_doctor: '',
 });
 const doctorSearchText = ref('');
-// --- FIN: NUEVO ESTADO ---
 
 const getMedidaInicial = () => ({
+  // Campos de medida_lente
   tipo_lente: '', esf_od: '', cil_od: '', eje_od: 0, prisma_od: '0.00', base_od: null, altura_od: '', adic_od: '',
   esf_oi: '', cil_oi: '', eje_oi: 0, prisma_oi: '0.00', base_oi: null, altura_oi: '', adic_oi: '',
-  dip_lentes_binocular: null, dip_lentes_od_monocular: null, dip_lentes_oi_monocular: null
+  dip_lentes_binocular: null, dip_lentes_od_monocular: null, dip_lentes_oi_monocular: null,
+
+  // Campos de cristal_medida
+  cod_cristal_medida: null, // Para seguimiento en la edición
+  cantidad: 2, // Valor por defecto para cantidad
+  cod_material_cristal: null,
+  cod_color_cristal: null,
+  cod_tipo_lente: null,
+  nro_sobre: '',
+
+  // Campos para tratamientos (Many-to-Many)
+  tratamientos_seleccionados: [], // Array de IDs de tratamientos
 });
 
 const tituloModalFormulario = computed(() => editId.value ? 'Editar Prescripción' : 'Registrar Nueva Prescripción');
 const clienteNombreCompleto = computed(() => cliente.value ? `${cliente.value.nombre_cliente} ${cliente.value.apellido_paterno_cliente}`.trim() : '');
 const doctoresOptions = computed(() => doctores.value.map(d => ({ value: d.cod_doctor, label: d.nombre_doctor })));
-const tipoLenteOptions = ref([ { value: 'LEJOS', label: 'LEJOS' }, { value: 'CERCA', label: 'CERCA' }, { value: 'PROGRESIVO', label: 'PROGRESIVO' }, { value: 'INTERMEDIO', label: 'INTERMEDIO' } ]);
+
+const materialesOptions = computed(() => materiales.value.map(m => ({ value: m.cod_material_cristal, label: m.nombre_material })));
+const coloresOptions = computed(() => colores.value.map(c => ({ value: c.cod_color_cristal, label: c.nombre_color })));
+const tiposLenteOptions = computed(() => tiposLente.value.map(t => ({ value: t.id_tipo_lente, label: t.nombre_tipo_lente })));
+const tratamientosOptions = computed(() => tratamientos.value.map(t => ({ value: t.cod_tratamiento, label: t.nombre_tratamiento })));
+
+const tipoLenteDistanciaOptions = ref([ { value: 'LEJOS', label: 'LEJOS' }, { value: 'CERCA', label: 'CERCA' }, { value: 'PROGRESIVO', label: 'PROGRESIVO' }, { value: 'INTERMEDIO', label: 'INTERMEDIO' } ]);
 const baseOptions = ref([ { value: 'NASAL', label: 'NASAL' }, { value: 'TEMPORAL', label: 'TEMPORAL' }, { value: 'SUPERIOR', label: 'SUPERIOR' }, { value: 'INFERIOR', label: 'INFERIOR' } ]);
 
+// --- FUNCIONES DE CARGA DE DATOS ---
 async function getCliente() {
   const { data, error } = await supabase.from('clientes').select('*').eq('cod_cliente', clienteId.value).single();
   if (error) console.error("Error al obtener el cliente:", error);
@@ -311,38 +377,70 @@ async function cargarDoctores() {
   doctores.value = data || [];
 }
 
+async function cargarMateriales() {
+    const { data } = await supabase.from('material_cristal').select('*').order('nombre_material');
+    materiales.value = data || [];
+}
+async function cargarColores() {
+    const { data } = await supabase.from('color_cristal').select('*').order('nombre_color');
+    colores.value = data || [];
+}
+async function cargarTiposLente() {
+    const { data } = await supabase.from('tipo_lente').select('*').order('nombre_tipo_lente');
+    tiposLente.value = data || [];
+}
+
+async function cargarTratamientos() {
+    const { data } = await supabase.from('tratamientos').select('*').order('nombre_tratamiento');
+    tratamientos.value = data || [];
+}
+
 async function cargarMedidasParaModal(codPrescripcion) {
     cargandoMedidas.value = true;
     medidasModal.value = [];
     try {
-        const { data, error } = await supabase.from('medida_lente').select('*').eq('prescripcion', codPrescripcion).order('cod_medida_lente');
+        const { data, error } = await supabase
+            .from('medida_lente')
+            .select(`
+                *,
+                cristal:cristal_medida (
+                    *,
+                    material_cristal(nombre_material),
+                    color_cristal(nombre_color),
+                    tipo_lente(nombre_tipo_lente)
+                ),
+                tratamientos:medida_lente_tratamiento(
+                    tratamientos(nombre_tratamiento)
+                )
+            `)
+            .eq('prescripcion', codPrescripcion)
+            .order('cod_medida_lente');
+
         if (error) throw error;
-        medidasModal.value = data || [];
+        
+        medidasModal.value = data.map(medida => ({
+            ...medida,
+            cristal: medida.cristal[0] || null
+        })) || [];
+
     } catch (error) {
-        alert('Error al cargar las medidas de la prescripción: ' + error.message);
+        alert('Error al cargar las medidas: ' + error.message);
     } finally {
         cargandoMedidas.value = false;
     }
 }
 
+// --- MANEJO DE MODALES Y FORMULARIO ---
 function abrirModalFormularioParaCrear() {
   limpiarFormulario();
   mostrarModalFormulario.value = true;
-  // --- INICIO: Lógica de Focus ---
-  nextTick(() => {
-    recetaInputRef.value?.focus();
-  });
-  // --- FIN: Lógica de Focus ---
+  nextTick(() => { recetaInputRef.value?.focus(); });
 };
 
 async function abrirModalFormularioParaEditar(prescripcion) {
   await cargarDatosEdicion(prescripcion);
   mostrarModalFormulario.value = true;
-  // --- INICIO: Lógica de Focus ---
-  nextTick(() => {
-    recetaInputRef.value?.focus();
-  });
-  // --- FIN: Lógica de Focus ---
+  nextTick(() => { recetaInputRef.value?.focus(); });
 };
 
 async function abrirModalDetalles(prescripcion) {
@@ -377,75 +475,46 @@ function onPrismaChange(medida, ojo) {
   }
 }
 
-/**
- * Verifica si un código de receta ya existe en la base de datos.
- * @param {string} codigo - El código de receta a verificar.
- * @returns {Promise<{duplicado: boolean, cliente?: string}>} - Un objeto indicando si es un duplicado y el nombre del cliente si lo es.
- */
 async function verificarCodigoReceta(codigo) {
-  // Si el código está vacío o es solo un guión, no se considera para la validación.
   if (!codigo || codigo.trim() === '' || codigo.trim() === '-') {
     return { duplicado: false };
   }
-
-  // Inicia la consulta a la base de datos
-  let query = supabase
-    .from('prescripcion_cliente')
-    .select(`
-      cod_receta,
-      clientes:cliente (nombre_cliente, apellido_paterno_cliente)
-    `)
-    .eq('cod_receta', codigo.trim());
-
-  // Si estamos editando, debemos excluir la prescripción actual de la búsqueda
-  // para no detectarla como un duplicado de sí misma.
+  let query = supabase.from('prescripcion_cliente').select(`cod_receta, clientes:cliente (nombre_cliente, apellido_paterno_cliente)`).eq('cod_receta', codigo.trim());
   if (editId.value) {
     query = query.neq('cod_prescripcion', editId.value);
   }
-
   const { data, error } = await query.limit(1).single();
-
-  // Ignoramos el error 'PGRST116' que significa que no se encontraron filas (lo cual es bueno).
   if (error && error.code !== 'PGRST116') { 
     console.error("Error al verificar el código de receta:", error);
     throw new Error('No se pudo verificar el código de receta. Inténtelo de nuevo.');
   }
-
-  // Si se encontraron datos, significa que el código ya existe.
   if (data) {
     const clienteNombre = `${data.clientes.nombre_cliente} ${data.clientes.apellido_paterno_cliente}`.trim();
     return { duplicado: true, cliente: clienteNombre };
   }
-
-  // Si no se encontraron datos, el código es único.
   return { duplicado: false };
 }
 
-
-
+// --- LÓGICA DE GUARDADO ---
 async function guardarPrescripcion() {
   if (medidas.value.some(m => !m.tipo_lente)) {
-    alert('Todas las medidas deben tener un tipo seleccionado.');
+    alert('Todas las medidas deben tener un tipo/distancia seleccionado.');
     return;
   }
    if (!formData.doctor_prescriptor) {
     alert('Debe seleccionar un doctor.');
     return;
   }
-
-    // --- INICIO: VALIDACIÓN DE CÓDIGO DE RECETA DUPLICADO ---
   try {
     const verificacion = await verificarCodigoReceta(formData.cod_receta);
     if (verificacion.duplicado) {
-      alert(`El código de receta "${formData.cod_receta}" ya está en uso por el cliente: ${verificacion.cliente}. Por favor, ingrese un código diferente.`);
-      recetaInputRef.value?.focus(); // Hacemos focus en el campo para facilitar la corrección
-      return; // Detenemos la ejecución
+      alert(`El código de receta "${formData.cod_receta}" ya está en uso por el cliente: ${verificacion.cliente}.`);
+      recetaInputRef.value?.focus();
+      return;
     }
   } catch (error) {
-    alert(error.message);
-    return;
+    alert(error.message); return;
   }
-  // --- FIN: VALIDACIÓN DE CÓDIGO DE RECETA DUPLICADO ---
 
   try {
     const prescripcionData = {
@@ -456,28 +525,68 @@ async function guardarPrescripcion() {
       observacion_prescripcion: formData.observacion_prescripcion || '-'
     };
 
+    let prescripcionId;
+    let medidasPreviasIds = [];
+
     if (editId.value) { // ACTUALIZAR
-      const { error: errPres } = await supabase.from('prescripcion_cliente').update(prescripcionData).eq('cod_prescripcion', editId.value);
-      if (errPres) throw errPres;
+      const { data, error } = await supabase.from('prescripcion_cliente').update(prescripcionData).eq('cod_prescripcion', editId.value).select().single();
+      if (error) throw error;
+      prescripcionId = data.cod_prescripcion;
       
-      await supabase.from('medida_lente').delete().eq('prescripcion', editId.value);
-      
-      const medidasData = medidas.value.map(m => ({ prescripcion: editId.value, ...prepararDatosMedida(m) }));
-      const { error: errMed } = await supabase.from('medida_lente').insert(medidasData);
-      if (errMed) throw errMed;
-      alert('Prescripción actualizada.');
+      // Obtenemos IDs de medidas viejas para borrar sus tratamientos
+      const { data: medidasPrevias } = await supabase.from('medida_lente').select('cod_medida_lente').eq('prescripcion', prescripcionId);
+      medidasPreviasIds = medidasPrevias.map(m => m.cod_medida_lente);
 
+      // Borramos las medidas anteriores, CASCADE borrará los cristales
+      if (medidasPreviasIds.length > 0) {
+        await supabase.from('medida_lente').delete().in('cod_medida_lente', medidasPreviasIds);
+      }
     } else { // CREAR
-      const { data: nuevaPres, error: errPres } = await supabase.from('prescripcion_cliente').insert(prescripcionData).select().single();
-      if (errPres) throw errPres;
-
-      const medidasData = medidas.value.map(m => ({ prescripcion: nuevaPres.cod_prescripcion, ...prepararDatosMedida(m) }));
-      const { error: errMed } = await supabase.from('medida_lente').insert(medidasData);
-      if (errMed) throw errMed;
-      alert('Prescripción guardada.');
+      const { data, error } = await supabase.from('prescripcion_cliente').insert(prescripcionData).select().single();
+      if (error) throw error;
+      prescripcionId = data.cod_prescripcion;
     }
+
+    // Insertar las nuevas medidas de lentes
+    const medidasLenteData = medidas.value.map(m => prepararDatosMedida(m));
+    const { data: nuevasMedidas, error: errMed } = await supabase
+      .from('medida_lente').insert(medidasLenteData.map(m => ({ ...m, prescripcion: prescripcionId }))).select();
+    if (errMed) throw errMed;
+
+    // Preparar y filtrar datos de cristales
+    const cristalesData = nuevasMedidas.map((nuevaMedida, index) => {
+        const medidaOriginal = medidas.value[index];
+        return prepararDatosCristal(medidaOriginal, nuevaMedida.cod_medida_lente);
+    }).filter(c => c !== null);
+
+    if (cristalesData.length > 0) {
+        const { error: errCristal } = await supabase.from('cristal_medida').insert(cristalesData);
+        if (errCristal) throw errCristal;
+    }
+    
+    // Preparar datos de tratamientos
+    const tratamientosData = [];
+    nuevasMedidas.forEach((nuevaMedida, index) => {
+        const tratamientosSeleccionados = medidas.value[index].tratamientos_seleccionados;
+        if (tratamientosSeleccionados && tratamientosSeleccionados.length > 0) {
+            tratamientosSeleccionados.forEach(tratId => {
+                tratamientosData.push({
+                    cod_medida_lente: nuevaMedida.cod_medida_lente,
+                    cod_tratamiento: tratId
+                });
+            });
+        }
+    });
+
+    if (tratamientosData.length > 0) {
+        const { error: errTrat } = await supabase.from('medida_lente_tratamiento').insert(tratamientosData);
+        if (errTrat) throw errTrat;
+    }
+    
+    alert(editId.value ? 'Prescripción actualizada con éxito.' : 'Prescripción guardada con éxito.');
     mostrarModalFormulario.value = false;
     await cargarPrescripcionesCliente();
+
   } catch (error) {
     alert('Error al guardar: ' + error.message);
   }
@@ -494,18 +603,37 @@ async function cargarDatosEdicion(prescripcion) {
         observacion_prescripcion: prescripcion.observacion_prescripcion
     });
 
-    const { data: medidasData } = await supabase.from('medida_lente').select('*').eq('prescripcion', prescripcion.cod_prescripcion).order('cod_medida_lente');
+    const { data: medidasData, error } = await supabase
+        .from('medida_lente')
+        .select(`
+          *, 
+          cristal:cristal_medida(*),
+          tratamientos:medida_lente_tratamiento(cod_tratamiento)
+        `)
+        .eq('prescripcion', prescripcion.cod_prescripcion)
+        .order('cod_medida_lente');
+    
+    if (error) {
+        alert("Error cargando datos para editar: " + error.message);
+        medidas.value = [getMedidaInicial()];
+        return;
+    }
+    
     if (medidasData && medidasData.length > 0) {
-        medidas.value = medidasData;
+        medidas.value = medidasData.map(m => {
+            const cristalInfo = m.cristal && m.cristal[0] ? m.cristal[0] : {};
+            const tratamientosIds = m.tratamientos ? m.tratamientos.map(t => t.cod_tratamiento) : [];
+            return { ...m, ...cristalInfo, tratamientos_seleccionados: tratamientosIds };
+        });
     } else {
         medidas.value = [getMedidaInicial()];
     }
 }
 
 async function eliminarPrescripcion(id) {
-  if (!confirm('¿Está seguro de eliminar esta prescripción?')) return;
+  if (!confirm('¿Está seguro de eliminar esta prescripción? Esto eliminará también todas sus medidas y detalles de cristal asociados.')) return;
   try {
-    await supabase.from('medida_lente').delete().eq('prescripcion', id);
+    // Gracias a ON DELETE CASCADE, solo necesitamos borrar la prescripción.
     await supabase.from('prescripcion_cliente').delete().eq('cod_prescripcion', id);
     alert('Prescripción eliminada.');
     await cargarPrescripcionesCliente();
@@ -514,25 +642,17 @@ async function eliminarPrescripcion(id) {
   }
 }
 
-// --- INICIO: NUEVAS FUNCIONES PARA GESTIONAR DOCTORES ---
-/**
- * Captura el texto de búsqueda del componente AutoComplete.
- * NOTA: Tu componente AutoComplete.vue debe emitir este evento.
- */
+// --- MANEJO DE DOCTORES ---
 function handleDoctorSearch(searchText) {
   doctorSearchText.value = searchText;
 }
 
 function abrirModalNuevoDoctor() {
-  // Limpiar formulario de nuevo doctor
   Object.assign(nuevoDoctorData, { nombre_doctor: '', telefono_doctor: '', especialidad_doctor: ''});
-  
-  // Pre-llenar con el texto de búsqueda si no es un doctor existente
   const esDoctorExistente = doctores.value.some(d => d.nombre_doctor.toLowerCase() === doctorSearchText.value.toLowerCase());
   if (doctorSearchText.value && !esDoctorExistente) {
     nuevoDoctorData.nombre_doctor = doctorSearchText.value;
   }
-  
   mostrarModalNuevoDoctor.value = true;
 }
 
@@ -541,7 +661,6 @@ async function guardarNuevoDoctor() {
     alert('El nombre del doctor no puede estar vacío.');
     return;
   }
-
   try {
     const { data: nuevoDoctor, error } = await supabase
       .from('doctores')
@@ -552,26 +671,18 @@ async function guardarNuevoDoctor() {
       })
       .select()
       .single();
-
     if (error) throw error;
-
-    // Agregar a la lista local para que esté disponible inmediatamente
     doctores.value.push(nuevoDoctor);
-    // Opcional: re-ordenar la lista
     doctores.value.sort((a, b) => a.nombre_doctor.localeCompare(b.nombre_doctor));
-    
-    // Seleccionar automáticamente el doctor recién creado
     formData.doctor_prescriptor = nuevoDoctor.cod_doctor;
-
     alert('Doctor guardado exitosamente.');
     mostrarModalNuevoDoctor.value = false;
-
   } catch (error) {
     alert('Error al guardar el doctor: ' + error.message);
   }
 }
-// --- FIN: NUEVAS FUNCIONES ---
 
+// --- FUNCIONES HELPERS ---
 const prepararDatosMedida = (medida) => ({
     tipo_lente: medida.tipo_lente,
     esf_od: medida.esf_od || '-', cil_od: medida.cil_od || '-', eje_od: parseInt(medida.eje_od) || 0,
@@ -583,16 +694,58 @@ const prepararDatosMedida = (medida) => ({
     dip_lentes_oi_monocular: medida.dip_lentes_oi_monocular ? parseFloat(medida.dip_lentes_oi_monocular) : null
 });
 
-const formatearFecha = (fecha) => new Date(fecha + 'T00:00:00Z').toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
+const prepararDatosCristal = (medida, codMedidaLente) => {
+    if (!medida.cod_material_cristal && !medida.cod_color_cristal && !medida.cod_tipo_lente && !medida.nro_sobre) {
+        return null;
+    }
+    
+    // Generar descripción automática
+    const descripciones = [];
+    if (medida.cod_material_cristal) {
+        const mat = materiales.value.find(m => m.cod_material_cristal === medida.cod_material_cristal);
+        if (mat) descripciones.push(`Material: ${mat.nombre_material}`);
+    }
+    if (medida.cod_tipo_lente) {
+        const tipo = tiposLente.value.find(t => t.id_tipo_lente === medida.cod_tipo_lente);
+        if (tipo) descripciones.push(`Tipo: ${tipo.nombre_tipo_lente}`);
+    }
+    if (medida.cod_color_cristal) {
+        const color = colores.value.find(c => c.cod_color_cristal === medida.cod_color_cristal);
+        if (color) descripciones.push(`Color: ${color.nombre_color}`);
+    }
+    if (medida.tratamientos_seleccionados && medida.tratamientos_seleccionados.length > 0) {
+        const nombresTrat = medida.tratamientos_seleccionados.map(id => {
+            const trat = tratamientos.value.find(t => t.cod_tratamiento === id);
+            return trat ? trat.nombre_tratamiento : '';
+        }).filter(Boolean);
+        if (nombresTrat.length > 0) descripciones.push(`Tratamientos: ${nombresTrat.join(', ')}`);
+    }
+    if (medida.nro_sobre) {
+        descripciones.push(`Sobre: ${medida.nro_sobre}`);
+    }
 
-function volver() {
-  router.push({ name: 'GestionClientes' });
-}
+    return {
+        cod_medida_lente: codMedidaLente,
+        cantidad: medida.cantidad || 1,
+        cod_material_cristal: medida.cod_material_cristal || null,
+        cod_color_cristal: medida.cod_color_cristal || null,
+        cod_tipo_lente: medida.cod_tipo_lente || null,
+        nro_sobre: medida.nro_sobre || null,
+        descripcion_cristal: descripciones.join('; ') || null
+    };
+};
+
+const formatearFecha = (fecha) => new Date(fecha + 'T00:00:00Z').toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
+function volver() { router.push({ name: 'GestionClientes' }); }
 
 onMounted(() => {
   getCliente();
   cargarPrescripcionesCliente();
   cargarDoctores();
+  cargarMateriales();
+  cargarColores();
+  cargarTiposLente();
+  cargarTratamientos(); // Cargar nuevos datos
 });
 </script>
 
@@ -604,8 +757,6 @@ onMounted(() => {
 .seccion-prescripciones { margin-top: 2rem; }
 .seccion-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 .seccion-header h2 { margin: 0; }
-
-/* Reutilizando estilos de otros componentes */
 .btn-primary { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
 .btn-primary:hover { background: #0056b3; }
 .btn-secondary { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
@@ -620,108 +771,56 @@ td button { padding: 4px 8px; margin: 0 2px; border-radius: 3px; font-size: 11px
 td button:not(.btn-desactivar) { background: #ffc107; color: #212529; }
 .loading, .sin-resultados { text-align: center; padding: 2rem; color: #6c757d; font-size: 1.1rem; }
 
-
-/* --- INICIO: ESTILOS DE FORMULARIO REFACTORIZADOS --- */
-.form-container {
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
+/* Estilos de Formulario */
+.form-container { padding: 10px; display: flex; flex-direction: column; gap: 15px; }
 .campo-readonly { background-color: #e9ecef; cursor: not-allowed; }
 .form-section-header { font-size: 16px; font-weight: 600; margin: 20px 0 15px 0; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0; }
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
-}
+.form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
 .form-group { display: flex; flex-direction: column; gap: 5px; }
 .form-group label { font-weight: 500; font-size: 13px; white-space: nowrap; }
 .form-input, .form-group textarea { padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 14px; }
 .form-section-header-container { margin: 1rem ; display: flex; justify-content: space-between; align-items: center; }
 .btn-add-medida { padding: 4px 10px; font-size: 12px; background-color: #28a745; color: white; border:none; cursor: pointer; border-radius: 4px; }
 .medida-container { border: 1px solid #e9ecef; border-radius: 6px; padding: 15px; margin-top: 1rem; background-color: #fcfcfc; }
-.distancia-tipo {
-    display: flex;
-    align-items: flex-end;
-    margin-bottom: 1rem;
-    gap: 1rem;
-}
-.btn-eliminar-medida {
-    padding: 6px 10px;
-    font-size: 11px;
-    height: fit-content;
-    margin-bottom: 2px;
-}
-.form-column-ojos {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
+.distancia-tipo { display: flex; align-items: flex-end; margin-bottom: 1rem; gap: 1rem; }
+.btn-eliminar-medida { padding: 6px 10px; font-size: 11px; height: fit-content; margin-bottom: 2px; }
+.form-column-ojos { display: flex; flex-direction: column; gap: 15px; }
 .ojo-section { padding: 10px; border: 1px solid #e8e8e8; border-radius: 8px; background-color: white; }
 .ojo-header { font-size: 14px; font-weight: bold; margin: 0 0 10px 0; text-align: center; }
 .medidas-grid { display: flex; flex-direction: column; gap: 15px; }
-.form-row-strict {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
-    align-items: end;
-}
+.form-row-strict { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; align-items: end; }
 .btn-guardar { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
 .btn-cancelar { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
-/* --- FIN: ESTILOS DE FORMULARIO REFACTORIZADOS --- */
+.autocomplete-container { display: flex; align-items: center; gap: 8px; }
+.autocomplete-container > :first-child { flex-grow: 1; }
+.btn-add-inline { padding: 0; width: 38px; height: 38px; font-size: 20px; font-weight: bold; line-height: 38px; text-align: center; background-color: #28a745; color: white; border-radius: 4px; flex-shrink: 0; cursor: pointer; border: none; }
+.btn-add-inline:hover { background-color: #218838; }
 
-/* --- INICIO: NUEVOS ESTILOS PARA EL BOTÓN DE AGREGAR --- */
-.autocomplete-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+/* Estilos para la sección de Cristal */
+.cristal-section {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px dashed #ced4da;
 }
-.autocomplete-container > :first-child {
-    flex-grow: 1;
+.cristal-header {
+    font-size: 14px;
+    font-weight: bold;
+    margin: 0 0 15px 0;
+    color: #495057;
 }
-.btn-add-inline {
-  padding: 0;
-  width: 38px;
-  height: 38px;
-  font-size: 20px;
-  font-weight: bold;
-  line-height: 38px;
-  text-align: center;
-  background-color: #28a745;
-  color: white;
-  border-radius: 4px;
-  flex-shrink: 0;
-  cursor: pointer;
-  border: none;
+.cristal-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 15px;
 }
-.btn-add-inline:hover {
-    background-color: #218838;
+.form-group-span-2 {
+    grid-column: span 2;
 }
-/* --- FIN: NUEVOS ESTILOS --- */
 
 /* Estilos para el Modal de Detalles */
-.detalles-content .info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-  background-color: #f8f9fa;
-  padding: 1rem;
-  border-radius: 6px;
-  border: 1px solid #e9ecef;
-}
-.detalles-content .info-grid label {
-    font-weight: 600;
-    color: #495057;
-    display: block;
-    margin-bottom: 4px;
-}
-.observaciones-detalle {
-    margin-top: 1.5rem;
-    padding: 1rem;
-    border-left: 4px solid #007bff;
-    background-color: #f8f9fa;
-}
+.detalles-content .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; background-color: #f8f9fa; padding: 1rem; border-radius: 6px; border: 1px solid #e9ecef; }
+.detalles-content .info-grid label { font-weight: 600; color: #495057; display: block; margin-bottom: 4px; }
+.observaciones-detalle { margin-top: 1.5rem; padding: 1rem; border-left: 4px solid #007bff; background-color: #f8f9fa; }
 .medidas-section-detalle { margin-top: 1.5rem; }
 .medida-detalle-item { border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 1rem; overflow: hidden; }
 .medida-header-detalle { padding: 0.5rem 1rem; background-color: #343a40; color: white; font-weight: bold; }
@@ -729,26 +828,42 @@ td button:not(.btn-desactivar) { background: #ffc107; color: #212529; }
 .ojo-detalle { flex: 1; min-width: 250px; }
 .ojo-detalle h6 { margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 5px; }
 .ojo-detalle p, .dip-detalle p { margin: 0.4rem 0; font-size: 0.9rem; }
-.ojo-detalle span, .dip-detalle span { font-weight: 600; color: #555; }
+.ojo-detalle span, .dip-detalle span, .cristal-detalle span { font-weight: 600; color: #555; }
 .dip-detalle { padding: 0.5rem 1rem; background-color: #f8f9fa; border-top: 1px solid #e9ecef; }
+
+.cristal-detalle {
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+.cristal-detalle h6 {
+    margin: 0 0 8px 0;
+    font-size: 0.9rem;
+    color: #343a40;
+}
+.cristal-detalle p { margin: 0; font-size: 0.9rem; }
+.tratamientos-detalle, .descripcion-detalle {
+    margin-top: 8px;
+    font-size: 0.85rem;
+}
+.tratamientos-detalle strong, .descripcion-detalle strong {
+    display: block;
+    color: #495057;
+}
+.descripcion-detalle p {
+    font-style: italic;
+    color: #6c757d;
+    margin-top: 4px;
+}
 
 
 /* Media Queries para responsividad */
 @media (max-width: 1200px) {
-    .form-row-strict {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-@media (max-width: 992px) {
-  .form-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+    .form-row-strict { grid-template-columns: repeat(4, 1fr); }
+    .cristal-grid, .form-grid { grid-template-columns: repeat(2, 1fr); }
+    .form-group-span-2 { grid-column: span 1; }
 }
 @media (max-width: 768px) {
-  .form-grid,
-  .form-row-strict {
-    grid-template-columns: 1fr;
-  }
+    .form-grid, .form-row-strict, .cristal-grid { grid-template-columns: 1fr; }
 }
 </style>
-
