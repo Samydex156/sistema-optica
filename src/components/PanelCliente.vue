@@ -3,23 +3,19 @@
     <header v-if="cliente" class="panel-header">
       <div>
         <h1>Panel de {{ cliente.nombre_cliente }} {{ cliente.apellido_paterno_cliente }}</h1>
-        <p class="cliente-info">
-          <span>ID Cliente: {{ clienteId }}</span> |
-          <span>Teléfono: {{ cliente.telefono_cliente || 'N/A' }}</span>
-        </p>
+        <p class="cliente-info"><span>ID Cliente: {{ clienteId }}</span> | <span>Teléfono: {{ cliente.telefono_cliente || 'N/A' }}</span> </p>
       </div>
       <button @click="volver" class="btn btn-secondary">Volver a la lista</button>
     </header>
     <div v-else class="loading">Cargando datos del cliente...</div>
 
-    <hr>
+    <!--LINEA DIVISORA DE SECCIÓN-->
+    <div class="elegant-divider"></div>
 
     <div class="seccion-prescripciones">
       <div class="seccion-header">
         <h2>Prescripciones del Cliente</h2>
-        <button @click="abrirModalFormularioParaCrear" class="btn btn-primary">
-          + Nueva Prescripción
-        </button>
+        <button @click="abrirModalFormularioParaCrear" class="btn btn-primary"> + Nueva Prescripción </button>
       </div>
 
       <div v-if="cargandoPrescripciones" class="loading">Cargando prescripciones...</div>
@@ -43,8 +39,7 @@
             <td class="acciones-tabla">
               <button @click="abrirModalDetalles(prescripcion)">Ver</button>
               <button @click="abrirModalFormularioParaEditar(prescripcion)">Editar</button>
-              <button @click="eliminarPrescripcion(prescripcion.cod_prescripcion)"
-                class="btn-desactivar">Eliminar</button>
+              <button @click="eliminarPrescripcion(prescripcion.cod_prescripcion)" class="btn-desactivar">Eliminar</button>
             </td>
           </tr>
         </tbody>
@@ -235,8 +230,7 @@
           <div><label>Código:</label><strong><span>{{ prescripcionSeleccionada.cod_receta }}</span></strong></div>
           <div><label>Cliente:</label><span>{{ clienteNombreCompleto }}</span></div>
           <div><label>Doctor / Medición:</label><span>{{ prescripcionSeleccionada.doctor_nombre }}</span></div>
-          <div><label>Fecha de Medición:</label><span>{{ formatearFecha(prescripcionSeleccionada.fecha_prescripcion)
-              }}</span></div>
+          <div><label>Fecha de Medición:</label><span>{{ formatearFecha(prescripcionSeleccionada.fecha_prescripcion) }}</span></div>
         </div>
 
         <!--LINEA DIVISORA DE SECCIÓN-->
@@ -248,54 +242,39 @@
           class="entrega-detalle">
           <h4>Información de Entrega y Armado</h4>
           <div class="info-grid">
-            <div v-if="prescripcionSeleccionada.proveedor_nombre"><label>Proveedor:</label><span>{{
-              prescripcionSeleccionada.proveedor_nombre }}</span></div>
-            <div v-if="prescripcionSeleccionada.armador_nombre"><label>Armador:</label><span>{{
-              prescripcionSeleccionada.armador_nombre }}</span></div>
-            <div v-if="prescripcionSeleccionada.armazon_nombre"><label>Armazón:</label><span>{{
-              prescripcionSeleccionada.armazon_nombre }}</span></div>
-            <div v-if="prescripcionSeleccionada.fecha_entrega"><label>Fecha Entrega:</label><span>{{
-              formatearFecha(prescripcionSeleccionada.fecha_entrega) }}</span></div>
-            <div v-if="prescripcionSeleccionada.codigo_pedido"><label>Número de Pedido:</label><span>{{
-              prescripcionSeleccionada.codigo_pedido }}</span></div>
+            <div v-if="prescripcionSeleccionada.proveedor_nombre"><label>Proveedor:</label><span>{{ prescripcionSeleccionada.proveedor_nombre }}</span></div>
+            <div v-if="prescripcionSeleccionada.armador_nombre"><label>Armador:</label><span>{{ prescripcionSeleccionada.armador_nombre }}</span></div>
+            <div v-if="prescripcionSeleccionada.armazon_nombre"><label>Armazón:</label><span>{{ prescripcionSeleccionada.armazon_nombre }}</span></div>
+            <div v-if="prescripcionSeleccionada.fecha_entrega"><label>Fecha Entrega:</label><span>{{ formatearFecha(prescripcionSeleccionada.fecha_entrega) }}</span></div>
+            <div v-if="prescripcionSeleccionada.codigo_pedido"><label>Número de Pedido:</label><span>{{ prescripcionSeleccionada.codigo_pedido }}</span></div>
           </div>
         </div>
-                <!--LINEA DIVISORA DE SECCIÓN-->
+        <!--LINEA DIVISORA DE SECCIÓN-->
         <div class="elegant-divider"></div>
-<!--SECCION MEDIDA Y DETALLES DE LOS CRISTALES-->
+        <!--SECCION MEDIDA Y DETALLES DE LOS CRISTALES-->
         <div class="medidas-section-detalle">
           <h4>Medidas y detalles de los Cristales</h4>
           <div v-if="cargandoMedidas" class="loading">Cargando detalles...</div>
           <div v-else-if="medidasModal.length > 0">
             <div v-for="medida in medidasModal" :key="medida.cod_medida_lente" class="medida-detalle-item">
               <div class="medida-header-detalle"><span>{{ medida.tipo_lente }}</span></div>
-                            <div class="dip-detalle">
+              <div class="dip-detalle">
                 <h6>Distancia Interpupilar:</h6>
-                <p><span>DIP (mm):</span><strong>{{ medida.dip_lentes_binocular || '-' }} </strong> | <span>OD(mm):</span> {{
-                  medida.dip_lentes_od_monocular || '-' }} | <span>OI(mm):</span> {{ medida.dip_lentes_oi_monocular
-                  ||
-                  '-' }}</p>
+                <p><span>DIP (mm):</span><strong>{{ medida.dip_lentes_binocular || '-' }} </strong> | <span>OD(mm):</span>{{medida.dip_lentes_od_monocular || '-' }} | <span>OI(mm):</span> {{ medida.dip_lentes_oi_monocular || '-' }}</p>
               </div>
+              <!--MEDIDAS DE LOS CRISTALES-->
               <div class="medidas-ojos-detalle">
                 <div class="ojo-detalle">
                   <h6>Ojo Derecho (OD)</h6>
-                  <p><span>ESF:</span> {{ medida.esf_od }} | <span>CIL:</span> {{ medida.cil_od }} | <span>EJE:</span>
-                    {{
-                    medida.eje_od }}</p>
+                  <p><span>ESF:</span> {{ medida.esf_od }} | <span>CIL:</span> {{ medida.cil_od }} | <span>EJE:</span>{{ medida.eje_od }}</p>
                   <p><span>ADIC:</span> {{ medida.adic_od }} | <span>ALT:</span> {{ medida.altura_od }}</p>
-                  <p v-if="medida.prisma_od && medida.prisma_od !== '0.00'"><span>PRISMA:</span> {{ medida.prisma_od }}
-                    <span>BASE:</span> {{ medida.base_od }}
-                  </p>
+                  <p v-if="medida.prisma_od && medida.prisma_od !== '0.00'"><span>PRISMA:</span> {{ medida.prisma_od }} <span>BASE:</span> {{ medida.base_od }} </p>
                 </div>
                 <div class="ojo-detalle">
                   <h6>Ojo Izquierdo (OI)</h6>
-                  <p><span>ESF:</span> {{ medida.esf_oi }} | <span>CIL:</span> {{ medida.cil_oi }} | <span>EJE:</span>
-                    {{
-                    medida.eje_oi }}</p>
+                  <p><span>ESF:</span> {{ medida.esf_oi }} | <span>CIL:</span> {{ medida.cil_oi }} | <span>EJE:</span> {{ medida.eje_oi }}</p>
                   <p><span>ADIC:</span> {{ medida.adic_oi }} | <span>ALT:</span> {{ medida.altura_oi }}</p>
-                  <p v-if="medida.prisma_oi && medida.prisma_oi !== '0.00'"><span>PRISMA:</span> {{ medida.prisma_oi }}
-                    <span>BASE:</span> {{ medida.base_oi }}
-                  </p>
+                  <p v-if="medida.prisma_oi && medida.prisma_oi !== '0.00'"><span>PRISMA:</span> {{ medida.prisma_oi }} <span>BASE:</span> {{ medida.base_oi }} </p>
                 </div>
               </div>
 
@@ -1198,6 +1177,7 @@ td button:not(.btn-desactivar) {
   color: #343a40;
   margin-bottom: 0.75rem;
 }
+
 .elegant-divider {
   width: 100%;
   height: 3px;
