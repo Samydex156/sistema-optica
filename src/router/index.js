@@ -13,6 +13,9 @@ import PanelCliente from "../components/PanelCliente.vue";
 // 1. Importar el nuevo componente del panel principal
 import PanelPrincipal from "../components/PanelPrincipal.vue";
 
+// IMPORTAR EL NUEVO COMPONENTE
+import GestionInventario from "../components/GestionInventario.vue";
+
 const routes = [
   {
     path: "/",
@@ -62,6 +65,23 @@ const routes = [
   {
     path: "/productos/caracteristicas",
     component: GestionCaracteristicas,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/practicas",
+    component: EjerciciosComputed,
+    meta: { requiresAuth: true },
+  },
+    {
+    path: "/productos/caracteristicas",
+    component: GestionCaracteristicas,
+    meta: { requiresAuth: true },
+  },
+  // --- AÑADIR LA NUEVA RUTA DE INVENTARIO ---
+  {
+    path: "/inventario",
+    name: "GestionInventario",
+    component: GestionInventario,
     meta: { requiresAuth: true },
   },
   {

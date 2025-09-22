@@ -13,6 +13,14 @@
         <h2>Inventarios</h2>
         <p>Gestión de productos y stock.</p>
       </div>
+      <!--TARJETA PARA INVENTARIO-->
+      <div class="module-card" @click="navegarA('/inventario')">
+        <div class="icon-container">
+          📊
+        </div>
+        <h2>Inventario</h2>
+        <p>Gestión de entradas, salidas y stock.</p>
+      </div>
       
       <!-- Tarjeta para Clientes -->
       <div class="module-card" @click="navegarA('/clientes')">
