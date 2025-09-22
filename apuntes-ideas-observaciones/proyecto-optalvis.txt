@@ -1,0 +1,3 @@
+En el formulario de recetas corregir validaciones en el campo distancia LEJOS.
+Corregir aspectos visuales en el formulario de recetas para mejorar la experiencia de usuario.
+Corregir el campo de numero de pedido ya que solo acepta un valor y puede que sea necesario dos valores en el mismo campo.
