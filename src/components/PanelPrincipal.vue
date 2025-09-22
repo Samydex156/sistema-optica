@@ -21,6 +21,14 @@
         <h2>Inventario</h2>
         <p>Gestión de entradas, salidas y stock.</p>
       </div>
+
+      <div class="module-card" @click="navegarA('/stock')">
+        <div class="icon-container">
+          👀
+        </div>
+        <h2>Consultar Stock</h2>
+        <p>Visualiza el inventario actual.</p>
+      </div>
       
       <!-- Tarjeta para Clientes -->
       <div class="module-card" @click="navegarA('/clientes')">

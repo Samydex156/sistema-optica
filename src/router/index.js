@@ -16,6 +16,9 @@ import PanelPrincipal from "../components/PanelPrincipal.vue";
 // IMPORTAR EL NUEVO COMPONENTE
 import GestionInventario from "../components/GestionInventario.vue";
 
+// --- 1. IMPORTAR EL NUEVO COMPONENTE DE CONSULTA ---
+import ConsultaStock from "../components/ConsultaStock.vue";
+
 const routes = [
   {
     path: "/",
@@ -87,6 +90,13 @@ const routes = [
   {
     path: "/practicas",
     component: EjerciciosComputed,
+    meta: { requiresAuth: true },
+  },
+    // --- 2. AÑADIR LA NUEVA RUTA DE CONSULTA DE STOCK ---
+  {
+    path: "/stock",
+    name: "ConsultaStock",
+    component: ConsultaStock,
     meta: { requiresAuth: true },
   },
 ];
