@@ -1,7 +1,7 @@
 <template>
   <div class="consulta-stock-container">
     <h3>Consulta de Stock de Productos</h3>
-    <p class="subtitle">Visualiza las cantidades disponibles. Haz clic en una tarjeta para ver su historial.</p>
+    <p class="subtitle">Visualiza las cantidades disponibles. Clic en una tarjeta para ver su historial.</p>
 
     <div class="toolbar">
       <div class="search-container">

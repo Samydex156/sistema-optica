@@ -107,7 +107,6 @@ const isFormValid = computed(() => {
   return true;
 });
 
-
 // --- MÉTODOS ---
 async function fetchData() {
   const { data: productosData } = await supabase.from("productos").select("cod_producto, descripcion_producto").order("descripcion_producto");

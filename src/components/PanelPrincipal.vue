@@ -10,8 +10,8 @@
         <div class="icon-container">
           📦
         </div>
-        <h2>Inventarios</h2>
-        <p>Gestión de productos y stock.</p>
+        <h2>Productos</h2>
+        <p>Creación de nuevos productos.</p>
       </div>
       <!--TARJETA PARA INVENTARIO-->
       <div class="module-card" @click="navegarA('/inventario')">
@@ -19,26 +19,24 @@
           📊
         </div>
         <h2>Inventario</h2>
-        <p>Gestión de entradas, salidas y stock.</p>
+        <p>Gestión de entradas, salidas o traspasos.</p>
       </div>
-
+      <!--TARJETA PARA CONSULTA DE STOCK-->
       <div class="module-card" @click="navegarA('/stock')">
         <div class="icon-container">
           👀
         </div>
         <h2>Consultar Stock</h2>
-        <p>Visualiza el inventario actual.</p>
-      </div>
-      
+        <p>Visualiza cantidades actuales del inventario.</p>
+      </div>      
       <!-- Tarjeta para Clientes -->
       <div class="module-card" @click="navegarA('/clientes')">
         <div class="icon-container">
           👥
         </div>
         <h2>Clientes</h2>
-        <p>Gestión y registro de Recetas médicas de Clientes.</p>
+        <p>Gestión y registro de Clientes y Recetas médicas.</p>
       </div>
-
       <!-- Tarjeta para Caja -->
       <div class="module-card" @click="navegarA('/ordenes')">
         <div class="icon-container">
@@ -53,9 +51,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-
 const router = useRouter();
-
 /**
  * Navega a la ruta especificada.
  * @param {string} ruta - La ruta a la que se desea navegar.

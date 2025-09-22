@@ -1,25 +1,16 @@
 <template>
   <nav class="navbar">
-    <!-- 1. El logo/marca ahora es un enlace al panel principal -->
     <router-link to="/panel" class="navbar-brand">
       <h1>Óptica Optalvis</h1>
     </router-link>
 
     <div class="navbar-menu">
-      <!-- Los enlaces de navegación se mantienen igual -->
+      <!-- Nuevo enlace a la Landing Page -->
+      <router-link to="/landing" class="nav-link">Inicio</router-link>
       <router-link to="/clientes" class="nav-link">Clientes</router-link>
       <router-link to="/ordenes" class="nav-link">Órdenes</router-link>
       <router-link to="/productos/registrar" class="nav-link">Productos</router-link>
-      <!-- Puedes añadir más enlaces aquí si lo necesitas -->
-      
-      <div class="navbar-spacer"></div> <!-- Elemento espaciador -->
-
-      <!-- 2. Nueva sección para mostrar la información del usuario -->
-      <div v-if="user" class="user-info">
-        <span class="user-name">👤 {{ user.nombre_usuario }}</span>
-        <span class="store-name">🏪 Tienda: {{ nombreTienda }}</span>
-      </div>
-
+      <div class="navbar-spacer"></div>
       <button @click="$emit('open-calculator-modal')" class="nav-link-button">
         Calculadora
       </button>
@@ -29,7 +20,7 @@
       </button>
     </div>
   </nav>
-  <HoraActual />
+  <HoraActual :user="user" :nombreTienda="nombreTienda" />
 </template>
 
 <script setup>
@@ -131,28 +122,6 @@ watch(user, getNombreTienda, { immediate: true });
 .navbar-spacer {
   flex-grow: 1;
 }
-
-/* Contenedor de la información del usuario */
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0 20px;
-  font-size: 0.9rem;
-  background-color: rgba(0, 0, 0, 0.1);
-  height: 40px;
-  border-radius: 20px;
-  margin-right: 15px;
-}
-
-.user-name {
-  font-weight: 500;
-}
-
-.store-name {
-  opacity: 0.8;
-}
-
 
 /* Estilos unificados para botones */
 .nav-link-button {

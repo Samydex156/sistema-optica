@@ -1,41 +1,52 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { useAuth } from "../composables/useAuth"; 
+import { useAuth } from "../composables/useAuth";
 
 // Importar componentes
-import RegistrarCliente from "../components/RegistrarCliente.vue";
-import RegistrarOrdenTrabajo from "../components/RegistrarOrdenTrabajo.vue";
-import RegistrarPrescripcion from "../components/RegistrarPrescripcion.vue";
-import EjerciciosComputed from "../components/EjerciciosComputed.vue";
-import RegistrarProducto from "../components/RegistrarProducto.vue";
 import RegistrarUsuario from "../components/RegistrarUsuario.vue";
-import GestionCaracteristicas from "../components/GestionCaracteristicas.vue";
-import PanelCliente from "../components/PanelCliente.vue";
-// 1. Importar el nuevo componente del panel principal
 import PanelPrincipal from "../components/PanelPrincipal.vue";
 
-// IMPORTAR EL NUEVO COMPONENTE
-import GestionInventario from "../components/GestionInventario.vue";
+// Importar componentes de cliente
+import RegistrarCliente from "../components/RegistrarCliente.vue";
+import PanelCliente from "../components/PanelCliente.vue";
+import RegistrarPrescripcion from "../components/RegistrarPrescripcion.vue";
+import RegistrarOrdenTrabajo from "../components/RegistrarOrdenTrabajo.vue";
 
-// --- 1. IMPORTAR EL NUEVO COMPONENTE DE CONSULTA ---
+// IMPORTAR componentes para inventarios
+import GestionCaracteristicas from "../components/GestionCaracteristicas.vue";
+import RegistrarProducto from "../components/RegistrarProducto.vue";
+import GestionInventario from "../components/GestionInventario.vue";
 import ConsultaStock from "../components/ConsultaStock.vue";
+
+import EjerciciosComputed from "../components/EjerciciosComputed.vue";
+
+// Importar el nuevo componente de la Landing Page
+import LandingPage from "../components/LandingPage.vue";
 
 const routes = [
   {
+    // Redirije al panel principal por defecto
     path: "/",
-    // 2. Redirigir a la nueva página principal por defecto
-    redirect: "/panel", 
+    redirect: "/panel",
   },
   {
-    // 3. Añadir la nueva ruta para el panel
+    // Redirije al panel principal
     path: "/panel",
     name: "PanelPrincipal",
     component: PanelPrincipal,
     meta: { requiresAuth: true },
   },
   {
+    // redirige al login para iniciar sesion
     path: "/login",
     name: "Login",
     component: RegistrarUsuario,
+    meta: { requiresAuth: false },
+  },
+  // Nueva ruta para la Landing Page
+  {
+    path: "/landing",
+    name: "LandingPage",
+    component: LandingPage,
     meta: { requiresAuth: false },
   },
   {
@@ -80,19 +91,12 @@ const routes = [
     component: GestionCaracteristicas,
     meta: { requiresAuth: true },
   },
-  // --- AÑADIR LA NUEVA RUTA DE INVENTARIO ---
   {
     path: "/inventario",
     name: "GestionInventario",
     component: GestionInventario,
     meta: { requiresAuth: true },
   },
-  {
-    path: "/practicas",
-    component: EjerciciosComputed,
-    meta: { requiresAuth: true },
-  },
-    // --- 2. AÑADIR LA NUEVA RUTA DE CONSULTA DE STOCK ---
   {
     path: "/stock",
     name: "ConsultaStock",
@@ -106,7 +110,7 @@ const router = createRouter({
   routes,
 });
 
-// Guardia de navegación GLOBAL
+// Validar si el usuario se encuentra logueado o no
 router.beforeEach((to, from, next) => {
   const { isAuthenticated } = useAuth();
   const requiresAuth = to.meta.requiresAuth;
@@ -117,9 +121,8 @@ router.beforeEach((to, from, next) => {
     next("/login");
   }
   // Si el usuario está logueado e intenta acceder a /login, lo redirigimos
-  // a la página principal (el nuevo panel).
+  // al panel principal
   else if (!requiresAuth && isAuthenticated.value && to.path === "/login") {
-    // 4. Cambiar la redirección al panel
     next("/panel");
   }
   // En cualquier otro caso, permitimos la navegación.
