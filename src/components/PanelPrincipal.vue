@@ -63,9 +63,8 @@ const navegarA = (ruta) => {
 
 <style scoped>
 .dashboard-container {
-  padding: 2rem;
+  padding: 1rem 2rem;
   background-color: #f9fafb;
-  min-height: calc(100vh - 80px); /* Ajusta este valor si la altura de tu navbar es diferente */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -73,7 +72,7 @@ const navegarA = (ruta) => {
 
 .dashboard-header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 .dashboard-header h1 {
@@ -90,27 +89,27 @@ const navegarA = (ruta) => {
 
 .modules-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  max-width: 1000px;
-  margin: 0 auto;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  max-width: 1300px;
+  margin: 1rem 1rem;
   width: 100%;
 }
 
 .module-card {
-  background-color: white;
+  background-color: rgb(233, 233, 233);
   border-radius: 12px;
-  padding: 2.5rem 2rem;
+  padding: 1rem 2rem;
   text-align: center;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #979797;
+  box-shadow: 0 8px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
   cursor: pointer;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 .module-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
 .icon-container {

@@ -2,16 +2,21 @@
   <div class="time-banner">
     <div v-if="user" class="user-info-banner">
       <span class="user-name">👤 {{ user.nombre_usuario }}</span>
-      <span class="store-name">🏪 Tienda: {{ nombreTienda }}</span>
+      
+      <span v-if="loading" class="store-name loading-state">Cargando tienda...</span>
+      <span v-else class="store-name">🏪 Tienda: {{ nombreTienda }}</span>
     </div>
+
     <p>{{ currentTime }}</p>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, defineProps } from 'vue';
+// 1. CORRECCIÓN: Se elimina 'defineProps' de los imports
+import { ref, onMounted, onUnmounted } from 'vue';
 
-// Definimos las props que este componente espera recibir
+// Se definen las props que el componente espera recibir
+// 'defineProps' es un macro y no necesita ser importado
 const props = defineProps({
   user: {
     type: Object,
@@ -20,17 +25,25 @@ const props = defineProps({
   nombreTienda: {
     type: String,
     default: 'No asignada'
+  },
+  // 2. MEJORA: Prop para gestionar el estado de carga desde el padre
+  loading: {
+    type: Boolean,
+    default: false
   }
 });
 
 const currentTime = ref('');
 let timer = null;
 
+// Función para actualizar la hora
 const updateTime = () => {
   const now = new Date();
-  currentTime.value = now.toLocaleTimeString();
+  // Formato de hora localizado para mejor presentación
+  currentTime.value = now.toLocaleTimeString('es-ES'); 
 };
 
+// Hooks del ciclo de vida para iniciar y detener el temporizador
 onMounted(() => {
   updateTime();
   timer = setInterval(updateTime, 1000);
@@ -44,14 +57,15 @@ onUnmounted(() => {
 <style scoped>
 .time-banner {
   width: 100%;
-  background-color: #333;
+  /* 3. MEJORA VISUAL: Color más integrado con la barra de navegación */
+  background-color: rgba(0, 0, 0, .7); 
   color: white;
   text-align: right;
-  padding: 10px 20px; /* Ajustado el padding */
+  padding: 10px 20px;
   z-index: 1000;
   font-family: sans-serif;
-  display: flex; /* Usamos flexbox para alinear elementos */
-  justify-content: space-between; /* Alinea los elementos a los extremos */
+  display: flex;
+  justify-content: space-between;
   align-items: center;
 }
 
@@ -61,7 +75,6 @@ onUnmounted(() => {
   font-weight: 600;
 }
 
-/* Estilos para la info del usuario en el banner de la hora */
 .user-info-banner {
   display: flex;
   align-items: center;
@@ -78,5 +91,11 @@ onUnmounted(() => {
 
 .store-name {
   opacity: 0.8;
+}
+
+/* Estilo para el estado de carga, da feedback visual al usuario */
+.loading-state {
+  opacity: 0.6;
+  font-style: italic;
 }
 </style>

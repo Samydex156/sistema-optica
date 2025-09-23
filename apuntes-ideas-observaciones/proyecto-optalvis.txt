@@ -1,3 +1,21 @@
+CORRECCIONES EN LA INTERFAZ DE USUARIO:
+
 En el formulario de recetas corregir validaciones en el campo distancia LEJOS.
-Corregir aspectos visuales en el formulario de recetas para mejorar la experiencia de usuario.
+Corregir aspectos visuales en el formulario de recetas para mejorar la experiencia de usuario. Mas interactiva , moderna y visual
 Corregir el campo de numero de pedido ya que solo acepta un valor y puede que sea necesario dos valores en el mismo campo.
+
+Centralizacion de operaciones para un cliente.
+
+INVESTIGAR BIBLIOGRAFÍA:
+
+Mejora de la experiencia de usuario en formularios
+Combinacion de colores adwecuados
+la mejor metodología para un sistema de inventarios
+
+
+TAREAS A REALIZAR:
+Iniciar nueov perfil según la estructura dada en taller 1 2019
+
+
+
+enlaces varios XD

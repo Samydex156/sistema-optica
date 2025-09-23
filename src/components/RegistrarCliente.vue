@@ -41,7 +41,7 @@
               <button @click="irAPanelCliente(cliente.cod_cliente)" class="btn-icon btn-panel" title="Panel del Cliente">⚙️</button>
               <button @click="editarCliente(cliente)" class="btn-icon btn-edit" title="Editar Cliente">✏️</button>
               <button @click="eliminarCliente(cliente.cod_cliente)" class="btn-icon btn-delete" title="Eliminar Cliente">🗑️</button>
-              <button @click="crearOrdenTrabajo(cliente)" class="btn btn-success btn-orden" title="Crear Nueva Orden">Nueva Orden</button>
+              <!-- BOTÓN DE 'NUEVA ORDEN' ELIMINADO DE AQUÍ -->
             </td>
           </tr>
            <tr v-if="clientesFiltrados.length === 0">
@@ -51,6 +51,7 @@
       </table>
     </div>
 
+    <!-- Modal para Crear/Editar Cliente (sin cambios) -->
     <BaseModal v-model="showModal" :title="editId ? 'Editar Cliente' : 'Registrar Nuevo Cliente'">
       <div class="form-container">
         <input v-model="nombreCliente" placeholder="Nombre del cliente *" ref="nameCliente" class="form-input" />
@@ -64,58 +65,8 @@
       </template>
     </BaseModal>
 
-    <BaseModal v-model="showModalOrden" title="Crear Nueva Orden de Trabajo" size="lg">
-      <p class="orden-cliente-info">
-        <strong>Cliente:</strong> {{ clienteSeleccionado?.nombre_cliente }} {{ clienteSeleccionado?.apellido_paterno_cliente }}
-      </p>
-
-      <h4 class="form-section-header">Información de la Orden</h4>
-      <div class="form-grid-orden-info">
-          <div class="form-group">
-            <label for="nro-boleta">Nro. Sobre/Boleta *</label>
-            <input id="nro-boleta" ref="nroSobreOrdenInput" v-model="formOrden.nro_boleta_sobre" type="number" placeholder="Ej: 12345" class="form-input"/>
-          </div>
-          <div class="form-group">
-            <label for="fecha-pedido">Fecha Pedido</label>
-            <input id="fecha-pedido" v-model="formOrden.fecha_pedido" type="date" class="form-input" @change="actualizarFechaEntrega"/>
-          </div>
-          <div class="form-group">
-            <label for="fecha-entrega">Fecha Entrega</label>
-            <input id="fecha-entrega" v-model="formOrden.fecha_entrega" type="date" class="form-input"/>
-          </div>
-          <div class="form-group">
-            <label for="hora-entrega">Hora Entrega</label>
-            <input id="hora-entrega" v-model="formOrden.hora_entrega" type="time" class="form-input"/>
-          </div>
-      </div>
-
-      <h4 class="form-section-header">Detalles Financieros</h4>
-      <div class="form-grid-orden-financiero">
-           <div class="form-group">
-            <label for="monto-total">Monto Total (Bs.)</label>
-            <input id="monto-total" v-model="formOrden.monto_total" type="number" step="0.01" @input="calcularSaldo" class="form-input"/>
-          </div>
-          <div class="form-group">
-            <label for="monto-acuenta">A Cuenta (Bs.)</label>
-            <input id="monto-acuenta" v-model="formOrden.monto_acuenta" type="number" step="0.01" @input="calcularSaldo" class="form-input"/>
-          </div>
-          <div class="form-group">
-            <label for="monto-saldo">Saldo (Bs.)</label>
-            <input id="monto-saldo" v-model="formOrden.monto_saldo" type="number" step="0.01" readonly class="form-input input-readonly" />
-          </div>
-      </div>
-
-      <h4 class="form-section-header">Notas Adicionales</h4>
-       <div class="form-group full-width">
-          <textarea id="observaciones" v-model="formOrden.observaciones_orden" rows="3" placeholder="Anotaciones adicionales sobre la orden..." class="form-input"></textarea>
-        </div>
-
-      <template #footer>
-        <button @click="cerrarModalOrden" class="btn btn-secondary">Cancelar</button>
-        <button @click="guardarOrdenTrabajo" class="btn btn-primary">Guardar Orden</button>
-      </template>
-    </BaseModal>
-    </div>
+    <!-- MODAL DE 'NUEVA ORDEN' ELIMINADO DE AQUÍ -->
+  </div>
 </template>
 
 <script setup>
@@ -128,33 +79,17 @@ const router = useRouter();
 
 const clientes = ref([]);
 const showModal = ref(false);
-const showModalOrden = ref(false);
 const editId = ref(null);
-const clienteSeleccionado = ref(null);
 const busqueda = ref("");
-const tiendaUsuario = ref(null);
 
 const nombreCliente = ref("");
 const apellidoPaterno = ref("");
 const apellidoMaterno = ref("");
 const telefonoCliente = ref("");
 
-const formOrden = ref({
-  nro_boleta_sobre: "",
-  cliente: "",
-  tienda: "",
-  fecha_pedido: new Date().toISOString().split('T')[0],
-  fecha_entrega: "",
-  hora_entrega: "16:00",
-  monto_total: 0,
-  monto_acuenta: 0,
-  monto_saldo: 0,
-  observaciones_orden: "",
-  estado_orden: "PENDIENTE"
-});
-
 const nameCliente = ref(null);
-const nroSobreOrdenInput = ref(null);
+
+// LÓGICA DE ÓRDENES COMPLETAMENTE ELIMINADA DEL SCRIPT
 
 const clientesFiltrados = computed(() => {
   if (!busqueda.value) {
@@ -168,31 +103,12 @@ const clientesFiltrados = computed(() => {
   });
 });
 
-function actualizarFechaEntrega() {
-  if (formOrden.value.fecha_pedido) {
-    const fechaPedido = new Date(formOrden.value.fecha_pedido + 'T00:00:00');
-    fechaPedido.setDate(fechaPedido.getDate() + 2);
-    formOrden.value.fecha_entrega = fechaPedido.toISOString().split('T')[0];
-  }
-}
-
 async function getClientes() {
   const { data } = await supabase
     .from("clientes")
     .select("*")
     .order("fecha_registro_cliente", { ascending: false });
   clientes.value = data || [];
-}
-
-async function getTiendaDelUsuarioActual() {
-    const { data, error } = await supabase.from("tiendas").select("cod_tienda").limit(1).single();
-    if (error) {
-        console.error("Error obteniendo la tienda por defecto:", error);
-        alert("No se pudo determinar la tienda del usuario. No se podrán crear órdenes.");
-    }
-    if (data) {
-        tiendaUsuario.value = data.cod_tienda;
-    }
 }
 
 function irAPanelCliente(clienteId) {
@@ -210,14 +126,9 @@ async function guardarCliente() {
   try {
     let error;
     if (editId.value) {
-      ({ error } = await supabase
-        .from("clientes")
-        .update(clienteData)
-        .eq("cod_cliente", editId.value));
+      ({ error } = await supabase.from("clientes").update(clienteData).eq("cod_cliente", editId.value));
     } else {
-      ({ error } = await supabase
-        .from("clientes")
-        .insert(clienteData));
+      ({ error } = await supabase.from("clientes").insert(clienteData));
     }
     
     if (error) throw error;
@@ -248,19 +159,13 @@ function editarCliente(cliente) {
   apellidoMaterno.value = cliente.apellido_materno_cliente || "";
   telefonoCliente.value = cliente.telefono_cliente || "";
   showModal.value = true;
-
-  nextTick(() => {
-    nameCliente.value.focus();
-  });
+  nextTick(() => { nameCliente.value.focus(); });
 }
 
 function abrirModalCrear() {
   limpiarFormulario();
   showModal.value = true;
-
-  nextTick(() => {
-    nameCliente.value.focus();
-  });
+  nextTick(() => { nameCliente.value.focus(); });
 }
 
 function cerrarModal() {
@@ -276,138 +181,33 @@ function limpiarFormulario() {
   telefonoCliente.value = "";
 }
 
-function crearOrdenTrabajo(cliente) {
-  clienteSeleccionado.value = cliente;
-  limpiarFormularioOrden();
-  formOrden.value.cliente = cliente.cod_cliente;
-  
-  showModalOrden.value = true;
-
-  nextTick(() => {
-    if (nroSobreOrdenInput.value) {
-      nroSobreOrdenInput.value.focus();
-    }
-  });
-}
-
-async function guardarOrdenTrabajo() {
-  if (!formOrden.value.nro_boleta_sobre) {
-    alert("El número de sobre es requerido");
-    return;
-  }
-  if (!tiendaUsuario.value) {
-    alert("No se ha podido asignar una tienda a la orden. Recargue la página.");
-    return;
-  }
-
-  const ordenData = {
-    nro_boleta_sobre: parseInt(formOrden.value.nro_boleta_sobre),
-    cliente: parseInt(formOrden.value.cliente),
-    tienda: tiendaUsuario.value,
-    fecha_pedido: formOrden.value.fecha_pedido,
-    fecha_entrega: formOrden.value.fecha_entrega || null,
-    hora_entrega: formOrden.value.hora_entrega || null,
-    monto_total: parseFloat(formOrden.value.monto_total) || 0,
-    monto_acuenta: parseFloat(formOrden.value.monto_acuenta) || 0,
-    monto_saldo: parseFloat(formOrden.value.monto_saldo) || 0,
-    observaciones_orden: formOrden.value.observaciones_orden || null,
-    estado_orden: formOrden.value.estado_orden
-  };
-
-  try {
-    const { error } = await supabase
-      .from("orden_trabajo")
-      .insert(ordenData);
-
-    if (error) {
-      if (error.code === '23505') {
-        alert("Error: Ya existe una orden con este número de sobre.");
-      } else {
-        throw error;
-      }
-    } else {
-      alert("Orden de trabajo creada exitosamente");
-      cerrarModalOrden();
-    }
-  } catch (error) {
-    alert("Error al crear la orden: " + error.message);
-  }
-}
-
-function cerrarModalOrden() {
-  showModalOrden.value = false;
-  clienteSeleccionado.value = null;
-  limpiarFormularioOrden();
-}
-
-function limpiarFormularioOrden() {
-  const hoy = new Date().toISOString().split('T')[0];
-  formOrden.value = {
-    nro_boleta_sobre: "",
-    cliente: "",
-    tienda: "",
-    fecha_pedido: hoy,
-    fecha_entrega: "",
-    hora_entrega: "16:00",
-    monto_total: 0,
-    monto_acuenta: 0,
-    monto_saldo: 0,
-    observaciones_orden: "",
-    estado_orden: "PENDIENTE"
-  };
-  actualizarFechaEntrega();
-}
-
-function calcularSaldo() {
-  const total = parseFloat(formOrden.value.monto_total) || 0;
-  const acuenta = parseFloat(formOrden.value.monto_acuenta) || 0;
-  formOrden.value.monto_saldo = total - acuenta;
-}
-
-function formatearFecha(fecha) {
-  if (!fecha) return '-';
-  const fechaLocal = new Date(fecha + 'T00:00:00');
-  return fechaLocal.toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  });
-}
-
 function subscribeToClientes() {
   const channel = supabase
     .channel("clientes")
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "clientes" },
+    .on("postgres_changes", { event: "*", schema: "public", table: "clientes" },
       (payload) => {
         if (payload.eventType === "INSERT") {
           clientes.value.unshift(payload.new);
         } else if (payload.eventType === "UPDATE") {
           const index = clientes.value.findIndex(c => c.cod_cliente === payload.new.cod_cliente);
-          if (index !== -1) {
-            clientes.value[index] = payload.new;
-          }
+          if (index !== -1) clientes.value[index] = payload.new;
         } else if (payload.eventType === "DELETE") {
-          clientes.value = clientes.value.filter(
-            (c) => c.cod_cliente !== payload.old.cod_cliente
-          );
+          clientes.value = clientes.value.filter(c => c.cod_cliente !== payload.old.cod_cliente);
         }
       }
-    )
-    .subscribe();
+    ).subscribe();
   return () => supabase.removeChannel(channel);
 }
 
 onMounted(() => {
   getClientes();
-  getTiendaDelUsuarioActual();
   const unsubscribe = subscribeToClientes();
   onUnmounted(unsubscribe);
 });
 </script>
 
 <style scoped>
+/* ESTILOS SIN CAMBIOS - SOLO SE MANTIENEN LOS NECESARIOS PARA ESTE COMPONENTE */
 :root {
   --primary-color: #005A9C;
   --secondary-color: #6c757d;
@@ -471,8 +271,6 @@ onMounted(() => {
 .btn-primary:hover { background-color: #338fcc; color:white }
 .btn-secondary { background-color: #b1e2eb; }
 .btn-secondary:hover { background-color: #338fcc; color: white }
-.btn-success { background-color: #51db7f; }
-.btn-success:hover { background-color: #218838; }
 
 .btn-icon {
   background: none;
@@ -552,10 +350,6 @@ th {
   letter-spacing: 0.5px;
 }
 
-tr:nth-child(even) {
-  background-color: #fdfdfd;
-}
-
 tr:hover {
   background-color: #f3f3f3;
 }
@@ -575,7 +369,6 @@ td {
   padding: 24px;
 }
 
-/* --- INICIO: ESTILOS DE FORMULARIO --- */
 .form-container {
   display: flex;
   flex-direction: column;
@@ -596,68 +389,5 @@ td {
   outline: none;
   border-color: #1163b4;
   box-shadow: 5px 2px 0 3px rgba(0, 90, 156, 0.5);
-}
-
-.input-readonly {
-  background-color: #e9ecef;
-  cursor: not-allowed;
-}
-
-.form-section-header {
-  font-size: 16px;
-  font-weight: 600;
-  color: #343a40;
-  margin: 20px 0 15px 0;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e0e0e0;
-}
-.form-section-header:first-of-type {
-  margin-top: 0;
-}
-
-.form-grid-orden-info {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
-}
-
-.form-grid-orden-financiero {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 16px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.form-group.full-width {
-  grid-column: 1 / -1;
-}
-
-.form-group label {
-  font-weight: 500;
-  color: #444;
-  font-size: 13px;
-  white-space: nowrap;
-}
-
-.orden-cliente-info {
-  font-size: 1rem;
-  padding: 12px 16px;
-  background-color: #e7f3ff;
-  border: 1px solid #b3d7ff;
-  border-radius: 6px;
-  margin-bottom: 20px;
-}
-/* --- FIN: ESTILOS DE FORMULARIO --- */
-
-@media (max-width: 768px) {
-  .form-grid-orden-info,
-  .form-grid-orden-financiero {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

@@ -12,6 +12,10 @@
     <!--LINEA DIVISORA DE SECCIÓN-->
     <div class="elegant-divider"></div>
 
+
+
+    
+
     <div class="seccion-prescripciones">
       <div class="seccion-header">
         <h2>Prescripciones del Cliente</h2>
@@ -20,34 +24,40 @@
 
       <div v-if="cargandoPrescripciones" class="loading">Cargando prescripciones...</div>
 
-      <table v-else-if="prescripcionesCliente.length > 0">
-        <thead>
-          <tr>
-            <th>Código Receta</th>
-            <th>Doctor</th>
-            <th>Fecha</th>
-            <th>Observaciones</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="prescripcion in prescripcionesCliente" :key="prescripcion.cod_prescripcion">
-            <td>{{ prescripcion.cod_receta }}</td>
-            <td>{{ prescripcion.doctor_nombre }}</td>
-            <td>{{ formatearFecha(prescripcion.fecha_prescripcion) }}</td>
-            <td>{{ prescripcion.observacion_prescripcion?.substring(0, 40) }}...</td>
-            <td class="acciones-tabla">
-              <button @click="abrirModalDetalles(prescripcion)">Ver</button>
-              <button @click="abrirModalFormularioParaEditar(prescripcion)">Editar</button>
-              <button @click="eliminarPrescripcion(prescripcion.cod_prescripcion)" class="btn-desactivar">Eliminar</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div v-else-if="prescripcionesCliente.length > 0" class="prescripcion-grid">
+        <div v-for="prescripcion in prescripcionesCliente" :key="prescripcion.cod_prescripcion"
+          class="prescripcion-card clickable" @click="abrirModalDetalles(prescripcion)"
+          title="Clic para ver detalles completos">
+
+          <div class="card-header">
+            <h4>Receta: {{ prescripcion.cod_receta || 'S/C' }}</h4>
+            <span class="card-date">{{ formatearFecha(prescripcion.fecha_prescripcion) }}</span>
+          </div>
+
+          <div class="card-body">
+            <p class="card-info-item">
+              <strong>Doctor:</strong>
+              <span>{{ prescripcion.doctor_nombre }}</span>
+            </p>
+            <p v-if="prescripcion.observacion_prescripcion && prescripcion.observacion_prescripcion !== '-'"
+              class="card-obs">
+              {{ prescripcion.observacion_prescripcion }}
+            </p>
+          </div>
+
+          <div class="card-actions" @click.stop>
+            <button @click="abrirModalFormularioParaEditar(prescripcion)" class="btn-action btn-edit"
+              title="Editar">✏️ Editar</button>
+            <button @click="eliminarPrescripcion(prescripcion.cod_prescripcion)" class="btn-action btn-delete"
+              title="Eliminar">🗑️ Eliminar</button>
+          </div>
+        </div>
+      </div>
       <div v-else class="sin-resultados">
         <p>Este cliente aún no tiene prescripciones registradas.</p>
       </div>
     </div>
+    
 
     <BaseModal v-model="mostrarModalFormulario" :title="tituloModalFormulario" size="xl">
       <form @submit.prevent="guardarPrescripcion" class="form-container">
@@ -337,6 +347,65 @@
       <template #footer>
         <button @click="guardarNuevoDoctor" class="btn-guardar">Guardar Doctor</button>
         <button @click="mostrarModalNuevoDoctor = false" class="btn-cancelar">Cancelar</button>
+      </template>
+    </BaseModal>
+
+    <!-- 2. MODAL PARA NUEVA ORDEN AÑADIDO AQUÍ -->
+    <BaseModal v-model="showModalOrden" title="Crear Nueva Orden de Trabajo" size="lg">
+      <p class="orden-cliente-info">
+        <strong>Cliente:</strong> {{ clienteNombreCompleto }}
+      </p>
+
+      <h4 class="form-section-header">Información de la Orden</h4>
+      <div class="form-grid-orden-info">
+        <div class="form-group">
+          <label for="nro-boleta">Nro. Sobre/Boleta *</label>
+          <input id="nro-boleta" ref="nroSobreOrdenInput" v-model="formOrden.nro_boleta_sobre" type="number"
+            placeholder="Ej: 12345" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label for="fecha-pedido">Fecha Pedido</label>
+          <input id="fecha-pedido" v-model="formOrden.fecha_pedido" type="date" class="form-input"
+            @change="actualizarFechaEntrega" />
+        </div>
+        <div class="form-group">
+          <label for="fecha-entrega">Fecha Entrega</label>
+          <input id="fecha-entrega" v-model="formOrden.fecha_entrega" type="date" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label for="hora-entrega">Hora Entrega</label>
+          <input id="hora-entrega" v-model="formOrden.hora_entrega" type="time" class="form-input" />
+        </div>
+      </div>
+
+      <h4 class="form-section-header">Detalles Financieros</h4>
+      <div class="form-grid-orden-financiero">
+        <div class="form-group">
+          <label for="monto-total">Monto Total (Bs.)</label>
+          <input id="monto-total" v-model="formOrden.monto_total" type="number" step="0.01" @input="calcularSaldo"
+            class="form-input" />
+        </div>
+        <div class="form-group">
+          <label for="monto-acuenta">A Cuenta (Bs.)</label>
+          <input id="monto-acuenta" v-model="formOrden.monto_acuenta" type="number" step="0.01" @input="calcularSaldo"
+            class="form-input" />
+        </div>
+        <div class="form-group">
+          <label for="monto-saldo">Saldo (Bs.)</label>
+          <input id="monto-saldo" v-model="formOrden.monto_saldo" type="number" step="0.01" readonly
+            class="form-input campo-readonly" />
+        </div>
+      </div>
+
+      <h4 class="form-section-header">Notas Adicionales</h4>
+      <div class="form-group full-width">
+        <textarea id="observaciones" v-model="formOrden.observaciones_orden" rows="3"
+          placeholder="Anotaciones adicionales sobre la orden..." class="form-input"></textarea>
+      </div>
+
+      <template #footer>
+        <button @click="cerrarModalOrden" class="btn-cancelar">Cancelar</button>
+        <button @click="guardarOrdenTrabajo" class="btn-guardar">Guardar Orden</button>
       </template>
     </BaseModal>
 
@@ -1186,6 +1255,127 @@ td button:not(.btn-desactivar) {
   margin: 40px 0;
   opacity: 0.7;
 }
+
+/* --- INICIO: NUEVOS ESTILOS PARA LAS TARJETAS --- */
+.prescripcion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.prescripcion-card {
+  background-color: rgb(255, 255, 255);
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  border: 1px solid #c0c0c0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.clickable:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background-color: #ffc368;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.card-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #343a40;
+}
+
+.card-date {
+  font-size: 0.8rem;
+  color: #6c757d;
+  background-color: #e9ecef;
+  padding: 3px 8px;
+  border-radius: 12px;
+}
+
+.card-body {
+  padding: 1rem;
+  flex-grow: 1;
+}
+
+.card-info-item {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.card-info-item strong {
+  color: #495057;
+}
+
+.card-info-item span {
+  color: #212529;
+}
+
+.card-obs {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-top: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background-color: #ffffff;
+  border-top: 1px solid #e9ecef;
+}
+
+.btn-action {
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-action.btn-edit {
+  color: #ffc107;
+  border-color: #ffc107;
+}
+
+.btn-action.btn-edit:hover {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.btn-action.btn-delete {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+.btn-action.btn-delete:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* --- FIN: NUEVOS ESTILOS PARA LAS TARJETAS --- */
+
 
 /* Media Queries para responsividad */
 @media (max-width: 1200px) {
