@@ -19,3 +19,12 @@ Iniciar nueov perfil según la estructura dada en taller 1 2019
 
 
 enlaces varios XD
+
+
+// Crear una cuenta de invitado con accesso limitado para demostraciones
+// con usuario y contraseña sencillos.
+
+// Catalogo de las monturas con costo.
+// tipo de cristal y colores
+// tipos de monturas
+// reparación de monturas
