@@ -45,6 +45,15 @@ Se puede identificar lentes, materiales o tratamientos más recomendados o que t
 Podemos generar informes sobre los médicos que prescriben a nuestros clientes y mejorar relaciones profesionales.
 
 
+/////  CORRECCIONES  /////////////
+- Lista filtrada de clientes por doctor al mes.
+- Adicionar tratamientos faltantes ( ejem. Carilux physio)
+- Quitar campos no utilizados en el formulario de recetas.
+- Simplificar el formulario.
+- Anular los modales en los formularios de registro.
+- Usar Modales solo para visualizaciones.
+
+
 
 CONTEXTO BORRADOR: FLUJO DE TRABAJO
 bastante interesante, mi objetivo es implementar un sistema web que mejore los procesos operativos de una optica automatizacion procesos y optimizando otras operaciones y con eso mejorar en general su funcionamiento.
