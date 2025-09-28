@@ -55,25 +55,3 @@ Podemos generar informes sobre los médicos que prescriben a nuestros clientes y
 
 
 
-CONTEXTO BORRADOR: FLUJO DE TRABAJO
-bastante interesante, mi objetivo es implementar un sistema web que mejore los procesos operativos de una optica automatizacion procesos y optimizando otras operaciones y con eso mejorar en general su funcionamiento.
-
-FLUJO DE TRABAJO
-El caso asume que el cliente trae su prescripción con las medidas y detalles de los cristales recomendados por el doctor prescriptor.
-El flujo comienza cuando un cliente ingresa a la óptica, y realiza la consulta de un lente. 
-
-El personal le pide su prescripción médica para ver los detalles de las medidas y el tipo de cristales que el doctor ha prescrito y le muestra cristales de muestra con el tratamiento sugerido y le hace una cotización tomando en cuenta las medidas de su prescripción. 
-
-El cliente acepta la oferta y el personal registra el nombre y telefono del cliente en un sobre rosa con un codigo que se le asigna manualmente ya que funciona como contraseña para el cliente para que con ese codigo tambien pueda recoger el producto final.
-
-Tambien se define si el cliente cuenta con su propia montura o tambien comprará una de las monturas disponibles en la óptica. Si el cliente opta por comprar una nueva montura entonces el personal le guía para hacer una elección adecuado y según al gusto del cliente. Si el cliente tiene montura propia debe dejar su montura para que la ótpica pueda ajustar los lentes o cristales del pedido y adaptarlos a la montura del cliente.
-
-El cliente realiza un adelanto del pago total, el personal le entrega un pequeño papel con el número de sobre asignado, la fecha de entrega y hora y el cliente se va hasta el día de la entrega del producto, con el pedido de lentes y montura confirmados. 
-
-El personal, posteriormente, registra datos adicionales del pedido en un sobre diseñado para el trabajo ya que en este sobre se registra el numero de sobre asignado al cliente, nombre y apellido del cliente, su telefono, se registra la fecha del pedido, fecha de entrega, hora de entrega, se anota caracteristicas y tratamientos de los cristales sugeridos por el doctorm por ejemplo: 2 policarbonatos clear blue filter vision free, amarillo verdoso, se registra datos de la montura o armazon si el propio del cliente o pedidrá un nuevo armazón de stock de la óptica. Luego se anota el doctor prescriptor. También se registra los montos del pedido, es decir, el monto total del pedido, el monto a cuenta, y el saldo. Adicional y posteriormente se adiciona un codigo de pedido. Este código de pedido es el código que genera el proveedor que fabrica los cristales según prescripción, según las medidas, materiales y tratamientos que debe tener, ya que la óptica trabaja con un proveedor llamado Optalvisión que se encarga de preparar los cristales según la prescripción, la óptica se encarga de hacer el termindo del producto para su entrega.
-
-Luego estos mismos datos escritos en el sobre se la pasan a un pequeño sistema de registro de sobres para poder controlar y calcular el saldo y ver caracteriscas del pedido del cliente, tambien para registrar los montos y poder obtener resumenes diarios de los inngresos. Este sistema es antiguo y debo implementar otro que sea mejorado.
-
-Luego el personal tambien anota manualmente la prescripcion del cliente es decir, las medidas y detalles de los cristales del cliente en otras hojas denominadas "Recetas", y nuevamente estas hojas se las ingresa a otro modulo de sistema para registrar estas medidas y hacer consultas y tener un historial de clientes y prescripciones.
-
-Hasta ahí puedo darte el contexto del flujo diario de un pedido de un cliente. y es por eso que debo diseñar e implementar un sistema web que pueda mejorar estos procesos. Y este neuvo sistema sea capaz de poder brindar graficos resumenes, mejor organizados, quizas alertas de entrega, y poder filtrar lista de clientes por doctor, y mejorar las consultar a los historiales y mejorar el flujo de los pagos.
