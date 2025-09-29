@@ -61,41 +61,40 @@
     
     <BaseModal v-model="mostrarModalFormulario" :title="tituloModalFormulario" size="xl">
       <form @submit.prevent="guardarPrescripcion" class="form-container">
-        <h4 class="form-section-header">Información General</h4>
-        <div class="form-grid-general">
+        <!--<h4 class="form-section-header">Información General</h4>-->
+        <div class="form-grid-4-col">
           <div class="form-group">
-            <label>Cliente:</label>
             <input :value="clienteNombreCompleto" readonly class="form-input campo-readonly" />
           </div>
           <div class="form-group">
-            <label>Código de Receta:</label>
-            <input ref="recetaInputRef" v-model="formData.cod_receta" placeholder="Código de receta (ej. R-123)"
+            <input ref="recetaInputRef" v-model="formData.cod_receta" placeholder="Código Receta Ej. 1234-A"
               class="form-input" />
           </div>
           <div class="form-group">
-            <label>Doctor Prescriptor:</label>
             <div class="autocomplete-container">
               <AutoComplete v-model="formData.doctor_prescriptor" :options="doctoresOptions"
-                placeholder="Seleccionar o escribir nuevo doctor" @search-input="handleDoctorSearch" />
+                placeholder="Doctor Prescriptor" @search-input="handleDoctorSearch" />
               <button type="button" @click="abrirModalNuevoDoctor" class="btn-add-inline"
                 title="Agregar nuevo doctor">+</button>
             </div>
           </div>
           <div class="form-group">
-            <label>Fecha de Prescripción:</label>
             <input v-model="formData.fecha_prescripcion" type="date" class="form-input" />
           </div>
         </div>
 
-        <h4 class="form-section-header">Medidas de Lentes</h4>
+        <!--        <h4 class="form-section-header">Medidas de Lentes</h4>-->
         <div class="medidas-grid-container">
           <div class="medida-columna">
-            <div class="medida-header">Medida 1</div>
-            <div class="form-group">
-              <label>TIPO / DISTANCIA</label>
-              <AutoComplete v-model="medidas[0].tipo_lente" :options="tipoLenteDistanciaOptions" placeholder="Lejos, Cerca..." />
+            <div class="medida-header">Medidas Lente 1</div>
+            <div class="tipo-dip-grupo">
+              <div class="form-group">
+                <AutoComplete v-model="medidas[0].tipo_lente" :options="tipoLenteDistanciaOptions" placeholder="DISTANCIA" />
+              </div>
+              <div class="form-group">
+                <input v-model="medidas[0].dip_lentes_binocular" type="number" step="0.01" class="form-input" placeholder="DIP" />
+              </div>
             </div>
-            <div class="form-group"><label>DIP</label><input v-model="medidas[0].dip_lentes_binocular" type="number" step="0.01" class="form-input" /></div>
             <div class="ojos-fila">
               <div class="ojo-grupo">
                 <label class="ojo-label">OD</label>
@@ -112,12 +111,15 @@
             </div>
           </div>
           <div class="medida-columna">
-            <div class="medida-header">Medida 2</div>
-            <div class="form-group">
-              <label>TIPO / DISTANCIA</label>
-              <AutoComplete v-model="medidas[1].tipo_lente" :options="tipoLenteDistanciaOptions" placeholder="Lejos, Cerca..." />
+            <div class="medida-header">Medidas Lente 2</div>
+            <div class="tipo-dip-grupo">
+               <div class="form-group">
+                <AutoComplete v-model="medidas[1].tipo_lente" :options="tipoLenteDistanciaOptions" placeholder="DISTANCIA" />
+              </div>
+              <div class="form-group">
+                <input v-model="medidas[1].dip_lentes_binocular" type="number" step="0.01" class="form-input" placeholder="DIP" />
+              </div>
             </div>
-            <div class="form-group"><label>DIP</label><input v-model="medidas[1].dip_lentes_binocular" type="number" step="0.01" class="form-input" /></div>
             <div class="ojos-fila">
               <div class="ojo-grupo">
                 <label class="ojo-label">OD</label>
@@ -135,45 +137,38 @@
           </div>
         </div>
 
-        <h4 class="form-section-header">Detalles de Cristales y Tratamientos</h4>
+        <!--        <h4 class="form-section-header">Detalles de Cristales y Tratamientos</h4>-->
         <div class="cristales-grid-container">
-            <label class="cristal-header-label"></label>
-            <label class="cristal-header-label">Cantidad</label>
-            <label class="cristal-header-label">Material</label>
-            <label class="cristal-header-label">Tipo</label>
-            <label class="cristal-header-label">Tratamientos</label>
-            <label class="cristal-header-label">Color</label>
-            <label class="cristal-header-label">Cód. Pedido</label>
 
-            <label class="cristal-row-label">Cristal 1</label>
+            <label class="cristal-row-label">Cristal 1:</label>
             <div class="form-group"><input v-model.number="medidas[0].cantidad" type="number" min="1" class="form-input" /></div>
-            <div class="form-group"><AutoComplete v-model="medidas[0].cod_material_cristal" :options="materialesOptions" /></div>
-            <div class="form-group"><AutoComplete v-model="medidas[0].cod_tipo_lente" :options="tiposLenteOptions" /></div>
-            <div class="form-group"><MultiSelect v-model="medidas[0].tratamientos_seleccionados" :options="tratamientosOptions" /></div>
-            <div class="form-group"><AutoComplete v-model="medidas[0].cod_color_cristal" :options="coloresOptions" /></div>
-            <div class="form-group"><input v-model="medidas[0].nro_sobre" class="form-input" /></div>
+            <div class="form-group"><AutoComplete v-model="medidas[0].cod_material_cristal" :options="materialesOptions" placeholder="Material" /></div>
+            <div class="form-group"><AutoComplete v-model="medidas[0].cod_tipo_lente" :options="tiposLenteOptions" placeholder="Tipo"/></div>
+            <div class="form-group"><MultiSelect v-model="medidas[0].tratamientos_seleccionados" :options="tratamientosOptions" placeholder="Tratamientos" /></div>
+            <div class="form-group"><AutoComplete v-model="medidas[0].cod_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
+            <div class="form-group"><input v-model="medidas[0].nro_sobre" class="form-input" placeholder="Núm. Pedido" /></div>
             
-            <label class="cristal-row-label">Cristal 2</label>
+            <label class="cristal-row-label">Cristal 2:</label>
             <div class="form-group"><input v-model.number="medidas[1].cantidad" type="number" min="1" class="form-input" /></div>
-            <div class="form-group"><AutoComplete v-model="medidas[1].cod_material_cristal" :options="materialesOptions" /></div>
-            <div class="form-group"><AutoComplete v-model="medidas[1].cod_tipo_lente" :options="tiposLenteOptions" /></div>
-            <div class="form-group"><MultiSelect v-model="medidas[1].tratamientos_seleccionados" :options="tratamientosOptions" /></div>
-            <div class="form-group"><AutoComplete v-model="medidas[1].cod_color_cristal" :options="coloresOptions" /></div>
-            <div class="form-group"><input v-model="medidas[1].nro_sobre" class="form-input" /></div>
+            <div class="form-group"><AutoComplete v-model="medidas[1].cod_material_cristal" :options="materialesOptions" placeholder="Material"/></div>
+            <div class="form-group"><AutoComplete v-model="medidas[1].cod_tipo_lente" :options="tiposLenteOptions" placeholder="Tipo" /></div>
+            <div class="form-group"><MultiSelect v-model="medidas[1].tratamientos_seleccionados" :options="tratamientosOptions" placeholder="Tratamientos"/></div>
+            <div class="form-group"><AutoComplete v-model="medidas[1].cod_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
+            <div class="form-group"><input v-model="medidas[1].nro_sobre" class="form-input" placeholder="Núm. Pedido"/></div>
         </div>
 
-        <h4 class="form-section-header">Notas Adicionales</h4>
+        <div class="form-grid-5-col">
+          <div class="form-group"> <AutoComplete v-model="formData.proveedor_id" :options="proveedoresOptions" placeholder="Proveedor" /></div>
+          <div class="form-group"> <AutoComplete v-model="formData.armador_lente_id" :options="armadoresOptions" placeholder="Armador" /></div>
+          <div class="form-group"> <AutoComplete v-model="formData.armazon_lente_id" :options="armazonesOptions" placeholder="Armazón"/></div>
+          <div class="form-group"><input v-model="formData.fecha_entrega" type="date" class="form-input" placeholder="Fecha entrega"/></div>
+          <div class="form-group"><input v-model="formData.codigo_pedido" type="text" class="form-input" placeholder="Núm. Sobre"/></div>
+        </div>
+
         <div class="form-group">
-          <textarea v-model="formData.observacion_prescripcion" rows="2" class="form-input" placeholder="Utilice este campo para adición, prismas, alturas u otras notas relevantes..."></textarea>
+          <textarea v-model="formData.observacion_prescripcion" rows="2" class="form-input" placeholder="Observaciones, notas o medidas adicionales"></textarea>
         </div>
-        <h4 class="form-section-header">Información de Entrega y Armado</h4>
-        <div class="form-grid-general">
-          <div class="form-group"><label>Proveedor</label> <AutoComplete v-model="formData.proveedor_id" :options="proveedoresOptions" /></div>
-          <div class="form-group"><label>Armador</label> <AutoComplete v-model="formData.armador_lente_id" :options="armadoresOptions" /></div>
-          <div class="form-group"><label>Armazón</label> <AutoComplete v-model="formData.armazon_lente_id" :options="armazonesOptions" /></div>
-          <div class="form-group"><label>Fecha de Entrega</label><input v-model="formData.fecha_entrega" type="date" class="form-input" /></div>
-          <div class="form-group"><label>Número de Sobre</label><input v-model="formData.codigo_pedido" type="text" class="form-input" /></div>
-        </div>
+
       </form>
       <template #footer>
         <button @click="guardarPrescripcion" class="btn-guardar">{{ editId ? 'Actualizar' : 'Guardar' }}</button>
@@ -319,7 +314,7 @@
 
 <script setup>
 // --- START: Importaciones y Configuración Inicial ---
-import { ref, onMounted, reactive, computed, nextTick } from 'vue';
+import { ref, onMounted, reactive, computed, nextTick, watch } from 'vue'; // AÑADIDO: watch
 import { useRoute, useRouter } from 'vue-router';
 import { supabase } from '../lib/supabaseClient';
 import BaseModal from './BaseModal.vue';
@@ -347,6 +342,13 @@ const armadores = ref([]);
 const armazones = ref([]);
 const tiendaUsuario = ref(null);
 // --- END: Estado del Componente (Datos Principales) ---
+
+// --- START: Refs para valores predeterminados ---
+const defaultProveedorId = ref(null);
+const defaultArmadorId = ref(null);
+const defaultArmazonId = ref(null);
+// --- END: Refs para valores predeterminados ---
+
 
 // --- START: Estado de la UI (Modales, Cargas, Refs) ---
 const cargandoPrescripciones = ref(false);
@@ -413,6 +415,27 @@ const armadoresOptions = computed(() => armadores.value.map(a => ({ value: a.cod
 const armazonesOptions = computed(() => armazones.value.map(a => ({ value: a.cod_armazon, label: a.nombre_armazon })));
 const tipoLenteDistanciaOptions = ref([{ value: 'LEJOS', label: 'LEJOS' }, { value: 'CERCA', label: 'CERCA' }, { value: 'PROGRESIVO', label: 'PROGRESIVO' }, { value: 'BIFOCAL', label: 'BIFOCAL' }, { value: 'INTERMEDIO', label: 'INTERMEDIO' }]);
 // --- END: Propiedades Computadas y Opciones de Selectores ---
+
+// --- START: Observadores para establecer valores por defecto ---
+watch(proveedores, (newVal) => {
+  if (newVal) {
+    const optalvision = newVal.find(p => p.nombre_proveedor.toUpperCase() === 'OPTALVISION');
+    if (optalvision) defaultProveedorId.value = optalvision.cod_proveedor;
+  }
+});
+watch(armadores, (newVal) => {
+  if (newVal) {
+    const jaime = newVal.find(a => a.nombre_armador.toUpperCase() === 'JAIME');
+    if (jaime) defaultArmadorId.value = jaime.cod_armador;
+  }
+});
+watch(armazones, (newVal) => {
+  if (newVal) {
+    const propio = newVal.find(a => a.nombre_armazon.toUpperCase() === 'PROPIO');
+    if (propio) defaultArmazonId.value = propio.cod_armazon;
+  }
+});
+// --- END: Observadores para establecer valores por defecto ---
 
 // --- START: Ciclo de Vida del Componente ---
 onMounted(async () => {
@@ -666,14 +689,17 @@ function limpiarFormularioPrescripcion() {
     doctor_prescriptor: '', 
     fecha_prescripcion: hoy,
     observacion_prescripcion: '', 
-    proveedor_id: null, 
-    armador_lente_id: null, 
-    armazon_lente_id: null,
+    // AÑADIDO: Asignación de valores predeterminados
+    proveedor_id: defaultProveedorId.value, 
+    armador_lente_id: defaultArmadorId.value, 
+    armazon_lente_id: defaultArmazonId.value,
     fecha_entrega: hoy, 
     codigo_pedido: ''
   });
-  // MODIFICADO: Siempre reinicia a dos medidas en blanco.
+  
+  // AÑADIDO: Medida 1 pre-llenada con 'LEJOS'
   medidas.value = [getMedidaInicial(), getMedidaInicial()];
+  medidas.value[0].tipo_lente = 'LEJOS';
 }
 function abrirModalFormularioParaCrear() {
   limpiarFormularioPrescripcion();
@@ -1026,7 +1052,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .form-section-header { font-size: 1rem; font-weight: 600; margin: 1rem 0 0.5rem 0; padding-bottom: 6px; border-bottom: 1px solid #e0e0e0; color: #343a40; }
 .form-group { display: flex; flex-direction: column; gap: 4px; }
 .form-group label { font-weight: 500; font-size: 12px; color: #495057; }
-.form-input, .form-group textarea { padding: 6px 10px; border: 1px solid #ced4da; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 13px; }
+.form-input, .form-group textarea { padding: 6px 10px; border: 1px solid #ced4da; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 12px; }
 .form-input:focus-within, .form-group textarea:focus-within { border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .25); }
 .campo-readonly { background-color: #e9ecef; cursor: not-allowed; }
 
@@ -1037,11 +1063,22 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 /* END: Estilos de Formularios (Generales y Compactos) */
 
 /* START: Estilos del NUEVO Formulario de Prescripción */
-.form-grid-general {
+/* AÑADIDO: Nuevas clases de grid para filas únicas en desktop */
+.form-grid-4-col, .form-grid-5-col {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px 16px;
 }
+.form-grid-4-col { grid-template-columns: repeat(4, 1fr); }
+.form-grid-5-col { grid-template-columns: repeat(5, 1fr); }
+
+/* Media query para apilar los campos en pantallas más pequeñas */
+@media (max-width: 1300px) {
+  .form-grid-5-col { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+}
+@media (max-width: 1100px) {
+  .form-grid-4-col { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+}
+
 
 .medidas-grid-container {
   display: grid;
@@ -1053,21 +1090,34 @@ function volver() { router.push({ name: 'GestionClientes' }); }
   border: 1px solid #e9ecef;
 }
 
+/* ANCHO DE LOS CAMPOS DE MEDIDAS DE LENTES */
 .medida-columna {
+  display: grid;
+  grid-template-areas:
+    "header header"
+    "tipo-dip medidas-ojo";
+  grid-template-columns: 120px 1fr;
+  gap: 12px 2px;
+  align-items: start;
+}
+
+.medida-header {
+  grid-area: header;
+  font-weight: 600;
+  color: #505050;
+  padding-bottom: 1px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.tipo-dip-grupo {
+  grid-area: tipo-dip;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.medida-header {
-  font-weight: 600;
-  text-align: center;
-  color: #007bff;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #dee2e6;
-}
-
 .ojos-fila {
+  grid-area: medidas-ojo;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1151,6 +1201,14 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 @media (max-width: 992px) {
   .medidas-grid-container { grid-template-columns: 1fr; }
   .detalle-seccion-grid { grid-template-columns: 1fr; }
+  /* Apila la nueva sección de medidas en pantallas medianas */
+  .medida-columna {
+    grid-template-areas:
+      "header"
+      "tipo-dip"
+      "medidas-ojo";
+    grid-template-columns: 1fr; /* Columna única */
+  }
 }
 
 @media (max-width: 768px) {

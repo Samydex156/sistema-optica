@@ -76,7 +76,7 @@ defineEmits(['update:modelValue']);
 }
 
 .modal-container {
-  background-color: #ffffff;
+  background-color: #eeede7;
   border-radius: 8px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   display: flex;
