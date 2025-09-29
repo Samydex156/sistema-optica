@@ -1,6 +1,5 @@
 <template>
   <div class="panel-container">
-    <!-- START: Header del Panel del Cliente -->
     <header v-if="cliente" class="panel-header">
       <div>
         <h1>Panel de {{ cliente.nombre_cliente }} {{ cliente.apellido_paterno_cliente }}</h1>
@@ -12,11 +11,8 @@
       <button @click="volver" class="btn btn-secondary">Volver a la lista</button>
     </header>
     <div v-else class="loading">Cargando datos del cliente...</div>
-    <!-- END: Header del Panel del Cliente -->
-
     <div class="elegant-divider"></div>
 
-    <!-- START: Sección de Acciones y Listado de Prescripciones -->
     <div class="seccion-prescripciones">
       <div class="seccion-header">
         <h2>Acciones del Cliente</h2>
@@ -60,12 +56,8 @@
         <p>Este cliente aún no tiene prescripciones registradas.</p>
       </div>
     </div>
-    <!-- END: Sección de Acciones y Listado de Prescripciones -->
-
-    <!-- START: Modal de Formulario para Prescripción (Crear/Editar) -->
     <BaseModal v-model="mostrarModalFormulario" :title="tituloModalFormulario" size="xl">
       <form @submit.prevent="guardarPrescripcion" class="form-container">
-        <!-- START: Formulario - Información General -->
         <h4 class="form-section-header">Información General</h4>
         <div class="form-grid">
           <div class="form-group">
@@ -91,28 +83,22 @@
             <input v-model="formData.fecha_prescripcion" type="date" class="form-input" />
           </div>
         </div>
-        <!-- END: Formulario - Información General -->
-
-        <!-- START: Formulario - Medidas de Lentes -->
-        <h4 class="form-section-header">Medidas de Lentes</h4>
         <div v-for="(medida, index) in medidas" :key="index" class="medida-container">
-          <!-- Tipo y DIP -->
           <div class="distancia-tipo">
             <div class="form-group">
               <label>TIPO / DISTANCIA</label>
               <AutoComplete v-model="medida.tipo_lente" :options="tipoLenteDistanciaOptions"
                 placeholder="Seleccionar tipo" />
             </div>
-            <div class="form-group"><label>DIP Binocular (mm)</label><input v-model="medida.dip_lentes_binocular"
+            <div class="form-group"><label>DIP Binocular</label><input v-model="medida.dip_lentes_binocular"
                 type="number" step="0.01" class="form-input" /></div>
-            <div class="form-group"><label>DIP OD Mono (mm)</label><input v-model="medida.dip_lentes_od_monocular"
+            <div class="form-group"><label>DIP OD Mono</label><input v-model="medida.dip_lentes_od_monocular"
                 type="number" step="0.01" class="form-input" /></div>
-            <div class="form-group"><label>DIP OI Mono (mm)</label><input v-model="medida.dip_lentes_oi_monocular"
+            <div class="form-group"><label>DIP OI Mono</label><input v-model="medida.dip_lentes_oi_monocular"
                 type="number" step="0.01" class="form-input" /></div>
             <button type="button" @click="eliminarMedida(index)" v-if="medidas.length > 1"
               class="btn-desactivar btn-eliminar-medida">Eliminar</button>
           </div>
-          <!-- Medidas por Ojo -->
           <div class="form-column-ojos">
             <div class="ojo-section">
               <h5 class="ojo-header">Ojo Derecho (OD)</h5>
@@ -151,7 +137,6 @@
               </div>
             </div>
           </div>
-          <!-- Detalles del Cristal -->
           <div class="cristal-section">
             <h5 class="cristal-header">Detalles del Cristal y Tratamientos</h5>
             <div class="cristal-grid">
@@ -177,12 +162,9 @@
         <div class="form-section-header-container">
           <button type="button" @click="agregarMedida" class="btn-add-medida">+ Agregar Medida</button>
         </div>
-        <!-- END: Formulario - Medidas de Lentes -->
-
-        <!-- START: Formulario - Secciones Adicionales -->
         <h4 class="form-section-header">Notas Adicionales</h4>
         <div class="form-group">
-          <textarea v-model="formData.observacion_prescripcion" rows="3" class="form-input"></textarea>
+          <textarea v-model="formData.observacion_prescripcion" rows="2" class="form-input"></textarea>
         </div>
         <h4 class="form-section-header">Información de Entrega y Armado</h4>
         <div class="form-grid">
@@ -200,107 +182,112 @@
           <div class="form-group"><label>Código de Pedido</label><input v-model="formData.codigo_pedido" type="text"
               class="form-input" /></div>
         </div>
-        <!-- END: Formulario - Secciones Adicionales -->
-
-      </form>
+        </form>
       <template #footer>
         <button @click="guardarPrescripcion" class="btn-guardar">{{ editId ? 'Actualizar' : 'Guardar' }}</button>
         <button @click="mostrarModalFormulario = false" class="btn-cancelar">Cancelar</button>
       </template>
     </BaseModal>
-    <!-- END: Modal de Formulario para Prescripción (Crear/Editar) -->
+    <BaseModal v-model="mostrarModalDetalles" title="Detalles Completos de Prescripción" size="xl">
+      <div v-if="cargandoMedidas" class="loading">Cargando detalles...</div>
+      <div v-else-if="prescripcionSeleccionada" class="detalles-compact-container">
+        <div class="detalle-grid-info">
+          <div class="detalle-grupo">
+            <div class="detalle-grupo-titulo">Información General</div>
+            <p><label>Cliente:</label><span>{{ clienteNombreCompleto }}</span></p>
+            <p><label>Receta:</label><span>{{ prescripcionSeleccionada.cod_receta || '-' }}</span></p>
+            <p><label>Doctor:</label><span>{{ prescripcionSeleccionada.doctor_nombre || '-' }}</span></p>
+            <p><label>Fecha Medición:</label><span>{{ formatearFecha(prescripcionSeleccionada.fecha_prescripcion)
+                }}</span></p>
+          </div>
+          <div class="detalle-grupo">
+            <div class="detalle-grupo-titulo">Entrega y Armado</div>
+            <p><label>Proveedor:</label><span>{{ prescripcionSeleccionada.proveedor_nombre || '-' }}</span></p>
+            <p><label>Armador:</label><span>{{ prescripcionSeleccionada.armador_nombre || '-' }}</span></p>
+            <p><label>Armazón:</label><span>{{ prescripcionSeleccionada.armazon_nombre || '-' }}</span></p>
+            <p><label>Fecha Entrega:</label><span>{{ formatearFecha(prescripcionSeleccionada.fecha_entrega) || '-'
+                }}</span></p>
+            <p><label>Cód. Pedido:</label><span>{{ prescripcionSeleccionada.codigo_pedido || '-' }}</span></p>
+          </div>
+        </div>
 
-    <!-- START: Modal de Detalles de Prescripción -->
-    <BaseModal v-model="mostrarModalDetalles" title="Detalles de Prescripción" size="lg">
-      <div v-if="prescripcionSeleccionada" class="detalles-content">
-        <div class="info-grid">
-          <div><label>Código:</label><strong><span>{{ prescripcionSeleccionada.cod_receta }}</span></strong></div>
-          <div><label>Cliente:</label><span>{{ clienteNombreCompleto }}</span></div>
-          <div><label>Doctor / Medición:</label><span>{{ prescripcionSeleccionada.doctor_nombre }}</span></div>
-          <div><label>Fecha de Medición:</label><span>{{ formatearFecha(prescripcionSeleccionada.fecha_prescripcion)
-              }}</span></div>
-        </div>
-        <div class="elegant-divider"></div>
-        <div
-          v-if="prescripcionSeleccionada.proveedor_nombre || prescripcionSeleccionada.armador_nombre || prescripcionSeleccionada.armazon_nombre"
-          class="entrega-detalle">
-          <h4>Información de Entrega y Armado</h4>
-          <div class="info-grid">
-            <div v-if="prescripcionSeleccionada.proveedor_nombre"><label>Proveedor:</label><span>{{
-              prescripcionSeleccionada.proveedor_nombre }}</span></div>
-            <div v-if="prescripcionSeleccionada.armador_nombre"><label>Armador:</label><span>{{
-              prescripcionSeleccionada.armador_nombre }}</span></div>
-            <div v-if="prescripcionSeleccionada.armazon_nombre"><label>Armazón:</label><span>{{
-              prescripcionSeleccionada.armazon_nombre }}</span></div>
-            <div v-if="prescripcionSeleccionada.fecha_entrega"><label>Fecha Entrega:</label><span>{{
-              formatearFecha(prescripcionSeleccionada.fecha_entrega) }}</span></div>
-            <div v-if="prescripcionSeleccionada.codigo_pedido"><label>Número de Pedido:</label><span>{{
-              prescripcionSeleccionada.codigo_pedido }}</span></div>
-          </div>
-        </div>
-        <div class="elegant-divider"></div>
-        <div class="medidas-section-detalle">
-          <h4>Medidas y detalles de los Cristales</h4>
-          <div v-if="cargandoMedidas" class="loading">Cargando detalles...</div>
-          <div v-else-if="medidasModal.length > 0">
-            <div v-for="medida in medidasModal" :key="medida.cod_medida_lente" class="medida-detalle-item">
-              <div class="medida-header-detalle"><span>{{ medida.tipo_lente }}</span></div>
-              <div class="dip-detalle">
-                <h6>Distancia Interpupilar:</h6>
-                <p><span>DIP (mm):</span><strong>{{ medida.dip_lentes_binocular || '-' }} </strong> |
-                  <span>OD(mm):</span>{{ medida.dip_lentes_od_monocular || '-' }} | <span>OI(mm):</span> {{
-                  medida.dip_lentes_oi_monocular || '-' }}</p>
-              </div>
-              <div class="medidas-ojos-detalle">
-                <div class="ojo-detalle">
-                  <h6>Ojo Derecho (OD)</h6>
-                  <p><span>ESF:</span> {{ medida.esf_od }} | <span>CIL:</span> {{ medida.cil_od }} | <span>EJE:</span>{{
-                    medida.eje_od }}</p>
-                  <p><span>ADIC:</span> {{ medida.adic_od }} | <span>ALT:</span> {{ medida.altura_od }}</p>
-                  <p v-if="medida.prisma_od && medida.prisma_od !== '0.00'"><span>PRISMA:</span> {{ medida.prisma_od }}
-                    <span>BASE:</span> {{ medida.base_od }}</p>
-                </div>
-                <div class="ojo-detalle">
-                  <h6>Ojo Izquierdo (OI)</h6>
-                  <p><span>ESF:</span> {{ medida.esf_oi }} | <span>CIL:</span> {{ medida.cil_oi }} | <span>EJE:</span>{{
-                    medida.eje_oi }}</p>
-                  <p><span>ADIC:</span> {{ medida.adic_oi }} | <span>ALT:</span> {{ medida.altura_oi }}</p>
-                  <p v-if="medida.prisma_oi && medida.prisma_oi !== '0.00'"><span>PRISMA:</span> {{ medida.prisma_oi }}
-                    <span>BASE:</span> {{ medida.base_oi }}</p>
-                </div>
-              </div>
-              <div class="cristal-detalle" v-if="medida.cristal && medida.cristal.cod_cristal_medida">
-                <h6>Detalles del Cristal:</h6>
-                <p><span>Cantidad:</span> {{ medida.cristal.cantidad || 'N/A' }} | <span>Tipo:</span> {{
-                  medida.cristal.tipo_lente?.nombre_tipo_lente || 'N/A' }} | <span>Material:</span> {{
-                  medida.cristal.material_cristal?.nombre_material || 'N/A' }} | <span>Color:</span> {{
-                  medida.cristal.color_cristal?.nombre_color || 'N/A' }} | <span>Sobre:</span> {{
-                  medida.cristal.nro_sobre || 'N/A' }}</p>
-                <div v-if="medida.tratamientos && medida.tratamientos.length > 0" class="tratamientos-detalle">
-                  <strong>Tratamientos:</strong>
-                  <span>{{medida.tratamientos.map(t => t.tratamientos.nombre_tratamiento).join(', ')}}</span>
-                </div>
-              </div>
+        <div class="detalle-grupo" v-if="medidasModal.length > 0">
+          <div class="detalle-grupo-titulo">Medidas y Cristales</div>
+          <div class="medidas-table">
+            <div class="medida-row header">
+              <div>Tipo Lente</div>
+              <div>Ojo</div>
+              <div>ESF</div>
+              <div>CIL</div>
+              <div>EJE</div>
+              <div>ADIC</div>
+              <div>ALT</div>
+              <div>PRISMA</div>
+              <div>BASE</div>
+              <div>DIP</div>
+              <div>Cristal y Tratamientos</div>
             </div>
-          </div>
-          <div v-else class="sin-resultados">
-            <p>No hay medidas registradas para esta prescripción.</p>
+            <template v-for="medida in medidasModal" :key="medida.cod_medida_lente">
+              <div class="medida-row">
+                <div class="tipo-lente-cell" :rowspan="2">{{ medida.tipo_lente }}</div>
+                <div class="ojo-label">OD</div>
+                <div>{{ medida.esf_od }}</div>
+                <div>{{ medida.cil_od }}</div>
+                <div>{{ medida.eje_od }}</div>
+                <div>{{ medida.adic_od }}</div>
+                <div>{{ medida.altura_od }}</div>
+                <div>{{ (medida.prisma_od && medida.prisma_od !== '0.00') ? medida.prisma_od : '-' }}</div>
+                <div>{{ (medida.prisma_od && medida.prisma_od !== '0.00') ? medida.base_od : '-' }}</div>
+                <div class="dip-cell" :rowspan="2">
+                  <span>B: {{ medida.dip_lentes_binocular || '-' }}</span>
+                  <span>OD: {{ medida.dip_lentes_od_monocular || '-' }}</span>
+                  <span>OI: {{ medida.dip_lentes_oi_monocular || '-' }}</span>
+                </div>
+                <div class="cristal-cell" :rowspan="2">
+                  <template v-if="medida.cristal && medida.cristal.cod_cristal_medida">
+                    <span><strong>Cant:</strong> {{ medida.cristal.cantidad || 'N/A' }} | <strong>Sobre:</strong> {{
+                      medida.cristal.nro_sobre || 'N/A' }}</span>
+                    <span><strong>Tipo:</strong> {{ medida.cristal.tipo_lente?.nombre_tipo_lente || 'N/A' }}</span>
+                    <span><strong>Material:</strong> {{ medida.cristal.material_cristal?.nombre_material || 'N/A'
+                      }}</span>
+                    <span><strong>Color:</strong> {{ medida.cristal.color_cristal?.nombre_color || 'N/A' }}</span>
+                    <span v-if="medida.tratamientos && medida.tratamientos.length > 0" class="tratamientos">
+                      <strong>Trat:</strong> {{ medida.tratamientos.map(t =>
+                      t.tratamientos.nombre_tratamiento).join(', ') }}
+                    </span>
+                  </template>
+                  <template v-else>
+                    <span>- Sin detalles de cristal -</span>
+                  </template>
+                </div>
+              </div>
+              <div class="medida-row">
+                <div class="ojo-label">OI</div>
+                <div>{{ medida.esf_oi }}</div>
+                <div>{{ medida.cil_oi }}</div>
+                <div>{{ medida.eje_oi }}</div>
+                <div>{{ medida.adic_oi }}</div>
+                <div>{{ medida.altura_oi }}</div>
+                <div>{{ (medida.prisma_oi && medida.prisma_oi !== '0.00') ? medida.prisma_oi : '-' }}</div>
+                <div>{{ (medida.prisma_oi && medida.prisma_oi !== '0.00') ? medida.base_oi : '-' }}</div>
+              </div>
+            </template>
           </div>
         </div>
-        <div
-          v-if="prescripcionSeleccionada.observacion_prescripcion && prescripcionSeleccionada.observacion_prescripcion !== '-'"
-          class="observaciones-detalle">
-          <label class="form-section-header">Notas Adicionales:</label>
-          <p>{{ prescripcionSeleccionada.observacion_prescripcion }}</p>
+        <div v-else class="sin-resultados-compacto">No hay medidas registradas para esta prescripción.</div>
+
+        <div class="detalle-grupo"
+          v-if="prescripcionSeleccionada.observacion_prescripcion && prescripcionSeleccionada.observacion_prescripcion !== '-'">
+          <div class="detalle-grupo-titulo">Notas Adicionales</div>
+          <p class="observaciones-texto">{{ prescripcionSeleccionada.observacion_prescripcion }}</p>
         </div>
       </div>
       <template #footer>
-        <button @click="mostrarModalDetalles = false" class="btn-cancelar">Cerrar</button>
+          <button @click="exportarAPDF" class="btn-export-pdf">Exportar a PDF</button>
+          <button @click="exportarAExcel" class="btn-export-excel">Exportar a Excel</button>
+          <button @click="mostrarModalDetalles = false" class="btn-cancelar">Cerrar</button>
       </template>
     </BaseModal>
-    <!-- END: Modal de Detalles de Prescripción -->
-
-    <!-- START: Modal para Registrar Nuevo Doctor -->
     <BaseModal v-model="mostrarModalNuevoDoctor" title="Registrar Nuevo Doctor">
       <form @submit.prevent="guardarNuevoDoctor" class="form-container">
         <div class="form-group">
@@ -321,9 +308,6 @@
         <button @click="mostrarModalNuevoDoctor = false" class="btn-cancelar">Cancelar</button>
       </template>
     </BaseModal>
-    <!-- END: Modal para Registrar Nuevo Doctor -->
-
-    <!-- START: Modal para Registrar Nueva Orden de Trabajo -->
     <BaseModal v-model="showModalOrden" title="Crear Nueva Orden de Trabajo" size="lg">
       <p class="orden-cliente-info"><strong>Cliente:</strong> {{ clienteNombreCompleto }}</p>
       <h4 class="form-section-header">Información de la Orden</h4>
@@ -363,16 +347,14 @@
       </div>
       <h4 class="form-section-header">Notas Adicionales</h4>
       <div class="form-group full-width">
-        <textarea v-model="formOrden.observaciones_orden" rows="3" class="form-input"></textarea>
+        <textarea v-model="formOrden.observaciones_orden" rows="2" class="form-input"></textarea>
       </div>
       <template #footer>
         <button @click="cerrarModalOrden" class="btn-cancelar">Cancelar</button>
         <button @click="guardarOrdenTrabajo" class="btn-guardar">Guardar Orden</button>
       </template>
     </BaseModal>
-    <!-- END: Modal para Registrar Nueva Orden de Trabajo -->
-
-  </div>
+    </div>
 </template>
 
 <script setup>
@@ -383,6 +365,9 @@ import { supabase } from '../lib/supabaseClient';
 import BaseModal from './BaseModal.vue';
 import AutoComplete from './Autocomplete.vue';
 import MultiSelect from './MultiSelect.vue';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable' ;
 
 const route = useRoute();
 const router = useRouter();
@@ -471,8 +456,7 @@ const api = {
     supabase.from('armador_lente').select('*').order('nombre_armador'),
     supabase.from('armazon_lente').select('*').order('nombre_armazon')
   ]),
-  // FIX: Ajuste en la consulta para obtener el `cod_tratamiento` y evitar el conflicto de `tipo_lente`.
-  getMedidasDePrescripcion: (id) => supabase.from('medida_lente').select(`*, cristal:cristal_medida (*, material_cristal(nombre_material), color_cristal(nombre_color), tipo_lente(nombre_tipo_lente)), tratamientos:medida_lente_tratamiento(cod_tratamiento)`).eq('prescripcion', id).order('cod_medida_lente'),
+  getMedidasDePrescripcion: (id) => supabase.from('medida_lente').select(`*, cristal:cristal_medida (*, material_cristal(nombre_material), color_cristal(nombre_color), tipo_lente(nombre_tipo_lente)), tratamientos:medida_lente_tratamiento(*, tratamientos(nombre_tratamiento))`).eq('prescripcion', id).order('cod_medida_lente'),
   getTiendaUsuario: () => supabase.from("tiendas").select("cod_tienda").limit(1).single(),
   verificarCodigoReceta: (codigo, idExcluir) => {
     let query = supabase.from('prescripcion_cliente').select(`cod_receta, clientes:cliente (nombre_cliente, apellido_paterno_cliente)`).eq('cod_receta', codigo.trim());
@@ -731,12 +715,9 @@ async function abrirModalFormularioParaEditar(prescripcion) {
   if (error) { alert("Error cargando datos para editar: " + error.message); return; }
 
   if (medidasData?.length > 0) {
-    // FIX: Mapeo corregido para evitar conflicto de propiedades y cargar tratamientos.
     medidas.value = medidasData.map(m => {
       const cristalInfo = m.cristal && m.cristal[0] ? m.cristal[0] : {};
-      // Omitir 'tipo_lente' de cristalInfo para evitar sobreescribir el 'tipo_lente' (distancia) de la medida principal.
       const { tipo_lente: _, ...restOfCristalInfo } = cristalInfo;
-      // Mapear los tratamientos para obtener solo los IDs, que es lo que necesita el MultiSelect.
       const tratamientosSeleccionados = m.tratamientos ? m.tratamientos.map(t => t.cod_tratamiento) : [];
       return { ...m, ...restOfCristalInfo, tratamientos_seleccionados: tratamientosSeleccionados };
     });
@@ -749,7 +730,9 @@ async function abrirModalFormularioParaEditar(prescripcion) {
 };
 async function abrirModalDetalles(prescripcion) {
   prescripcionSeleccionada.value = prescripcion;
+  mostrarModalDetalles.value = true;
   cargandoMedidas.value = true;
+  medidasModal.value = [];
   try {
     const { data, error } = await api.getMedidasDePrescripcion(prescripcion.cod_prescripcion);
     if (error) throw error;
@@ -759,7 +742,6 @@ async function abrirModalDetalles(prescripcion) {
   } finally {
     cargandoMedidas.value = false;
   }
-  mostrarModalDetalles.value = true;
 };
 // --- END: Manejadores de Modales y UI ---
 
@@ -791,6 +773,147 @@ function onPrismaChange(medida, ojo) {
   }
 }
 function volver() { router.push({ name: 'GestionClientes' }); }
+
+// --- START: Lógica de Exportación ---
+
+
+function exportarAExcel() {
+    if (!prescripcionSeleccionada.value) return;
+
+    // 1. Preparar los datos
+    const prescripcion = prescripcionSeleccionada.value;
+    const dataParaExportar = [];
+
+    // Sección de Información General
+    dataParaExportar.push(['Información General']);
+    dataParaExportar.push(['Cliente', clienteNombreCompleto.value]);
+    dataParaExportar.push(['Código Receta', prescripcion.cod_receta]);
+    dataParaExportar.push(['Doctor', prescripcion.doctor_nombre]);
+    dataParaExportar.push(['Fecha Medición', formatearFecha(prescripcion.fecha_prescripcion)]);
+    dataParaExportar.push([]); // Fila vacía para separar
+
+    // Sección de Entrega y Armado
+    dataParaExportar.push(['Entrega y Armado']);
+    dataParaExportar.push(['Proveedor', prescripcion.proveedor_nombre || '-']);
+    dataParaExportar.push(['Armador', prescripcion.armador_nombre || '-']);
+    dataParaExportar.push(['Armazón', prescripcion.armazon_nombre || '-']);
+    dataParaExportar.push(['Fecha Entrega', formatearFecha(prescripcion.fecha_entrega) || '-']);
+    dataParaExportar.push(['Cód. Pedido', prescripcion.codigo_pedido || '-']);
+    dataParaExportar.push([]); // Fila vacía
+
+    // Sección de Medidas (Tabla)
+    dataParaExportar.push(['Medidas y Cristales']);
+    const headersMedidas = ['Tipo', 'Ojo', 'ESF', 'CIL', 'EJE', 'ADIC', 'ALT', 'PRISMA', 'BASE', 'DIP B/OD/OI', 'Cristal', 'Tratamientos'];
+    dataParaExportar.push(headersMedidas);
+
+    medidasModal.value.forEach(medida => {
+        const dip = `B:${medida.dip_lentes_binocular || '-'} OD:${medida.dip_lentes_od_monocular || '-'} OI:${medida.dip_lentes_oi_monocular || '-'}`;
+        const cristal = medida.cristal ? `Cant:${medida.cristal.cantidad}, Mat:${medida.cristal.material_cristal?.nombre_material}, Tipo:${medida.cristal.tipo_lente?.nombre_tipo_lente}` : '-';
+        const tratamientos = medida.tratamientos?.map(t => t.tratamientos.nombre_tratamiento).join(', ') || '-';
+        
+        // Fila para Ojo Derecho
+        dataParaExportar.push([
+            medida.tipo_lente, 'OD', medida.esf_od, medida.cil_od, medida.eje_od, medida.adic_od,
+            medida.altura_od, medida.prisma_od, medida.base_od, dip, cristal, tratamientos
+        ]);
+        // Fila para Ojo Izquierdo
+        dataParaExportar.push([
+            '', 'OI', medida.esf_oi, medida.cil_oi, medida.eje_oi, medida.adic_oi,
+            medida.altura_oi, medida.prisma_oi, medida.base_oi, '', '', ''
+        ]);
+    });
+    dataParaExportar.push([]); // Fila vacía
+
+    // Sección de Observaciones
+    if (prescripcion.observacion_prescripcion && prescripcion.observacion_prescripcion !== '-') {
+        dataParaExportar.push(['Notas Adicionales']);
+        dataParaExportar.push([prescripcion.observacion_prescripcion]);
+    }
+
+    // 2. Crear la hoja de cálculo y el archivo
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet(dataParaExportar);
+
+    // Ajustar anchos de columna (opcional, pero recomendado)
+    worksheet['!cols'] = [ {wch:20}, {wch:5}, {wch:10}, {wch:10}, {wch:10}, {wch:10}, {wch:10}, {wch:10}, {wch:10}, {wch:25}, {wch:40}, {wch:40} ];
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Prescripción');
+    
+    // 3. Descargar el archivo
+    XLSX.writeFile(workbook, `Prescripcion_${clienteNombreCompleto.value.replace(' ', '_')}_${prescripcion.cod_receta}.xlsx`);
+}
+
+function exportarAPDF() {
+    if (!prescripcionSeleccionada.value) return;
+
+    const prescripcion = prescripcionSeleccionada.value;
+    const doc = new jsPDF();
+    let verticalOffset = 15; // Margen superior inicial
+
+    // Título del Documento
+    doc.setFontSize(18);
+    doc.text(`Prescripción Óptica - ${clienteNombreCompleto.value}`, 14, verticalOffset);
+    verticalOffset += 10;
+
+    // Información General y de Entrega en dos columnas
+    doc.setFontSize(11);
+    doc.text(`Código Receta: ${prescripcion.cod_receta || '-'}`, 14, verticalOffset);
+    doc.text(`Proveedor: ${prescripcion.proveedor_nombre || '-'}`, 105, verticalOffset);
+    verticalOffset += 7;
+    doc.text(`Doctor: ${prescripcion.doctor_nombre || '-'}`, 14, verticalOffset);
+    doc.text(`Armador: ${prescripcion.armador_nombre || '-'}`, 105, verticalOffset);
+    verticalOffset += 7;
+    doc.text(`Fecha Medición: ${formatearFecha(prescripcion.fecha_prescripcion)}`, 14, verticalOffset);
+    doc.text(`Armazón: ${prescripcion.armazon_nombre || '-'}`, 105, verticalOffset);
+    verticalOffset += 7;
+    doc.text(`Cód. Pedido: ${prescripcion.codigo_pedido || '-'}`, 14, verticalOffset);
+    doc.text(`Fecha Entrega: ${formatearFecha(prescripcion.fecha_entrega) || '-'}`, 105, verticalOffset);
+    verticalOffset += 10;
+
+    // Preparar datos para la tabla de medidas
+    const head = [['Tipo', 'Ojo', 'ESF', 'CIL', 'EJE', 'ADIC', 'PRISMA/BASE', 'DIP B/OD/OI']];
+    const body = [];
+    medidasModal.value.forEach(medida => {
+        const dip = `B:${medida.dip_lentes_binocular||'-'} OD:${medida.dip_lentes_od_monocular||'-'} OI:${medida.dip_lentes_oi_monocular||'-'}`;
+        body.push([
+            { content: medida.tipo_lente, rowSpan: 2 },
+            'OD', medida.esf_od, medida.cil_od, medida.eje_od, medida.adic_od, `${medida.prisma_od}/${medida.base_od || '-'}`,
+            { content: dip, rowSpan: 2 }
+        ]);
+        body.push(['OI', medida.esf_oi, medida.cil_oi, medida.eje_oi, medida.adic_oi, `${medida.prisma_oi}/${medida.base_oi || '-'}`]);
+        
+        // Detalles del cristal y tratamientos
+        const cristal = medida.cristal ? `Cristal: ${medida.cristal.material_cristal?.nombre_material}, ${medida.cristal.tipo_lente?.nombre_tipo_lente}` : 'Sin detalles de cristal.';
+        const tratamientos = medida.tratamientos?.length > 0 ? `Tratamientos: ${medida.tratamientos.map(t => t.tratamientos.nombre_tratamiento).join(', ')}` : '';
+        body.push([{ content: `${cristal}\n${tratamientos}`, colSpan: 8, styles: { fillColor: [245, 245, 245], fontSize: 9 } }]);
+    });
+
+    // Generar la tabla
+    doc.autoTable({
+        startY: verticalOffset,
+        head: head,
+        body: body,
+        theme: 'grid',
+        headStyles: { fillColor: [22, 160, 133] },
+        didDrawPage: function(data) {
+            verticalOffset = data.cursor.y + 10; // Actualizar el offset para el contenido siguiente
+        }
+    });
+    
+    // Notas adicionales
+    if (prescripcion.observacion_prescripcion && prescripcion.observacion_prescripcion !== '-') {
+        doc.setFontSize(12);
+        doc.text('Notas Adicionales:', 14, doc.autoTable.previous.finalY + 10);
+        doc.setFontSize(10);
+        doc.text(prescripcion.observacion_prescripcion, 14, doc.autoTable.previous.finalY + 16, { maxWidth: 180 });
+    }
+
+    // Descargar el archivo
+    doc.save(`Prescripcion_${clienteNombreCompleto.value.replace(' ', '_')}_${prescripcion.cod_receta}.pdf`);
+}
+// --- END: Lógica de Exportación ---
+
+
 // --- END: Funciones de Ayuda (Helpers) ---
 </script>
 
@@ -821,11 +944,10 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 
 .elegant-divider {
   width: 100%;
-  height: 3px;
-  background: linear-gradient(to right, #e0e0e0, #a0a0a0, #e0e0e0);
+  height: 1px;
+  background-color: #dee2e6;
   border: none;
-  margin: 40px 0;
-  opacity: 0.7;
+  margin: 32px 0;
 }
 
 /* END: Estilos Generales del Panel */
@@ -873,6 +995,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
   padding: 10px 20px;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 14px;
 }
 
 .btn-primary {
@@ -917,10 +1040,10 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 }
 
 .prescripcion-card {
-  background-color: rgb(255, 255, 255);
+  background-color: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  border: 1px solid #c0c0c0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -932,8 +1055,8 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 }
 
 .clickable:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
@@ -941,7 +1064,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
-  background-color: #ffc368;
+  background-color: #f8f9fa;
   border-bottom: 1px solid #e9ecef;
 }
 
@@ -984,14 +1107,15 @@ function volver() { router.push({ name: 'GestionClientes' }); }
   margin-top: 1rem;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: -webkit-box;
 }
 
 .card-actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background-color: #ffffff;
+  padding: 0.5rem 1rem;
+  background-color: #fff;
   border-top: 1px solid #e9ecef;
 }
 
@@ -1002,75 +1126,74 @@ function volver() { router.push({ name: 'GestionClientes' }); }
   border-radius: 5px;
   cursor: pointer;
   background: none;
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 
 .btn-action.btn-edit {
-  color: #ffc107;
-  border-color: #ffc107;
+  color: #007bff;
 }
 
 .btn-action.btn-edit:hover {
-  background-color: #ffc107;
-  color: #212529;
+  background-color: #e7f3ff;
 }
 
 .btn-action.btn-delete {
   color: #dc3545;
-  border-color: #dc3545;
 }
 
 .btn-action.btn-delete:hover {
-  background-color: #dc3545;
-  color: white;
+  background-color: #f8d7da;
 }
 
 /* END: Estilos de Tarjetas de Prescripción */
 
-/* START: Estilos de Formularios (Generales) */
+/* START: Estilos de Formularios (Generales) - COMPACTOS */
 .form-container {
-  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
 }
 
 .form-section-header {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  margin: 20px 0 15px 0;
-  padding-bottom: 8px;
+  margin: 16px 0 10px 0;
+  padding-bottom: 6px;
   border-bottom: 1px solid #e0e0e0;
+  color: #343a40;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
+  gap: 12px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
 .form-group label {
   font-weight: 500;
-  font-size: 13px;
-  white-space: nowrap;
+  font-size: 12px;
+  color: #495057;
 }
 
 .form-input,
 .form-group textarea {
-  padding: 8px 12px;
+  padding: 6px 10px;
   border: 1px solid #ced4da;
   border-radius: 4px;
   width: 100%;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: 13px;
+}
+
+.form-input:focus-within,
+.form-group textarea:focus-within {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .25);
 }
 
 .campo-readonly {
@@ -1081,7 +1204,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .autocomplete-container {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .autocomplete-container> :first-child {
@@ -1090,12 +1213,9 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 
 .btn-add-inline {
   padding: 0;
-  width: 38px;
-  height: 38px;
-  font-size: 20px;
-  font-weight: bold;
-  line-height: 38px;
-  text-align: center;
+  width: 31px;
+  height: 31px;
+  font-size: 18px;
   background-color: #28a745;
   color: white;
   border-radius: 4px;
@@ -1108,32 +1228,34 @@ function volver() { router.push({ name: 'GestionClientes' }); }
   background-color: #218838;
 }
 
-/* END: Estilos de Formularios (Generales) */
+/* END: Estilos de Formularios (Generales) - COMPACTOS */
 
-/* START: Estilos del Formulario de Prescripción (Específicos) */
+/* START: Estilos del Formulario de Prescripción (Específicos) - COMPACTOS */
 .form-section-header-container {
-  margin: 1rem;
+  margin-top: 1rem;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .btn-add-medida {
   padding: 4px 10px;
   font-size: 12px;
-  background-color: #28a745;
+  background-color: #17a2b8;
   color: white;
   border: none;
   cursor: pointer;
   border-radius: 4px;
 }
 
+.btn-add-medida:hover {
+  background-color: #138496;
+}
+
 .medida-container {
   border: 1px solid #e9ecef;
   border-radius: 6px;
-  padding: 15px;
+  padding: 12px;
   margin-top: 1rem;
-  background-color: #fcfcfc;
+  background-color: #fdfdfd;
 }
 
 .distancia-tipo {
@@ -1153,7 +1275,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 }
 
 .btn-eliminar-medida {
-  padding: 6px 10px;
+  padding: 5px 8px;
   font-size: 11px;
   height: fit-content;
   margin-bottom: 2px;
@@ -1162,54 +1284,56 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .form-column-ojos {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
 }
 
 .ojo-section {
   padding: 10px;
-  border: 1px solid #e8e8e8;
-  border-radius: 8px;
+  border: 1px solid #f1f1f1;
+  border-radius: 6px;
   background-color: white;
 }
 
 .ojo-header {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: bold;
-  margin: 0 0 10px 0;
+  margin: 0 0 8px 0;
   text-align: center;
+  color: #495057;
 }
 
 .form-row-strict {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
+  gap: 8px;
   align-items: end;
 }
 
 .cristal-section {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
   border-top: 1px dashed #ced4da;
 }
 
 .cristal-header {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: bold;
-  margin: 0 0 15px 0;
+  margin: 0 0 10px 0;
   color: #495057;
 }
 
 .cristal-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
+  grid-template-columns: 1fr 2fr 2fr 1fr;
+  gap: 12px;
 }
 
 .form-group-span-2 {
   grid-column: span 2;
 }
 
-/* END: Estilos del Formulario de Prescripción (Específicos) */
+
+/* END: Estilos del Formulario de Prescripción (Específicos) - COMPACTOS */
 
 /* START: Estilos del Formulario de Orden de Trabajo (Específicos) */
 .form-group.full-width {
@@ -1230,162 +1354,207 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 
 .orden-cliente-info {
   font-size: 1rem;
-  padding: 12px 16px;
+  padding: 10px 14px;
   background-color: #e7f3ff;
   border: 1px solid #b3d7ff;
   border-radius: 6px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 /* END: Estilos del Formulario de Orden de Trabajo (Específicos) */
 
-/* START: Estilos del Modal de Detalles */
-.detalles-content .info-grid {
+/* START: Estilos del Modal de Detalles - REFACTORIZADO Y COMPACTO */
+.detalles-compact-container {
+  font-size: 13px;
+  color: #333;
+}
+
+.detalle-grid-info {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-  background-color: #f8f9fa;
-  padding: 1rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.detalle-grupo {
+  border: 1px solid #e9ecef;
   border-radius: 6px;
-  border: 1px solid #e9ecef;
+  padding: 10px 12px;
 }
 
-.detalles-content .info-grid label {
+.detalle-grupo-titulo {
+  font-size: 14px;
   font-weight: 600;
-  color: #495057;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.observaciones-detalle {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  border-left: 4px solid #007bff;
-  background-color: #f8f9fa;
-}
-
-.medidas-section-detalle {
-  margin-top: 1.5rem;
-}
-
-.medida-detalle-item {
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  overflow: hidden;
-}
-
-.medida-header-detalle {
-  padding: 0.5rem 1rem;
-  background-color: #343a40;
-  color: white;
-  font-weight: bold;
-}
-
-.medidas-ojos-detalle {
-  display: flex;
-  gap: 1rem;
-  padding: 1rem;
-  flex-wrap: wrap;
-}
-
-.ojo-detalle {
-  flex: 1;
-  min-width: 250px;
-}
-
-.ojo-detalle h6 {
-  margin-top: 0;
-  border-bottom: 1px solid #eee;
+  color: #007bff;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #e9ecef;
   padding-bottom: 5px;
 }
 
-.ojo-detalle p,
-.dip-detalle p {
-  margin: 0.4rem 0;
-  font-size: 0.9rem;
+.detalle-grupo p {
+  margin: 4px 0;
+  display: flex;
+  justify-content: space-between;
 }
 
-.ojo-detalle span,
-.dip-detalle span,
-.cristal-detalle span {
+.detalle-grupo p label {
   font-weight: 600;
-  color: #555;
+  color: #5a6268;
+  margin-right: 8px;
 }
 
-.dip-detalle {
-  padding: 0.5rem 1rem;
-  background-color: #f8f9fa;
-  border-top: 1px solid #e9ecef;
+.detalle-grupo p span {
+  text-align: right;
 }
 
-.cristal-detalle {
-  padding: 0.75rem 1rem;
-  background-color: #f8f9fa;
-  border-top: 1px solid #e9ecef;
-}
-
-.cristal-detalle h6 {
-  margin: 0 0 8px 0;
-  font-size: 0.9rem;
-  color: #343a40;
-}
-
-.cristal-detalle p {
+.observaciones-texto {
+  white-space: pre-wrap;
+  font-size: 13px;
   margin: 0;
-  font-size: 0.9rem;
+  padding-top: 4px;
 }
 
-.tratamientos-detalle {
-  margin-top: 8px;
-  font-size: 0.85rem;
+.medidas-table {
+  display: grid;
+  border-top: 1px solid #dee2e6;
 }
 
-.tratamientos-detalle strong {
-  display: block;
+.medida-row {
+  display: grid;
+  grid-template-columns: 1fr 0.5fr repeat(7, 0.75fr) 1fr 2fr;
+  align-items: stretch;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.medida-row.header {
+  font-weight: 600;
+  background-color: #f8f9fa;
   color: #495057;
+  font-size: 11px;
+  text-transform: uppercase;
 }
 
-.entrega-detalle {
-  margin-top: 1.5rem;
+.medida-row>div {
+  padding: 6px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-right: 1px solid #e9ecef;
+  word-break: break-word;
 }
 
-.entrega-detalle h4 {
-  font-size: 1rem;
-  color: #343a40;
-  margin-bottom: 0.75rem;
+.medida-row>div:last-child {
+  border-right: none;
+}
+
+.ojo-label {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+.tipo-lente-cell,
+.dip-cell,
+.cristal-cell {
+  grid-row: span 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.dip-cell span,
+.cristal-cell span {
+  font-size: 11px;
+  width: 100%;
+  text-align: left;
+}
+
+.cristal-cell span.tratamientos {
+  border-top: 1px solid #f1f1f1;
+  margin-top: 3px;
+  padding-top: 3px;
+}
+
+.cristal-cell {
+  align-items: flex-start;
+  padding: 4px 8px;
+}
+
+.sin-resultados-compacto {
+  text-align: center;
+  padding: 1rem;
+  color: #6c757d;
+  font-size: 0.9rem;
 }
 
 /* END: Estilos del Modal de Detalles */
 
+/** START: ESTILOS DE LOS BOTONES PARA EXPORTAR A EXCEL Y PDF */
+.btn-export-pdf,
+.btn-export-excel {
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 10px;
+}
+
+.btn-export-pdf {
+    background-color: #dc3545; /* Rojo */
+}
+.btn-export-pdf:hover {
+    background-color: #c82333;
+}
+
+.btn-export-excel {
+    background-color: #217346; /* Verde Excel */
+}
+.btn-export-excel:hover {
+    background-color: #1c623b;
+}
+/** END: ESTILOS DE LOS BOTONES PARA EXPORTAR A EXCEL Y PDF */
+
 /* START: Media Queries para Responsividad */
 @media (max-width: 1200px) {
-  .form-row-strict {
-    grid-template-columns: repeat(4, 1fr);
-  }
 
   .cristal-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .form-group-span-2 {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .panel-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .form-grid-orden-info,
+  .form-grid-orden-financiero,
+  .cristal-grid {
+    grid-template-columns: 1fr;
   }
 
   .form-group-span-2 {
     grid-column: span 1;
   }
+
+  .form-row-strict {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
-@media (max-width: 768px) {
-
-  .form-grid-orden-info,
-  .form-grid-orden-financiero {
-    grid-template-columns: 1fr;
-  }
-
-  .form-row-strict,
-  .cristal-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 576px) {
+  .form-row-strict {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 /* END: Media Queries para Responsividad */
 </style>
-

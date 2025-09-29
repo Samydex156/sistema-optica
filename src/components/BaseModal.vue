@@ -81,8 +81,8 @@ defineEmits(['update:modelValue']);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  max-height: 90vh;
-  width: 95%;
+  max-height: 80vh;
+  width: 70%;
 }
 
 /* Tamaños del Modal */
