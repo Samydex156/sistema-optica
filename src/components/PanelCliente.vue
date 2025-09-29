@@ -2,9 +2,8 @@
   <div class="panel-container">
     <header v-if="cliente" class="panel-header">
       <div>
-        <h1>Panel de {{ cliente.nombre_cliente }} {{ cliente.apellido_paterno_cliente }}</h1>
+        <h2>{{ cliente.nombre_cliente }} {{ cliente.apellido_paterno_cliente }}</h2>
         <p class="cliente-info">
-          <span>ID Cliente: {{ clienteId }}</span> |
           <span>Teléfono: {{ cliente.telefono_cliente || 'N/A' }}</span>
         </p>
       </div>
@@ -15,14 +14,14 @@
 
     <div class="seccion-prescripciones">
       <div class="seccion-header">
-        <h2>Acciones del Cliente</h2>
+        <h2> </h2>
         <div class="header-actions-group">
           <button @click="abrirModalNuevaOrden" class="btn btn-success"> + Nueva Orden </button>
           <button @click="abrirModalFormularioParaCrear" class="btn btn-primary"> + Nueva Prescripción </button>
         </div>
       </div>
 
-      <h4 class="sub-header">Prescripciones Registradas</h4>
+      <h4 class="sub-header">Información de Cliente:</h4>
       <div v-if="cargandoPrescripciones" class="loading">Cargando prescripciones...</div>
 
       <div v-else-if="prescripcionesCliente.length > 0" class="prescripcion-grid">
@@ -31,12 +30,15 @@
           title="Clic para ver detalles completos">
           <div class="card-header">
             <h4>Receta: {{ prescripcion.cod_receta || 'S/C' }}</h4>
+            
             <span class="card-date">{{ formatearFecha(prescripcion.fecha_prescripcion) }}</span>
+            <span class="card-date">{{ formatearFecha(prescripcion.fecha_entrega) }}</span>
           </div>
           <div class="card-body">
+
             <p class="card-info-item">
-              <strong>Doctor:</strong>
-              <span>{{ prescripcion.doctor_nombre }}</span>
+              <strong>Numero de sobre:</strong>
+              <span>{{ prescripcion.codigo_pedido }}</span>
             </p>
             <p v-if="prescripcion.observacion_prescripcion && prescripcion.observacion_prescripcion !== '-'"
               class="card-obs">
@@ -141,7 +143,7 @@
             <label class="cristal-header-label">Tipo</label>
             <label class="cristal-header-label">Tratamientos</label>
             <label class="cristal-header-label">Color</label>
-            <label class="cristal-header-label">N° Sobre</label>
+            <label class="cristal-header-label">Cód. Pedido</label>
 
             <label class="cristal-row-label">Cristal 1</label>
             <div class="form-group"><input v-model.number="medidas[0].cantidad" type="number" min="1" class="form-input" /></div>
@@ -150,7 +152,7 @@
             <div class="form-group"><MultiSelect v-model="medidas[0].tratamientos_seleccionados" :options="tratamientosOptions" /></div>
             <div class="form-group"><AutoComplete v-model="medidas[0].cod_color_cristal" :options="coloresOptions" /></div>
             <div class="form-group"><input v-model="medidas[0].nro_sobre" class="form-input" /></div>
-
+            
             <label class="cristal-row-label">Cristal 2</label>
             <div class="form-group"><input v-model.number="medidas[1].cantidad" type="number" min="1" class="form-input" /></div>
             <div class="form-group"><AutoComplete v-model="medidas[1].cod_material_cristal" :options="materialesOptions" /></div>
@@ -170,7 +172,7 @@
           <div class="form-group"><label>Armador</label> <AutoComplete v-model="formData.armador_lente_id" :options="armadoresOptions" /></div>
           <div class="form-group"><label>Armazón</label> <AutoComplete v-model="formData.armazon_lente_id" :options="armazonesOptions" /></div>
           <div class="form-group"><label>Fecha de Entrega</label><input v-model="formData.fecha_entrega" type="date" class="form-input" /></div>
-          <div class="form-group"><label>Código de Pedido</label><input v-model="formData.codigo_pedido" type="text" class="form-input" /></div>
+          <div class="form-group"><label>Número de Sobre</label><input v-model="formData.codigo_pedido" type="text" class="form-input" /></div>
         </div>
       </form>
       <template #footer>
@@ -178,26 +180,25 @@
         <button @click="mostrarModalFormulario = false" class="btn-cancelar">Cancelar</button>
       </template>
     </BaseModal>
-
-    <BaseModal v-model="mostrarModalDetalles" title="Detalles Completos de Prescripción" size="lg">
+<BaseModal v-model="mostrarModalDetalles" title="Prescripción del Cliente" size="lg">
       <div v-if="cargandoMedidas" class="loading">Cargando detalles...</div>
       <div v-else-if="prescripcionSeleccionada" class="detalles-container">
         
         <div class="detalle-seccion-grid">
           <div class="detalle-grupo">
             <div class="detalle-grupo-titulo">Información General</div>
-            <p><label>Cliente:</label><span>{{ clienteNombreCompleto }}</span></p>
-            <p><label>Receta:</label><span>{{ prescripcionSeleccionada.cod_receta || '-' }}</span></p>
-            <p><label>Doctor:</label><span>{{ prescripcionSeleccionada.doctor_nombre || '-' }}</span></p>
-            <p><label>Fecha Medición:</label><span>{{ formatearFecha(prescripcionSeleccionada.fecha_prescripcion) }}</span></p>
+            <p><label>Cliente:</label><span><strong>{{ clienteNombreCompleto }}</strong></span></p>
+            <p><label>Receta:</label><span><strong>{{ prescripcionSeleccionada.cod_receta || '-' }}</strong></span></p>
+            <p><label>Doctor:</label><span><strong>{{ prescripcionSeleccionada.doctor_nombre || '-' }}</strong></span></p>
+            <p><label>Fecha Medición:</label><span><strong>{{ formatearFecha(prescripcionSeleccionada.fecha_prescripcion) }}</strong></span></p>
           </div>
           <div class="detalle-grupo">
             <div class="detalle-grupo-titulo">Entrega y Armado</div>
-            <p><label>Proveedor:</label><span>{{ prescripcionSeleccionada.proveedor_nombre || '-' }}</span></p>
-            <p><label>Armador:</label><span>{{ prescripcionSeleccionada.armador_nombre || '-' }}</span></p>
-            <p><label>Armazón:</label><span>{{ prescripcionSeleccionada.armazon_nombre || '-' }}</span></p>
-            <p><label>Fecha Entrega:</label><span>{{ formatearFecha(prescripcionSeleccionada.fecha_entrega) || '-' }}</span></p>
-            <p><label>Cód. Pedido:</label><span>{{ prescripcionSeleccionada.codigo_pedido || '-' }}</span></p>
+            <p><label>Proveedor:</label><span><strong>{{ prescripcionSeleccionada.proveedor_nombre || '-' }}</strong></span></p>
+            <p><label>Armador:</label><span><strong>{{ prescripcionSeleccionada.armador_nombre || '-' }}</strong></span></p>
+            <p><label>Armazón:</label><span><strong>{{ prescripcionSeleccionada.armazon_nombre || '-' }}</strong></span></p>
+            <p><label>Fecha Entrega:</label><span><strong>{{ formatearFecha(prescripcionSeleccionada.fecha_entrega) || '-' }}</strong></span></p>
+            <p><label>Número de Sobre:</label><span><strong>{{ prescripcionSeleccionada.codigo_pedido || '-' }}</strong></span></p>
           </div>
         </div>
 
@@ -207,31 +208,27 @@
             <div class="medida-detalle-card">
               <div class="medida-detalle-header">
                 <span class="tipo-lente-badge">{{ medida.tipo_lente || 'N/A' }}</span>
-                <span class="dip-info"><strong>DIP:</strong> {{ medida.dip_lentes_binocular || '-' }}</span>
+                <span class="dip-info">DIP: <strong>{{ medida.dip_lentes_binocular || '-' }}</strong> </span>
               </div>
               <div class="medida-detalle-ojos">
                 <div class="ojo-info">
-                  <div class="ojo-info-header">Ojo Derecho (OD)</div>
-                  <span><strong>ESF:</strong> {{ medida.esf_od || '-' }}</span>
-                  <span><strong>CIL:</strong> {{ medida.cil_od || '-' }}</span>
-                  <span><strong>EJE:</strong> {{ medida.eje_od || '-' }}</span>
+                  <div class="ojo-info-header">Ojo Derecho (OD): </div>
+                  <span>ESF: <strong>{{ medida.esf_od || '-' }}</strong> </span>
+                  <span>CIL: <strong>{{ medida.cil_od || '-' }}</strong> </span>
+                  <span>EJE: <strong>{{ medida.eje_od || '-' }} </strong> </span>
                 </div>
                 <div class="ojo-info">
-                  <div class="ojo-info-header">Ojo Izquierdo (OI)</div>
-                  <span><strong>ESF:</strong> {{ medida.esf_oi || '-' }}</span>
-                  <span><strong>CIL:</strong> {{ medida.cil_oi || '-' }}</span>
-                  <span><strong>EJE:</strong> {{ medida.eje_oi || '-' }}</span>
+                  <div class="ojo-info-header">Ojo Izquierdo (OI): </div>
+                  <span>ESF: <strong>{{ medida.esf_oi || '-' }}</strong> </span>
+                  <span>CIL: <strong>{{ medida.cil_oi || '-' }}</strong> </span>
+                  <span>EJE: <strong>{{ medida.eje_oi || '-' }} </strong> </span>
                 </div>
               </div>
-              <div v-if="medida.cristal && medida.cristal.cod_cristal_medida" class="cristal-info">
-                 <p><strong>Cristal:</strong>
-                   {{ medida.cristal.cantidad || 'S/C' }} un. |
-                   <strong>Mat:</strong> {{ medida.cristal.material_cristal?.nombre_material || 'N/A' }} |
-                   <strong>Tipo:</strong> {{ medida.cristal.tipo_lente?.nombre_tipo_lente || 'N/A' }} |
-                   <strong>Color:</strong> {{ medida.cristal.color_cristal?.nombre_color || 'N/A' }} |
-                   <strong>Sobre:</strong> {{ medida.cristal.nro_sobre || 'N/A' }}
+              <div v-if="medida.cristal && medida.cristal.cod_cristal_medida || medida.tratamientos && medida.tratamientos.length > 0" class="cristal-info">
+                <p><strong>Cristal:</strong></p>
+                 <p>{{ medida.cristal.cantidad || ' ' }}  {{ medida.cristal.material_cristal?.nombre_material || ' ' }} {{ medida.cristal.tipo_lente?.nombre_tipo_lente || ' ' }}  {{ medida.tratamientos.map(t => t.tratamientos.nombre_tratamiento).join(', ') }}  {{ medida.cristal.color_cristal?.nombre_color || ' ' }} {{ medida.cristal.nro_sobre || ' ' }}
                  </p>
-                 <p v-if="medida.tratamientos && medida.tratamientos.length > 0"><strong>Tratamientos:</strong> {{ medida.tratamientos.map(t => t.tratamientos.nombre_tratamiento).join(', ') }}</p>
+                
               </div>
             </div>
             <hr v-if="index < medidasModal.length - 1" class="medida-divider" />
@@ -251,7 +248,6 @@
         <button @click="mostrarModalDetalles = false" class="btn-cancelar">Cerrar</button>
       </template>
     </BaseModal>
-
     <BaseModal v-model="mostrarModalNuevoDoctor" title="Registrar Nuevo Doctor">
       <form @submit.prevent="guardarNuevoDoctor" class="form-container">
         <div class="form-group">
@@ -386,7 +382,7 @@ const getMedidaInicial = () => ({
   esf_od: '', cil_od: '', eje_od: '',
   esf_oi: '', cil_oi: '', eje_oi: '',
   dip_lentes_binocular: null,
-  cantidad: 1, 
+  cantidad: 2, 
   cod_material_cristal: null, 
   cod_color_cristal: null, 
   cod_tipo_lente: null,
@@ -704,15 +700,21 @@ async function abrirModalFormularioParaEditar(prescripcion) {
 
   const medidasCargadas = (medidasData || []).map(m => {
     const cristalInfo = m.cristal && m.cristal[0] ? m.cristal[0] : {};
+    
+    // CORRECCIÓN: La propiedad 'tipo_lente' de 'cristalInfo' (un objeto con detalles del tipo de lente)
+    // estaba sobrescribiendo la propiedad 'tipo_lente' de 'm' (el string para la distancia, ej: 'LEJOS').
+    // Se extrae y descarta la propiedad conflictiva de 'cristalInfo' antes de fusionar los objetos.
+    const { tipo_lente: _tipoLenteCristal, ...restoCristalInfo } = cristalInfo;
+
     return { 
       ...getMedidaInicial(),
-      ...m,
-      ...cristalInfo,
+      ...m, // Contiene el 'tipo_lente' correcto (ej. 'LEJOS') para el componente AutoComplete.
+      ...restoCristalInfo, // Contiene el resto de la información del cristal sin el conflicto.
       tratamientos_seleccionados: m.tratamientos ? m.tratamientos.map(t => t.cod_tratamiento) : []
     };
   });
   
-  // MODIFICADO: Llena el array de medidas con los datos existentes, completando con datos vacíos si es necesario.
+  // Llena el array de medidas con los datos existentes, completando con datos vacíos si es necesario.
   medidas.value = [
     medidasCargadas[0] || getMedidaInicial(),
     medidasCargadas[1] || getMedidaInicial()
@@ -757,7 +759,7 @@ function exportarAExcel() {
     dataParaExportar.push(['Armador', prescripcion.armador_nombre || '-']);
     dataParaExportar.push(['Armazón', prescripcion.armazon_nombre || '-']);
     dataParaExportar.push(['Fecha Entrega', formatearFecha(prescripcion.fecha_entrega) || '-']);
-    dataParaExportar.push(['Cód. Pedido', prescripcion.codigo_pedido || '-']);
+    dataParaExportar.push(['Número de sobre', prescripcion.codigo_pedido || '-']);
     dataParaExportar.push([]);
 
     dataParaExportar.push(['Medidas y Cristales']);
@@ -1002,7 +1004,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .card-date { font-size: 0.8rem; color: #6c757d; background-color: #e9ecef; padding: 3px 8px; border-radius: 12px; }
 .card-body { padding: 1rem; flex-grow: 1; }
 .card-info-item { margin: 0 0 0.5rem 0; font-size: 0.9rem; }
-.card-obs { font-size: 0.85rem; color: #6c757d; margin-top: 1rem; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.card-obs { font-size: 0.85rem; color: #6c757d; margin-top: 1rem; overflow: hidden; text-overflow: ellipsis }
 
 .card-actions {
   display: flex;
@@ -1125,10 +1127,10 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .medida-detalle-card { padding: 12px 0; }
 .medida-detalle-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 .tipo-lente-badge { background-color: #17a2b8; color: white; padding: 4px 12px; border-radius: 15px; font-weight: bold; font-size: 0.9rem; }
-.dip-info { font-size: 0.9rem; }
-
-.medida-detalle-ojos { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.ojo-info { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+.dip-info { font-size: 1.5rem; }
+/* ESTILOS PARA LOS CUADROS DE MEDIDAS DE LOS LENTES*/ 
+.medida-detalle-ojos { display: flex; gap: 20px; flex-direction: column;}
+.ojo-info { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; padding: 10px; display: flex; gap: 4px; width: 100%;}
 .ojo-info-header { font-weight: bold; margin-bottom: 6px; color: #495057; }
 .ojo-info span { font-size: 0.9rem; }
 
