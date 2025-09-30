@@ -69,3 +69,9 @@ create table public.medida_lente (
     )
   )
 ) TABLESPACE pg_default;
+
+
+ALTER TABLE public.medida_lente
+ALTER COLUMN dip_lentes_binocular TYPE character varying(10)
+USING dip_lentes_binocular::character varying(10);
+

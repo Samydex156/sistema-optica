@@ -90,7 +90,7 @@
                 <AutoComplete v-model="medidas[0].tipo_lente" :options="tipoLenteDistanciaOptions" placeholder="DISTANCIA" />
               </div>
               <div class="form-group">
-                <input v-model="medidas[0].dip_lentes_binocular" type="number" step="0.01" class="form-input" placeholder="DIP" />
+                <input v-model="medidas[0].dip_lentes_binocular" class="form-input" placeholder="DIP" />
               </div>
             </div>
             <div class="ojos-fila">
@@ -115,7 +115,7 @@
                 <AutoComplete v-model="medidas[1].tipo_lente" :options="tipoLenteDistanciaOptions" placeholder="DISTANCIA" />
               </div>
               <div class="form-group">
-                <input v-model="medidas[1].dip_lentes_binocular" type="number" step="0.01" class="form-input" placeholder="DIP" />
+                <input v-model="medidas[1].dip_lentes_binocular" class="form-input" placeholder="DIP" />
               </div>
             </div>
             <div class="ojos-fila">
@@ -244,6 +244,9 @@
         <button @click="mostrarModalDetalles = false" class="btn-cancelar">Cerrar</button>
       </template>
     </BaseModal>
+
+
+
     <BaseModal v-model="mostrarModalNuevoDoctor" title="Registrar Nuevo Doctor">
       <form @submit.prevent="guardarNuevoDoctor" class="form-container">
         <div class="form-group">
@@ -264,6 +267,9 @@
         <button @click="mostrarModalNuevoDoctor = false" class="btn-cancelar">Cancelar</button>
       </template>
     </BaseModal>
+
+
+    
     <BaseModal v-model="showModalOrden" title="Crear Nueva Orden de Trabajo" size="lg">
       <p class="orden-cliente-info"><strong>Cliente:</strong> {{ clienteNombreCompleto }}</p>
       <h4 class="form-section-header">Información de la Orden</h4>
@@ -384,7 +390,7 @@ const getMedidaInicial = () => ({
   tipo_lente: '', 
   esf_od: '', cil_od: '', eje_od: '',
   esf_oi: '', cil_oi: '', eje_oi: '',
-  dip_lentes_binocular: null,
+  dip_lentes_binocular: '', // Se cambia de null a '' para consistencia con input de texto
   cantidad: 2, 
   cod_material_cristal: null, 
   cod_color_cristal: null, 
@@ -908,7 +914,11 @@ const prepararDatosMedida = (medida) => ({
   esf_oi: medida.esf_oi || '-', 
   cil_oi: medida.cil_oi || '-', 
   eje_oi: parseInt(medida.eje_oi) || 0,
-  dip_lentes_binocular: medida.dip_lentes_binocular ? parseFloat(medida.dip_lentes_binocular) : null,
+  // --- CORRECCIÓN CLAVE ---
+  // Se elimina `parseFloat` para que el valor se guarde como texto (varchar),
+  // tal como lo espera la base de datos ahora.
+  // Se usa `|| null` para asegurar que un string vacío se guarde como NULL.
+  dip_lentes_binocular: medida.dip_lentes_binocular || null,
 });
 
 // CAMBIO: Añadido nota_extra_cristal a la preparación de datos para la base de datos

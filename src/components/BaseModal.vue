@@ -72,7 +72,7 @@ defineEmits(['update:modelValue']);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 2000;
 }
 
 .modal-container {
@@ -81,7 +81,7 @@ defineEmits(['update:modelValue']);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  max-height: 80dvh;
+  max-height: 90dvh;
   width: 70%;
 }
 
@@ -121,7 +121,7 @@ defineEmits(['update:modelValue']);
 
 /* Cuerpo */
 .modal-body {
-  padding: 15px;
+  padding: 20px;
   overflow-y: auto;
 }
 
