@@ -146,7 +146,8 @@
             <div class="form-group"><AutoComplete v-model="medidas[0].cod_tipo_lente" :options="tiposLenteOptions" placeholder="Tipo"/></div>
             <div class="form-group"><MultiSelect v-model="medidas[0].tratamientos_seleccionados" :options="tratamientosOptions" placeholder="Tratamientos" /></div>
             <div class="form-group"><AutoComplete v-model="medidas[0].cod_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
-            <div class="form-group"><input v-model="medidas[0].nro_sobre" class="form-input" placeholder="Núm. Pedido" /></div>
+            <div class="form-group"><AutoComplete v-model="medidas[0].cod_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
+
             
             <label class="cristal-row-label">Cristal 2:</label>
             <div class="form-group"><input v-model.number="medidas[1].cantidad" type="number" min="1" class="form-input" /></div>
@@ -154,7 +155,8 @@
             <div class="form-group"><AutoComplete v-model="medidas[1].cod_tipo_lente" :options="tiposLenteOptions" placeholder="Tipo" /></div>
             <div class="form-group"><MultiSelect v-model="medidas[1].tratamientos_seleccionados" :options="tratamientosOptions" placeholder="Tratamientos"/></div>
             <div class="form-group"><AutoComplete v-model="medidas[1].cod_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
-            <div class="form-group"><input v-model="medidas[1].nro_sobre" class="form-input" placeholder="Núm. Pedido"/></div>
+            <div class="form-group"><AutoComplete v-model="medidas[1].cod_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
+
         </div>
 
         <div class="form-grid-5-col">
@@ -163,6 +165,8 @@
           <div class="form-group"> <AutoComplete v-model="formData.armazon_lente_id" :options="armazonesOptions" placeholder="Armazón"/></div>
           <div class="form-group"><input v-model="formData.fecha_entrega" type="date" class="form-input" placeholder="Fecha entrega"/></div>
           <div class="form-group"><input v-model="formData.codigo_pedido" type="text" class="form-input" placeholder="Núm. Sobre"/></div>
+          <div class="form-group"><input v-model="medidas[0].nro_sobre" class="form-input" placeholder="Núm. Pedido 1" /></div>
+          <div class="form-group"><input v-model="medidas[1].nro_sobre" class="form-input" placeholder="Núm. Pedido 2"/></div>
         </div>
 
         <div class="form-group">
@@ -1066,10 +1070,10 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 /* AÑADIDO: Nuevas clases de grid para filas únicas en desktop */
 .form-grid-4-col, .form-grid-5-col {
   display: grid;
-  gap: 12px 16px;
+  gap: 12px 8px;
 }
 .form-grid-4-col { grid-template-columns: repeat(4, 1fr); }
-.form-grid-5-col { grid-template-columns: repeat(5, 1fr); }
+.form-grid-5-col { grid-template-columns: repeat(7, 1fr); }
 
 /* Media query para apilar los campos en pantallas más pequeñas */
 @media (max-width: 1300px) {
@@ -1083,9 +1087,9 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .medidas-grid-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 50px;
   background-color: #f8f9fa;
-  padding: 16px;
+  padding: 5px 10px;
   border-radius: 8px;
   border: 1px solid #e9ecef;
 }
@@ -1096,8 +1100,8 @@ function volver() { router.push({ name: 'GestionClientes' }); }
   grid-template-areas:
     "header header"
     "tipo-dip medidas-ojo";
-  grid-template-columns: 120px 1fr;
-  gap: 12px 2px;
+  grid-template-columns: 85px 1fr;
+  gap: 5px 2px;
   align-items: start;
 }
 
@@ -1138,8 +1142,8 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 
 .cristales-grid-container {
   display: grid;
-  grid-template-columns: 80px 80px 1.5fr 1.5fr 2fr 1.5fr 1fr;
-  gap: 10px 12px;
+  grid-template-columns: 60px 70px 1fr 1fr 2.5fr 1fr 1fr;
+  gap: 5px 8px;
   align-items: center;
 }
 .cristal-header-label {
