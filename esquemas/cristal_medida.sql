@@ -1,6 +1,3 @@
------- para asociar todo lo referente a los detalles del cristal
-
------------------------------
 create table public.cristal_medida (
   cod_cristal_medida serial not null,
   cod_medida_lente integer not null,

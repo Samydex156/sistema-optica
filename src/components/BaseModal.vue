@@ -66,8 +66,8 @@ defineEmits(['update:modelValue']);
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100dvw;
+  height: 100dvh;
   background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
@@ -76,12 +76,12 @@ defineEmits(['update:modelValue']);
 }
 
 .modal-container {
-  background-color: #eeede7;
+  background-color: #fafafa;
   border-radius: 8px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  max-height: 80vh;
+  max-height: 80dvh;
   width: 70%;
 }
 
@@ -94,7 +94,7 @@ defineEmits(['update:modelValue']);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
+  padding: 7px 24px;
   border-bottom: 1px solid #e0e0e0;
 }
 
@@ -121,7 +121,7 @@ defineEmits(['update:modelValue']);
 
 /* Cuerpo */
 .modal-body {
-  padding: 24px;
+  padding: 15px;
   overflow-y: auto;
 }
 
@@ -130,7 +130,7 @@ defineEmits(['update:modelValue']);
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding: 16px 24px;
+  padding: 10px 24px;
   background-color: #f8f9fa;
   border-top: 1px solid #e0e0e0;
   border-bottom-left-radius: 8px;

@@ -61,7 +61,6 @@
     
     <BaseModal v-model="mostrarModalFormulario" :title="tituloModalFormulario" size="xl">
       <form @submit.prevent="guardarPrescripcion" class="form-container">
-        <!--<h4 class="form-section-header">Información General</h4>-->
         <div class="form-grid-4-col">
           <div class="form-group">
             <input :value="clienteNombreCompleto" readonly class="form-input campo-readonly" />
@@ -83,7 +82,6 @@
           </div>
         </div>
 
-        <!--        <h4 class="form-section-header">Medidas de Lentes</h4>-->
         <div class="medidas-grid-container">
           <div class="medida-columna">
             <div class="medida-header">Medidas Lente 1</div>
@@ -137,7 +135,6 @@
           </div>
         </div>
 
-        <!--        <h4 class="form-section-header">Detalles de Cristales y Tratamientos</h4>-->
         <div class="cristales-grid-container">
 
             <label class="cristal-row-label">Cristal 1:</label>
@@ -146,7 +143,7 @@
             <div class="form-group"><AutoComplete v-model="medidas[0].cod_tipo_lente" :options="tiposLenteOptions" placeholder="Tipo"/></div>
             <div class="form-group"><MultiSelect v-model="medidas[0].tratamientos_seleccionados" :options="tratamientosOptions" placeholder="Tratamientos" /></div>
             <div class="form-group"><AutoComplete v-model="medidas[0].cod_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
-            <div class="form-group"><AutoComplete v-model="medidas[0].cod_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
+            <div class="form-group"><input v-model="medidas[0].nota_extra_cristal" class="form-input" placeholder="Nota Adicional"/></div>
 
             
             <label class="cristal-row-label">Cristal 2:</label>
@@ -155,7 +152,7 @@
             <div class="form-group"><AutoComplete v-model="medidas[1].cod_tipo_lente" :options="tiposLenteOptions" placeholder="Tipo" /></div>
             <div class="form-group"><MultiSelect v-model="medidas[1].tratamientos_seleccionados" :options="tratamientosOptions" placeholder="Tratamientos"/></div>
             <div class="form-group"><AutoComplete v-model="medidas[1].cod_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
-            <div class="form-group"><AutoComplete v-model="medidas[1].cod_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
+            <div class="form-group"><input v-model="medidas[1].nota_extra_cristal" class="form-input" placeholder="Nota Adicional"/></div>
 
         </div>
 
@@ -225,7 +222,7 @@
               </div>
               <div v-if="medida.cristal && medida.cristal.cod_cristal_medida || medida.tratamientos && medida.tratamientos.length > 0" class="cristal-info">
                 <p><strong>Cristal:</strong></p>
-                 <p>{{ medida.cristal.cantidad || ' ' }}  {{ medida.cristal.material_cristal?.nombre_material || ' ' }} {{ medida.cristal.tipo_lente?.nombre_tipo_lente || ' ' }}  {{ medida.tratamientos.map(t => t.tratamientos.nombre_tratamiento).join(', ') }}  {{ medida.cristal.color_cristal?.nombre_color || ' ' }} {{ medida.cristal.nro_sobre || ' ' }}
+                 <p>{{ medida.cristal.cantidad || ' ' }}  {{ medida.cristal.material_cristal?.nombre_material || ' ' }} {{ medida.cristal.tipo_lente?.nombre_tipo_lente || ' ' }}  {{ medida.tratamientos.map(t => t.tratamientos.nombre_tratamiento).join(', ') }}  {{ medida.cristal.color_cristal?.nombre_color || ' ' }} {{ medida.cristal.nro_sobre || ' ' }} {{ medida.cristal.nota_extra_cristal || '' }}
                  </p>
                 
               </div>
@@ -382,7 +379,7 @@ const formData = reactive({
   codigo_pedido: ''
 });
 
-// MODIFICADO: medidas ahora siempre tiene 2 elementos para el formulario de 2 columnas
+// CAMBIO: Añadido nota_extra_cristal al objeto inicial
 const getMedidaInicial = () => ({
   tipo_lente: '', 
   esf_od: '', cil_od: '', eje_od: '',
@@ -393,6 +390,7 @@ const getMedidaInicial = () => ({
   cod_color_cristal: null, 
   cod_tipo_lente: null,
   nro_sobre: '', 
+  nota_extra_cristal: '', // <-- NUEVO CAMPO
   tratamientos_seleccionados: [],
 });
 const medidas = ref([getMedidaInicial(), getMedidaInicial()]);
@@ -798,7 +796,9 @@ function exportarAExcel() {
 
     medidasModal.value.forEach(medida => {
       const dip = medida.dip_lentes_binocular || '-';
-      const cristal = medida.cristal ? `Cant:${medida.cristal.cantidad}, Mat:${medida.cristal.material_cristal?.nombre_material}, Tipo:${medida.cristal.tipo_lente?.nombre_tipo_lente}` : '-';
+      // CAMBIO: Se añade nota_extra_cristal a la exportación de Excel
+      const nota = medida.cristal?.nota_extra_cristal ? `, Nota: ${medida.cristal.nota_extra_cristal}` : '';
+      const cristal = medida.cristal ? `Cant:${medida.cristal.cantidad}, Mat:${medida.cristal.material_cristal?.nombre_material}, Tipo:${medida.cristal.tipo_lente?.nombre_tipo_lente}${nota}` : '-';
       const tratamientos = medida.tratamientos?.map(t => t.tratamientos?.nombre_tratamiento).filter(Boolean).join(', ') || '-';
 
       dataParaExportar.push([medida.tipo_lente, 'OD', medida.esf_od, medida.cil_od, medida.eje_od, dip, cristal, tratamientos]);
@@ -860,10 +860,14 @@ function exportarAPDF() {
             body.push([ { content: medida.tipo_lente || '-', rowSpan: 2 }, 'OD', medida.esf_od || '-', medida.cil_od || '-', medida.eje_od || '-', { content: dip, rowSpan: 2 }]);
             body.push(['OI', medida.esf_oi || '-', medida.cil_oi || '-', medida.eje_oi || '-']);
 
+            // CAMBIO: Se añade nota_extra_cristal a la exportación de PDF
             const cristal = medida.cristal ? `Cristal: ${medida.cristal.material_cristal?.nombre_material || 'N/A'}, ${medida.cristal.tipo_lente?.nombre_tipo_lente || 'N/A'}` : 'Sin detalles de cristal.';
             const tratamientos = medida.tratamientos?.length > 0 ? `Tratamientos: ${medida.tratamientos.map(t => t.tratamientos?.nombre_tratamiento).filter(Boolean).join(', ')}` : '';
+            const nota = medida.cristal?.nota_extra_cristal ? `Nota: ${medida.cristal.nota_extra_cristal}`: '';
+
+            const cellContent = [cristal, tratamientos, nota].filter(Boolean).join('\n');
             
-            body.push([{ content: `${cristal}\n${tratamientos}`, colSpan: 6, styles: { fillColor: [245, 245, 245], fontSize: 9 } }]);
+            body.push([{ content: cellContent, colSpan: 6, styles: { fillColor: [245, 245, 245], fontSize: 9 } }]);
         });
 
         doc.autoTable({
@@ -906,17 +910,21 @@ const prepararDatosMedida = (medida) => ({
   eje_oi: parseInt(medida.eje_oi) || 0,
   dip_lentes_binocular: medida.dip_lentes_binocular ? parseFloat(medida.dip_lentes_binocular) : null,
 });
+
+// CAMBIO: Añadido nota_extra_cristal a la preparación de datos para la base de datos
 const prepararDatosCristal = (medida, codMedidaLente) => {
-  if (!medida.cod_material_cristal && !medida.cod_color_cristal && !medida.cod_tipo_lente && !medida.nro_sobre) return null;
+  if (!medida.cod_material_cristal && !medida.cod_color_cristal && !medida.cod_tipo_lente && !medida.nro_sobre && !medida.nota_extra_cristal) return null;
   return {
     cod_medida_lente: codMedidaLente, 
     cantidad: medida.cantidad || 1, 
     cod_material_cristal: medida.cod_material_cristal || null, 
     cod_color_cristal: medida.cod_color_cristal || null,
     cod_tipo_lente: medida.cod_tipo_lente || null, 
-    nro_sobre: medida.nro_sobre || null
+    nro_sobre: medida.nro_sobre || null,
+    nota_extra_cristal: medida.nota_extra_cristal || null, // <-- NUEVO CAMPO
   };
 };
+
 const formatearFecha = (fecha) => fecha ? new Date(fecha + 'T00:00:00Z').toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }) : '';
 function volver() { router.push({ name: 'GestionClientes' }); }
 // --- END: Funciones de Ayuda (Helpers) ---
@@ -1087,7 +1095,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .medidas-grid-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 50px;
+  gap: 40px;
   background-color: #f8f9fa;
   padding: 5px 10px;
   border-radius: 8px;
@@ -1172,7 +1180,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .detalles-container { font-size: 14px; color: #333; }
 .detalle-seccion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px; }
 .detalle-grupo { border: 1px solid #e9ecef; border-radius: 6px; padding: 12px; }
-.detalle-grupo-titulo { font-size: 1rem; font-weight: 600; color: #007bff; margin-bottom: 8px; border-bottom: 1px solid #e9ecef; padding-bottom: 6px; }
+.detalle-grupo-titulo { font-size: 1rem; font-weight: 600; color: #007bff; margin-bottom: 5px; border-bottom: 1px solid #e9ecef; padding-bottom: 6px; }
 .detalle-grupo p { margin: 5px 0; display: flex; justify-content: space-between; }
 .detalle-grupo p label { font-weight: 600; color: #5a6268; margin-right: 8px; }
 .observaciones-texto { white-space: pre-wrap; margin: 0; padding-top: 4px; }
