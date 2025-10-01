@@ -59,6 +59,7 @@
       </div>
     </div>
     
+    <!-- MODAL PARA CREAR Y EDITAR -->
     <BaseModal v-model="mostrarModalFormulario" :title="tituloModalFormulario" size="xl">
       <form @submit.prevent="guardarPrescripcion" class="form-container">
         <div class="form-grid-4-col">
@@ -173,9 +174,11 @@
       </template>
     </BaseModal>
 
+    <!-- MODAL DE SOLO LECTURA -->
     <BaseModal v-model="mostrarModalDetalles" title="Detalles de la Prescripción" size="xl">
       <div v-if="cargandoMedidas" class="loading">Cargando detalles...</div>
       <div v-else-if="prescripcionSeleccionada" class="details-view-container">
+        <!-- Fila 1: Info General -->
         <div class="form-grid-4-col">
           <div class="detail-field"><span class="detail-label">Cliente</span><span class="detail-value readonly">{{ clienteNombreCompleto }}</span></div>
           <div class="detail-field"><span class="detail-label">Cód. Receta</span><span class="detail-value">{{ prescripcionSeleccionada.cod_receta || '-' }}</span></div>
@@ -183,9 +186,10 @@
           <div class="detail-field"><span class="detail-label">Fecha Medición</span><span class="detail-value">{{ formatearFecha(prescripcionSeleccionada.fecha_prescripcion) }}</span></div>
         </div>
 
+        <!-- Fila 2: Medidas -->
         <div class="medidas-grid-container">
           <template v-for="(medida, index) in medidasModal" :key="`medida-view-${index}`">
-            <div v-if="medida.tipo_lente" class="medida-columna">
+            <div v-if="medida && medida.tipo_lente" class="medida-columna">
               <div class="medida-header">Medidas Lente {{ index + 1 }}</div>
               <div class="tipo-dip-grupo">
                 <div class="detail-field vertical"><span class="detail-label">Distancia</span><span class="detail-value">{{ medida.tipo_lente || '-' }}</span></div>
@@ -209,9 +213,10 @@
           </template>
         </div>
         
+        <!-- Fila 3: Cristales -->
         <div class="cristales-grid-container view-mode">
           <template v-for="(medida, index) in medidasModal" :key="`cristal-view-${index}`">
-              <template v-if="medida.cristal || (medida.tratamientos && medida.tratamientos.length > 0)">
+              <template v-if="medida && (medida.cristal || (medida.tratamientos && medida.tratamientos.length > 0))">
                   <label class="cristal-row-label">Cristal {{ index + 1 }}:</label>
                   <div class="detail-field vertical"><span class="detail-label">Cant.</span><span class="detail-value">{{ medida.cristal?.cantidad || '-' }}</span></div>
                   <div class="detail-field vertical"><span class="detail-label">Material</span><span class="detail-value">{{ medida.cristal?.material_cristal?.nombre_material || '-' }}</span></div>
@@ -223,6 +228,7 @@
           </template>
         </div>
 
+        <!-- Fila 4: Entrega -->
         <div class="form-grid-5-col">
           <div class="detail-field"><span class="detail-label">Proveedor</span><span class="detail-value">{{ prescripcionSeleccionada.proveedor_nombre || '-' }}</span></div>
           <div class="detail-field"><span class="detail-label">Armador</span><span class="detail-value">{{ prescripcionSeleccionada.armador_nombre || '-' }}</span></div>
@@ -233,6 +239,7 @@
           <div class="detail-field"><span class="detail-label">Núm. Pedido 2</span><span class="detail-value">{{ medidasModal[1]?.cristal?.nro_sobre || '-' }}</span></div>
         </div>
 
+        <!-- Fila 5: Observaciones -->
         <div class="detail-field-full">
           <span class="detail-label">Observaciones, notas o medidas adicionales</span>
           <p class="detail-value-obs">{{ prescripcionSeleccionada.observacion_prescripcion || 'Sin observaciones.' }}</p>
@@ -246,6 +253,7 @@
     </BaseModal>
 
 
+    <!-- Modal Nuevo Doctor -->
     <BaseModal v-model="mostrarModalNuevoDoctor" title="Registrar Nuevo Doctor">
       <form @submit.prevent="guardarNuevoDoctor" class="form-container">
         <div class="form-group"><label for="nombre_doctor_panel">Nombre Completo:</label><input id="nombre_doctor_panel" v-model="nuevoDoctorData.nombre_doctor" required class="form-input" /></div>
@@ -258,6 +266,7 @@
       </template>
     </BaseModal>
 
+    <!-- Modal Nueva Orden -->
     <BaseModal v-model="showModalOrden" title="Crear Nueva Orden de Trabajo" size="lg">
       <p class="orden-cliente-info"><strong>Cliente:</strong> {{ clienteNombreCompleto }}</p>
       <h4 class="form-section-header">Información de la Orden</h4>
@@ -270,7 +279,8 @@
       <h4 class="form-section-header">Detalles Financieros</h4>
       <div class="form-grid-orden-financiero">
         <div class="form-group"><label>Monto Total (Bs.)</label><input v-model="formOrden.monto_total" type="number" step="0.01" @input="calcularSaldo" class="form-input" /></div>
-        <div class="form-group"><label>A Cuenta (Bs.)</label><input v-model="formOrden.monto_acuenta" type="number" step="0.01" @input="calcularSaldo" class="form-input" /></div>
+        <div class="form-group"><label>A Cuenta (Bs.)</label><input v-model="formOrden.monto_acuenta" type="number" step="0.01" @input="calcularSaldo"
+            class="form-input" /></div>
         <div class="form-group"><label>Saldo (Bs.)</label><input v-model="formOrden.monto_saldo" type="number" step="0.01" readonly class="form-input campo-readonly" /></div>
       </div>
       <h4 class="form-section-header">Notas Adicionales</h4>
@@ -318,6 +328,7 @@ const tiendaUsuario = ref(null);
 const defaultProveedorId = ref(null);
 const defaultArmadorId = ref(null);
 const defaultArmazonId = ref(null);
+const defaultDoctorId = ref(null); // <-- NUEVO: Para almacenar el ID del doctor "OTROS"
 // --- END: Refs para valores predeterminados ---
 
 
@@ -325,7 +336,7 @@ const defaultArmazonId = ref(null);
 const cargandoPrescripciones = ref(false);
 const cargandoMedidas = ref(false);
 const mostrarModalFormulario = ref(false);
-const mostrarModalDetalles = ref(false); // Vuelve a ser el controlador del modal de detalles
+const mostrarModalDetalles = ref(false);
 const mostrarModalNuevoDoctor = ref(false);
 const showModalOrden = ref(false);
 const editId = ref(null);
@@ -464,6 +475,15 @@ async function inicializarPanel() {
     cliente.value = clienteData;
     prescripcionesCliente.value = (prescripcionesData || []).map(p => ({ ...p, doctor_nombre: p.doctores?.nombre_doctor || 'N/A', proveedor_nombre: p.proveedores?.nombre_proveedor, armador_nombre: p.armador_lente?.nombre_armador, armazon_nombre: p.armazon_lente?.nombre_armazon }));
     doctores.value = doctoresData || [];
+    
+    // <-- NUEVO: Buscar y almacenar el ID del doctor "OTROS"
+    const otrosDoctor = doctores.value.find(d => d.nombre_doctor.toUpperCase() === 'OTROS');
+    if (otrosDoctor) {
+      defaultDoctorId.value = otrosDoctor.cod_doctor;
+    } else {
+      console.warn("No se encontró un doctor con el nombre 'OTROS'. Se recomienda crearlo para el correcto funcionamiento de los valores por defecto.");
+    }
+    
     [materiales.value, colores.value, tiposLente.value, tratamientos.value, proveedores.value, armadores.value, armazones.value] = formSelectsData.map(res => res.data || []);
     tiendaUsuario.value = tiendaData?.cod_tienda;
   } catch (error) {
@@ -488,14 +508,27 @@ async function recargarPrescripciones() {
 
 // --- START: Lógica de Prescripciones (CRUD y Formularios) ---
 async function guardarPrescripcion() {
-  const medidasValidas = medidas.value.filter(m => m.tipo_lente);
-
-  if (medidasValidas.length === 0 || !formData.doctor_prescriptor) {
-    alert('Asegúrese de seleccionar un doctor y de que al menos una medida tenga un TIPO/DISTANCIA.');
-    return;
+  // --- INICIO DE MODIFICACIÓN: VALIDACIONES FLEXIBLES ---
+  // 1. Asignar doctor por defecto si no se ha seleccionado uno
+  if (!formData.doctor_prescriptor) {
+    if (defaultDoctorId.value) {
+      formData.doctor_prescriptor = defaultDoctorId.value;
+    } else {
+      alert('No se ha seleccionado un doctor y no se encontró un doctor por defecto ("OTROS"). Por favor, seleccione un doctor o cree uno llamado "OTROS".');
+      return;
+    }
   }
 
+  // 2. Asignar tipo de lente por defecto si está vacío
+  medidas.value.forEach(medida => {
+    if (!medida.tipo_lente) {
+      medida.tipo_lente = 'LEJOS';
+    }
+  });
+  // --- FIN DE MODIFICACIÓN ---
+
   try {
+    // 3. Mantener la validación de código de receta único (si se ingresa)
     if (formData.cod_receta) {
       const { data: recetaExistente, error: errReceta } = await api.verificarCodigoReceta(formData.cod_receta, editId.value);
       if (errReceta && errReceta.code !== 'PGRST116') throw new Error('No se pudo verificar el código de receta.');
@@ -505,6 +538,9 @@ async function guardarPrescripcion() {
         return;
       }
     }
+    
+    // Se filtran las medidas que tienen al menos un tipo para evitar guardar registros completamente vacíos.
+    const medidasValidas = medidas.value.filter(m => m.tipo_lente);
 
     const { data: prescripcionGuardada, error } = await upsertPrescription();
     if (error) throw error;
@@ -539,6 +575,8 @@ async function processMedidasAndDetails(prescripcionId, medidasValidas) {
   if (editId.value) {
     await api.deleteMedidasByPrescripcionId(prescripcionId);
   }
+
+  if(medidasValidas.length === 0) return;
 
   const medidasData = medidasValidas.map(m => ({ ...prepararDatosMedida(m), prescripcion: prescripcionId }));
   const { data: nuevasMedidas, error: errMed } = await api.insertMedidas(medidasData);
@@ -670,7 +708,6 @@ function limpiarFormularioPrescripcion() {
   });
   
   medidas.value = [getMedidaInicial(), getMedidaInicial()];
-  medidas.value[0].tipo_lente = 'LEJOS';
 }
 
 function abrirModalFormularioParaCrear() {
@@ -905,7 +942,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 </script>
 
 <style scoped>
-/* ESTILOS GENERALES Y DE PANEL (sin cambios) */
+/* ESTILOS GENERALES Y DE PANEL */
 .panel-container { padding: 24px; }
 .panel-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
 .cliente-info { color: #6c757d; font-size: 14px; }
@@ -915,7 +952,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .header-actions-group { display: flex; gap: 10px; }
 .sub-header { margin-top: 2rem; margin-bottom: 1rem; color: #495057; font-weight: 500; }
 
-/* ESTILOS DE BOTONES (sin cambios) */
+/* ESTILOS DE BOTONES */
 .btn-primary, .btn-secondary, .btn-success, .btn-guardar, .btn-cancelar { color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; }
 .btn-primary { background: #007bff; } .btn-primary:hover { background: #0056b3; }
 .btn-secondary { background: #6c757d; } .btn-secondary:hover { background: #5a6268; }
@@ -923,7 +960,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .btn-guardar { background: #007bff; }
 .btn-cancelar { background: #6c757d; }
 
-/* ESTILOS DE TARJETAS (sin cambios) */
+/* ESTILOS DE TARJETAS */
 .prescripcion-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
 .prescripcion-card { background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); border: 1px solid #e9ecef; display: flex; flex-direction: column; }
 .clickable { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
@@ -939,7 +976,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .btn-action.btn-edit { color: #007bff; } .btn-action.btn-edit:hover { background-color: #e7f3ff; }
 .btn-action.btn-delete { color: #dc3545; } .btn-action.btn-delete:hover { background-color: #f8d7da; }
 
-/* ESTILOS DE FORMULARIOS (sin cambios) */
+/* ESTILOS DE FORMULARIOS */
 .form-container, .details-view-container { display: flex; flex-direction: column; gap: 1rem; }
 .form-group { display: flex; flex-direction: column; gap: 4px; }
 .form-input, .form-group textarea { padding: 6px 10px; border: 1px solid #ced4da; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 12px; }
@@ -950,7 +987,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .btn-add-inline { padding: 0; width: 31px; height: 31px; font-size: 18px; background-color: #28a745; color: white; border-radius: 4px; flex-shrink: 0; cursor: pointer; border: none; }
 .btn-add-inline:hover { background-color: #218838; }
 
-/* ESTRUCTURA DE GRID PARA FORMULARIO Y VISTA DE DETALLES (sin cambios) */
+/* ESTRUCTURA DE GRID PARA FORMULARIO Y VISTA DE DETALLES */
 .form-grid-4-col, .form-grid-5-col,
 .medidas-grid-container, .medida-columna, .tipo-dip-grupo, .ojos-fila, .ojo-grupo,
 .cristales-grid-container {
@@ -969,7 +1006,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .cristales-grid-container.view-mode { align-items: stretch; }
 .cristal-row-label { font-size: 12px; font-weight: 600; text-align: right; padding-right: 10px; }
 
-/* NUEVOS ESTILOS PARA LA VISTA DE DETALLES */
+/* ESTILOS PARA LA VISTA DE DETALLES */
 .detail-field, .detail-field-full, .detail-field-ojo {
   background-color: #f8f9fa;
   border: 1px solid #e9ecef;
@@ -979,7 +1016,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: 31px; /* Coincide con la altura del input */
+  min-height: 31px;
 }
 .detail-field.vertical {
     gap: 2px;
@@ -1017,7 +1054,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
   min-height: 40px;
 }
 
-/* OTROS ESTILOS (sin cambios) */
+/* OTROS ESTILOS */
 .form-group.full-width { grid-column: 1 / -1; }
 .form-grid-orden-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; }
 .form-grid-orden-financiero { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; }
@@ -1026,7 +1063,7 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .btn-export-pdf { background-color: #dc3545; } .btn-export-pdf:hover { background-color: #c82333; }
 .btn-export-excel { background-color: #217346; } .btn-export-excel:hover { background-color: #1c623b; }
 
-/* MEDIA QUERIES (sin cambios) */
+/* MEDIA QUERIES */
 @media (max-width: 1300px) { .form-grid-5-col { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); } }
 @media (max-width: 1100px) { .form-grid-4-col { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); } }
 @media (max-width: 992px) { .medidas-grid-container { grid-template-columns: 1fr; } .medida-columna { grid-template-areas: "header" "tipo-dip" "medidas-ojo"; grid-template-columns: 1fr; } }

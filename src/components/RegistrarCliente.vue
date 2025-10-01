@@ -1,57 +1,57 @@
 <template>
   <div class="page-container">
     <header class="page-header">
-      <h3>Gestión de Clientes</h3>
+      <h2>Registro de Clientes</h2>
       <div class="header-actions">
         <button @click="abrirModalCrear" class="btn btn-primary">
-          <span class="icon">➕</span> Nuevo Cliente
-        </button>
-        <button @click="getClientes" class="btn btn-secondary">
-          <span class="icon">🔄</span> Actualizar
+          &#10010; Nuevo Cliente
         </button>
       </div>
     </header>
 
     <div class="search-container">
+      <span class="search-icon">&#128269;</span>
       <input
         v-model="busqueda"
-        placeholder="Buscar por nombre, apellidos o teléfono..."
+        placeholder="Buscar cliente por nombre, teléfono, cód. receta, nro. sobre o pedido."
         class="search-input"
       />
-      <span class="search-icon">🔍</span>
     </div>
+    
+    <div v-if="cargando" class="loading-indicator">Cargando clientes...</div>
 
-    <div class="table-responsive">
+    <div v-else class="table-responsive">
       <table>
         <thead>
           <tr>
-            <th>#</th>
             <th>Nombre Completo</th>
             <th>Teléfono</th>
-            <th>Acciones</th>
+            <th>Cód. Receta</th>
+            <th>Nro. Sobre</th>
+            <th>Pedidos</th>
+            <th class="text-center">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(cliente, index) in clientesFiltrados" :key="cliente.cod_cliente">
-            <td data-label="#">{{ index + 1 }}</td>
-            <td data-label="Nombre">{{ cliente.nombre_cliente }} {{ cliente.apellido_paterno_cliente }} {{ cliente.apellido_materno_cliente || '' }}</td>
-            <td data-label="Teléfono">{{ cliente.telefono_cliente || '-' }}</td>
-
-            <td data-label="Acciones" class="actions-cell">
-              <button @click="irAPanelCliente(cliente.cod_cliente)" class="btn-icon btn-panel" title="Panel del Cliente">⚙️</button>
-              <button @click="editarCliente(cliente)" class="btn-icon btn-edit" title="Editar Cliente">✏️</button>
-              <button @click="eliminarCliente(cliente.cod_cliente)" class="btn-icon btn-delete" title="Eliminar Cliente">🗑️</button>
-              <!-- BOTÓN DE 'NUEVA ORDEN' ELIMINADO DE AQUÍ -->
-            </td>
+          <tr v-if="clientesFiltrados.length === 0">
+            <td colspan="6" class="no-results">No se encontraron clientes que coincidan con la búsqueda.</td>
           </tr>
-           <tr v-if="clientesFiltrados.length === 0">
-            <td colspan="5" class="text-center">No se encontraron clientes.</td>
+          <tr v-for="cliente in clientesFiltrados" :key="cliente.cod_cliente">
+            <td data-label="Nombre">{{ cliente.nombreCompleto }}</td>
+            <td data-label="Teléfono">{{ cliente.telefono_cliente || '-' }}</td>
+            <td data-label="Cód. Receta">{{ cliente.cod_receta || '-' }}</td>
+            <td data-label="Nro. Sobre">{{ cliente.nro_sobre || '-' }}</td>
+            <td data-label="Pedidos">{{ cliente.pedidos || '-' }}</td>
+            <td data-label="Acciones" class="actions-cell">
+              <button @click="irAPanelCliente(cliente.cod_cliente)" class="btn-icon btn-panel" title="Ver Panel del Cliente">&#128221;</button>
+              <button @click="editarCliente(cliente)" class="btn-icon btn-edit" title="Editar Cliente">&#9998;</button>
+              <button @click="eliminarCliente(cliente.cod_cliente)" class="btn-icon btn-delete" title="Eliminar Cliente">&#128465;</button>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Modal para Crear/Editar Cliente (sin cambios) -->
     <BaseModal v-model="showModal" :title="editId ? 'Editar Cliente' : 'Registrar Nuevo Cliente'">
       <div class="form-container">
         <input v-model="nombreCliente" placeholder="Nombre del cliente *" ref="nameCliente" class="form-input" />
@@ -60,12 +60,10 @@
         <input v-model="telefonoCliente" placeholder="Teléfono" class="form-input" />
       </div>
       <template #footer>
-        <button @click="guardarCliente" class="btn btn-primary">Guardar</button>
         <button @click="cerrarModal" class="btn btn-secondary">Cancelar</button>
+        <button @click="guardarCliente" class="btn btn-primary">Guardar</button>
       </template>
     </BaseModal>
-
-    <!-- MODAL DE 'NUEVA ORDEN' ELIMINADO DE AQUÍ -->
   </div>
 </template>
 
@@ -78,6 +76,7 @@ import BaseModal from "./BaseModal.vue";
 const router = useRouter();
 
 const clientes = ref([]);
+const cargando = ref(true);
 const showModal = ref(false);
 const editId = ref(null);
 const busqueda = ref("");
@@ -86,29 +85,81 @@ const nombreCliente = ref("");
 const apellidoPaterno = ref("");
 const apellidoMaterno = ref("");
 const telefonoCliente = ref("");
-
 const nameCliente = ref(null);
 
-// LÓGICA DE ÓRDENES COMPLETAMENTE ELIMINADA DEL SCRIPT
+// PROPIEDAD COMPUTADA PARA PROCESAR Y APLANAR LOS DATOS
+const clientesConDatos = computed(() => {
+  return clientes.value.map(cliente => {
+    // Ordenar prescripciones para obtener la más reciente primero
+    const prescripcionesOrdenadas = [...(cliente.prescripcion_cliente || [])]
+      .sort((a, b) => new Date(b.fecha_prescripcion) - new Date(a.fecha_prescripcion));
+    
+    const ultimaPrescripcion = prescripcionesOrdenadas[0];
 
+    // Extraer los números de pedido de los cristales asociados a la última prescripción
+    let pedidos = [];
+    if (ultimaPrescripcion?.medida_lente) {
+        pedidos = ultimaPrescripcion.medida_lente
+            .flatMap(medida => medida.cristal_medida || [])
+            .map(cristal => cristal.nro_sobre)
+            .filter(Boolean); // Filtrar valores nulos o vacíos
+    }
+
+    return {
+      ...cliente,
+      nombreCompleto: `${cliente.nombre_cliente} ${cliente.apellido_paterno_cliente} ${cliente.apellido_materno_cliente || ''}`.trim(),
+      cod_receta: ultimaPrescripcion?.cod_receta,
+      nro_sobre: ultimaPrescripcion?.codigo_pedido,
+      pedidos: pedidos.join(', ')
+    };
+  });
+});
+
+// PROPIEDAD COMPUTADA PARA FILTRAR SOBRE LOS DATOS YA PROCESADOS
 const clientesFiltrados = computed(() => {
   if (!busqueda.value) {
-    return clientes.value;
+    return clientesConDatos.value;
   }
   const termino = busqueda.value.toLowerCase();
-  return clientes.value.filter(cliente => {
-    const nombreCompleto = `${cliente.nombre_cliente} ${cliente.apellido_paterno_cliente} ${cliente.apellido_materno_cliente || ''}`.toLowerCase();
-    const telefono = (cliente.telefono_cliente || '').toString().toLowerCase();
-    return nombreCompleto.includes(termino) || telefono.includes(termino);
+  return clientesConDatos.value.filter(cliente => {
+    return (
+      cliente.nombreCompleto.toLowerCase().includes(termino) ||
+      (cliente.telefono_cliente || '').toLowerCase().includes(termino) ||
+      (cliente.cod_receta || '').toLowerCase().includes(termino) ||
+      (cliente.nro_sobre || '').toLowerCase().includes(termino) ||
+      (cliente.pedidos || '').toLowerCase().includes(termino)
+    );
   });
 });
 
 async function getClientes() {
-  const { data } = await supabase
-    .from("clientes")
-    .select("*")
-    .order("fecha_registro_cliente", { ascending: false });
-  clientes.value = data || [];
+  cargando.value = true;
+  try {
+    const { data, error } = await supabase
+      .from("clientes")
+      .select(`
+        *,
+        prescripcion_cliente (
+          cod_receta,
+          codigo_pedido,
+          fecha_prescripcion,
+          medida_lente (
+            cristal_medida (
+              nro_sobre
+            )
+          )
+        )
+      `)
+      .order("fecha_registro_cliente", { ascending: false });
+    
+    if (error) throw error;
+    clientes.value = data || [];
+  } catch (error) {
+    console.error("Error al obtener clientes:", error);
+    alert("No se pudieron cargar los datos de los clientes.");
+  } finally {
+    cargando.value = false;
+  }
 }
 
 function irAPanelCliente(clienteId) {
@@ -116,11 +167,16 @@ function irAPanelCliente(clienteId) {
 }
 
 async function guardarCliente() {
+  if (!nombreCliente.value.trim() || !apellidoPaterno.value.trim()) {
+      alert("El nombre y el apellido paterno son obligatorios.");
+      return;
+  }
+
   const clienteData = {
-    nombre_cliente: nombreCliente.value,
-    apellido_paterno_cliente: apellidoPaterno.value,
-    apellido_materno_cliente: apellidoMaterno.value || null,
-    telefono_cliente: telefonoCliente.value || null
+    nombre_cliente: nombreCliente.value.trim(),
+    apellido_paterno_cliente: apellidoPaterno.value.trim(),
+    apellido_materno_cliente: apellidoMaterno.value.trim() || null,
+    telefono_cliente: telefonoCliente.value.trim() || null
   };
 
   try {
@@ -136,16 +192,23 @@ async function guardarCliente() {
     alert(editId.value ? "Cliente actualizado exitosamente" : "Cliente creado exitosamente");
     cerrarModal();
   } catch (error) {
-    alert("Error: " + error.message);
+    alert("Error al guardar el cliente: " + error.message);
   }
 }
 
 async function eliminarCliente(id) {
-  if (confirm("¿Estás seguro de que deseas eliminar este cliente?")) {
+  if (confirm("¿Está seguro de que desea eliminar este cliente? Esta acción no se puede deshacer.")) {
     try {
       const { error } = await supabase.from("clientes").delete().eq("cod_cliente", id);
-      if (error) throw error;
-      alert("Cliente eliminado exitosamente");
+      if (error) {
+          if (error.code === '23503') { // Foreign key violation
+               alert("Error: No se puede eliminar el cliente porque tiene prescripciones u órdenes asociadas.");
+          } else {
+              throw error;
+          }
+      } else {
+        alert("Cliente eliminado exitosamente");
+      }
     } catch (error) {
       alert("Error al eliminar el cliente: " + error.message);
     }
@@ -186,14 +249,8 @@ function subscribeToClientes() {
     .channel("clientes")
     .on("postgres_changes", { event: "*", schema: "public", table: "clientes" },
       (payload) => {
-        if (payload.eventType === "INSERT") {
-          clientes.value.unshift(payload.new);
-        } else if (payload.eventType === "UPDATE") {
-          const index = clientes.value.findIndex(c => c.cod_cliente === payload.new.cod_cliente);
-          if (index !== -1) clientes.value[index] = payload.new;
-        } else if (payload.eventType === "DELETE") {
-          clientes.value = clientes.value.filter(c => c.cod_cliente !== payload.old.cod_cliente);
-        }
+        // Para asegurar que los datos anidados se recarguen, es mejor re-llamar a getClientes.
+        getClientes();
       }
     ).subscribe();
   return () => supabase.removeChannel(channel);
@@ -207,187 +264,193 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* ESTILOS SIN CAMBIOS - SOLO SE MANTIENEN LOS NECESARIOS PARA ESTE COMPONENTE */
-:root {
-  --primary-color: #005A9C;
-  --secondary-color: #6c757d;
-  --success-color: #28a745;
-  --danger-color: #dc3545;
-  --warning-color: #ffc107;
-  --light-gray: #f8f9fa;
-  --border-color: #dee2e6;
-  --text-color: #212529;
-  --text-color-light: #ffffff;
-  --font-family: 'Segoe UI', system-ui, sans-serif;
-}
+/* ESTILOS GENERALES Y VARIABLES */
 
 .page-container {
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  padding: 24px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  color: #212529;
 }
 
+/* CABECERA */
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
   border-bottom: 1px solid #dee2e6;
 }
 
-.page-header h3 {
+.page-header h1 {
   margin: 0;
-  color: #212529;
   font-size: 1.75rem;
   font-weight: 600;
 }
 
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
-
+/* BOTONES */
 .btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 10px;
-  border: none;
+  padding: 0.6rem 1rem;
+  border: 1px solid transparent;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.9rem;
   font-weight: 500;
-  text-decoration: none;
-  transition: all 0.1s;
-  }
-.btn .icon {
-  font-size: 16px;
+  transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
 }
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 4px 4px 8px rgba(0,0,0,0.1);
+
+.btn-primary {
+  background-color: #005A9C;
+  color: white;
 }
-.btn-primary { background-color: #b1e2eb}
-.btn-primary:hover { background-color: #338fcc; color:white }
-.btn-secondary { background-color: #b1e2eb; }
-.btn-secondary:hover { background-color: #338fcc; color: white }
+.btn-primary:hover {
+  background-color: #00487c;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
 
 .btn-icon {
-  background: none;
-  border: 1px solid transparent;
-  padding: 1px;
+  background-color: transparent;
+  border: none;
   border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 1.1rem;
   cursor: pointer;
-  font-size: 14px;
-  transition: all 0.1s;
-  width: 32px;
-  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.2s;
 }
 .btn-icon:hover {
-  background-color: #ffffff;
+  background-color: #e6f0f7;
 }
-.btn-edit { color: #51db7f; }
+.btn-panel { color: #0d6efd; }
+.btn-edit { color: #198754; }
 .btn-delete { color: #dc3545; }
-.btn-panel { color: #005A9C; }
 
-
+/* BÚSQUEDA */
 .search-container {
   position: relative;
-  margin-bottom: 20px;
+  margin-bottom: 2rem;
 }
 
 .search-input {
   width: 100%;
-  padding: 10px 40px 12px 16px;
-  font-size: 14px;
-  border: 1px solid #b6b6b6;
-  border-radius: 10px;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  font-size: 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
   box-sizing: border-box;
-  transition: border-color 0.1s, box-shadow 0.1s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .search-input:focus {
   outline: none;
-  border-color: #b6b6b6;
+  border-color: #005A9C;
   box-shadow: 0 0 0 3px rgba(0, 90, 156, 0.2);
 }
 
 .search-icon {
   position: absolute;
-  right: 16px;
+  left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #999;
+  color: #6c757d;
+  font-size: 1.2rem;
 }
 
+/* TABLA */
 .table-responsive {
   overflow-x: auto;
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  background-color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  border-radius: 8px;
-  overflow: hidden;
 }
 
 th, td {
-  padding: 12px 16px;
+  padding: 1rem;
   text-align: left;
-  border-bottom: 1px solid #b6b6b6;
+  border-bottom: 1px solid #dee2e6;
+  vertical-align: middle;
+}
+
+thead {
+  background-color: #f8f9fa;
 }
 
 th {
-  background-color: #6c757d;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: #ffffff;
+  color: #6c757d;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-tr:hover {
-  background-color: #f3f3f3;
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+tbody tr:hover {
+  background-color: #e6f0f7;
 }
 
 td {
-  font-size: 12px;
+  font-size: 0.9rem;
   color: #212529;
 }
+
 .actions-cell {
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 5px;
-}
-.text-center {
-  text-align: center;
-  color: #777;
-  padding: 24px;
+  gap: 0.5rem;
+  white-space: nowrap;
 }
 
+.text-center {
+  text-align: center;
+}
+
+.loading-indicator, .no-results {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+}
+
+/* FORMULARIO EN MODAL */
 .form-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1rem;
 }
 
 .form-input {
   width: 100%;
-  padding: 12px 16px;
-  font-size: 14px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
   border: 1px solid #dee2e6;
   border-radius: 6px;
-  transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #1163b4;
-  box-shadow: 5px 2px 0 3px rgba(0, 90, 156, 0.5);
+  border-color: #005A9C;
+  box-shadow: 0 0 0 3px rgba(0, 90, 156, 0.2);
 }
 </style>
