@@ -1,4 +1,3 @@
-
 create table public.prescripcion_cliente (
   cod_prescripcion serial not null,
   cod_receta character varying(20) not null default '-'::character varying,
@@ -11,7 +10,7 @@ create table public.prescripcion_cliente (
   armazon_lente_id integer null,
   proveedor_id integer null,
   fecha_entrega date null,
-  codigo_pedido character varying(6) null,
+  nro_sobre character varying(6) null,
   constraint prescripcion_cliente_pkey primary key (cod_prescripcion),
   constraint fk_armador_lente foreign KEY (armador_lente_id) references armador_lente (cod_armador),
   constraint fk_armazon_lente foreign KEY (armazon_lente_id) references armazon_lente (cod_armazon),

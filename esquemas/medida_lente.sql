@@ -16,7 +16,7 @@ create table public.medida_lente (
   base_oi character varying(10) null default null::character varying,
   altura_oi character varying(10) not null default '0.00'::character varying,
   adic_oi character varying(10) not null default '0.00'::character varying,
-  dip_lentes_binocular numeric(5, 2) null,
+  dip_lentes_binocular character varying(10) null,
   dip_lentes_od_monocular numeric(5, 2) null,
   dip_lentes_oi_monocular numeric(5, 2) null,
   fecha_creacion_medida timestamp without time zone not null default CURRENT_TIMESTAMP,
@@ -69,9 +69,3 @@ create table public.medida_lente (
     )
   )
 ) TABLESPACE pg_default;
-
-
-ALTER TABLE public.medida_lente
-ALTER COLUMN dip_lentes_binocular TYPE character varying(10)
-USING dip_lentes_binocular::character varying(10);
-
