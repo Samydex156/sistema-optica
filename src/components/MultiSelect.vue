@@ -85,17 +85,18 @@ const getLabel = (value) => {
 .multiselect-container {
   position: relative;
   width: 100%;
+  font-size: .8rem;
 }
 .multiselect-display {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 6px 12px;
   border: 1px solid #ced4da;
   border-radius: 4px;
   cursor: pointer;
   background-color: white;
-  min-height: 38px;
+  min-height: 1px;
 }
 .placeholder {
   color: #6c757d;
@@ -112,7 +113,7 @@ const getLabel = (value) => {
   color: white;
   padding: 2px 8px;
   border-radius: 12px;
-  font-size: 12px;
+  font-size: .8rem;
 }
 .remove-tag {
   background: none;
@@ -121,7 +122,7 @@ const getLabel = (value) => {
   cursor: pointer;
   margin-left: 5px;
   padding: 0;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: bold;
 }
 .arrow {
@@ -145,11 +146,11 @@ const getLabel = (value) => {
   z-index: 1000;
 }
 .dropdown-option {
-  padding: 8px 12px;
+  padding: 6px 11px;
   cursor: pointer;
 }
 .dropdown-option:hover {
-  background-color: #f8f9fa;
+  background-color: #e2e2e2;
 }
 .dropdown-option.selected {
   background-color: #e9ecef;

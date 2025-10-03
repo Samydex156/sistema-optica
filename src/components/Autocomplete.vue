@@ -213,7 +213,7 @@ export default {
 
 .suggestion-item:hover,
 .suggestion-item.highlighted {
-  background-color: #f8f9fa;
+  background-color: #dbdbdb;
 }
 
 .suggestion-item:last-child {

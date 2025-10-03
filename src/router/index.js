@@ -1,22 +1,27 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuth } from "../composables/useAuth";
 
-// Importar componentes
+// Importar componentes Principales
 import RegistrarUsuario from "../components/RegistrarUsuario.vue";
 import PanelPrincipal from "../components/PanelPrincipal.vue";
 
 // Importar componentes de cliente
 import RegistrarCliente from "../components/RegistrarCliente.vue";
 import PanelCliente from "../components/PanelCliente.vue";
-import RegistrarPrescripcion from "../components/RegistrarPrescripcion.vue";
+
+// Importar componente de RegistrarPrescripción
+import RegistrarPrescripcion from "../components/RegistrarPrescripcion.vue"; 
+
+// Importar componente de Registrar orden de trabajo
 import RegistrarOrdenTrabajo from "../components/RegistrarOrdenTrabajo.vue";
 
-// IMPORTAR componentes para inventarios
+// Importar componentes para inventarios
 import GestionCaracteristicas from "../components/GestionCaracteristicas.vue";
 import RegistrarProducto from "../components/RegistrarProducto.vue";
 import GestionInventario from "../components/GestionInventario.vue";
 import ConsultaStock from "../components/ConsultaStock.vue";
 
+// Importar componente de Ejercicios básicos
 import EjerciciosComputed from "../components/EjerciciosComputed.vue";
 
 // Importar el nuevo componente de la Landing Page
@@ -61,14 +66,24 @@ const routes = [
     component: PanelCliente,
     props: true,
   },
+  // **** NUEVAS RUTAS PARA CREAR Y EDITAR PRESCRIPCIONES ****
   {
-    path: "/ordenes",
-    component: RegistrarOrdenTrabajo,
+    path: '/cliente/:clienteId/prescripcion/nueva',
+    name: 'CrearPrescripcion',
+    component: RegistrarPrescripcion,
+    props: true, // Pasa los params de la ruta como props al componente
     meta: { requiresAuth: true },
   },
   {
-    path: "/prescripciones/registrar",
+    path: '/cliente/:clienteId/prescripcion/:prescripcionId/editar',
+    name: 'EditarPrescripcion',
     component: RegistrarPrescripcion,
+    props: true, // Pasa los params de la ruta como props
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/ordenes",
+    component: RegistrarOrdenTrabajo,
     meta: { requiresAuth: true },
   },
   {

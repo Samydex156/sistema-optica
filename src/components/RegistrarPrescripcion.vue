@@ -1,1100 +1,297 @@
 <template>
-  <div>
-    <h3>Gestión de Prescripciones</h3>
+  <div class="form-page-container">
+    <header class="form-page-header">
+      <h2>{{ pageTitle }}</h2>
+      <p v-if="clienteNombreCompleto">
+        Cliente: <strong>{{ clienteNombreCompleto }}</strong>
+      </p>
+    </header>
 
-    <div class="botones-arriba">
-      <button @click="abrirModalFormularioParaCrear" class="btn-nueva-montura">
-        + Nueva Prescripción
-      </button>
-      <input v-model="filtros.busqueda" placeholder="Buscar por receta, cliente, teléfono..." class="filtro-input" />
-      <select v-model="filtros.doctor" class="filtro-select">
-        <option value="">Todos los doctores</option>
-        <option v-for="doctor in doctores" :key="doctor.cod_doctor" :value="doctor.cod_doctor">
-          {{ doctor.nombre_doctor }}
-        </option>
-      </select>
-      <input v-model="filtros.fechaDesde" type="date" class="filtro-input" />
-      <input v-model="filtros.fechaHasta" type="date" class="filtro-input" />
-      <button @click="limpiarFiltros" class="btn-cancelar">Limpiar</button>
-    </div>
-
-    <div v-if="cargando" class="loading">Cargando prescripciones...</div>
-
-    <table v-else-if="prescripcionesFiltradas.length > 0">
-      <thead>
-        <tr>
-          <th>Nro. Receta</th>
-          <th>Cliente</th>
-          <th>Teléfono</th>
-          <th>Doctor</th>
-          <th>Fecha</th>
-          <th>Tipos de Lente</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="prescripcion in prescripcionesFiltradas" :key="prescripcion.cod_prescripcion">
-          <td>{{ prescripcion.cod_receta }}</td>
-          <td>{{ prescripcion.cliente_nombre }}</td>
-          <td>{{ prescripcion.cliente_telefono || 'N/A' }}</td>
-          <td>{{ prescripcion.doctor_nombre }}</td>
-          <td>{{ formatearFecha(prescripcion.fecha_prescripcion) }}</td>
-          <td>
-            <span v-for="(tipo, index) in prescripcion.tipos_lente" :key="index" class="badge-lente">
-              {{ tipo }}
-            </span>
-          </td>
-          <td class="acciones-tabla">
-            <button @click="abrirModalDetalles(prescripcion)">Ver</button>
-            <button @click="abrirModalFormularioParaEditar(prescripcion)">Editar</button>
-            <button @click="eliminarPrescripcion(prescripcion.cod_prescripcion)"
-              class="btn-desactivar">Eliminar</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div v-else class="sin-resultados">
-      <p>No se encontraron prescripciones que coincidan con los filtros.</p>
-    </div>
-
-    <!-- Modal para crear/editar prescripción -->
-    <BaseModal v-model="mostrarModalFormulario" :title="tituloModalFormulario" size="lg">
-      <form @submit.prevent="guardarPrescripcion" class="form-container">
-        <h4 class="form-section-header">Información General</h4>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Cliente:</label>
-            <AutoComplete v-model="formData.cliente" :options="clientesOptions" placeholder="Seleccionar cliente"
-              ref="clienteRef" />
-          </div>
-          <div class="form-group">
-            <label>Código de Receta:</label>
-            <input v-model="formData.cod_receta" placeholder="Código de receta (ej. R-123)" />
-          </div>
-          <div class="form-group">
-            <label>Doctor Prescriptor:</label>
-            <!-- --- INICIO: MODIFICACIÓN PARA AGREGAR DOCTOR --- -->
-            <div class="autocomplete-container">
-              <AutoComplete 
-                v-model="formData.doctor_prescriptor" 
-                :options="doctoresOptions"
-                placeholder="Seleccionar o escribir nuevo doctor"
-                @search-input="handleDoctorSearch"
-              />
-              <button type="button" @click="abrirModalNuevoDoctor" class="btn-add-inline" title="Agregar nuevo doctor">+</button>
-            </div>
-            <!-- --- FIN: MODIFICACIÓN PARA AGREGAR DOCTOR --- -->
-          </div>
-          <div class="form-group">
-            <label>Fecha de Prescripción:</label>
-            <input v-model="formData.fecha_prescripcion" type="date" />
-          </div>
-        </div>
-        <h4 class="form-section-header">Medidas de Lentes</h4>
-        
-        <div v-for="(medida, index) in medidas" :key="index" class="medida-container">
-          <div class="distancia-tipo">
-            <div class="form-group">
-              <label>TIPO / DISTANCIA</label>
-              <AutoComplete v-model="medida.tipo_lente" :options="tipoLenteOptions"
-              placeholder="Seleccionar tipo de lente" />
-            </div>
-            <div class="form-group"><label>DIP Binocular (mm)</label><input v-model="medida.dip_lentes_binocular" type="number"
-              step="0.01" /></div>
-              <div class="form-group"><label>DIP OD Mono (mm)</label><input v-model="medida.dip_lentes_od_monocular"
-                type="number" step="0.01" /></div>
-                <div class="form-group"><label>DIP OI Mono (mm)</label><input v-model="medida.dip_lentes_oi_monocular"
-                type="number" step="0.01" /></div>
-            <button type="button" @click="eliminarMedida(index)" v-if="medidas.length > 1"
-              class="btn-desactivar btn-eliminar-medida">Eliminar</button>
-          </div>
-          
-          <div class="form-column-ojos">
-            <div class="ojo-section">
-              <h5 class="ojo-header">Ojo Derecho (OD)</h5>
-              <div class="medidas-grid">
-                <div class="form-row-strict">
-                  <div class="form-group"><label>ESF</label><input v-model="medida.esf_od" placeholder="ESF" /></div>
-                  <div class="form-group"><label>CIL</label><input v-model="medida.cil_od" placeholder="CIL" /></div>
-                  <div class="form-group"><label>EJE</label><input v-model="medida.eje_od" type="number" min="0"
-                    max="180" placeholder="EJE" /></div>
-                    <div class="form-group"><label>ADIC</label><input v-model="medida.adic_od" placeholder="ADIC" /></div>
-                  <div class="form-group"><label>PRISMA</label><input v-model="medida.prisma_od" placeholder="PRISMA"
-                    @input="onPrismaChange(medida, 'od')" /></div>
-                    <div class="form-group"><label>BASE</label>
-                      <AutoComplete v-model="medida.base_od" :options="baseOptions" placeholder="Base"
-                      :disabled="!medida.prisma_od || medida.prisma_od === '0.00'" />
-                  </div>
-                  <div class="form-group"><label>ALTURA</label><input v-model="medida.altura_od" placeholder="ALTURA" />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="ojo-section">
-              <h5 class="ojo-header">Ojo Izquierdo (OI)</h5>
-              <div class="medidas-grid">
-                <div class="form-row-strict">
-                  <div class="form-group"><label>ESF</label><input v-model="medida.esf_oi" placeholder="ESF" /></div>
-                  <div class="form-group"><label>CIL</label><input v-model="medida.cil_oi" placeholder="CIL" /></div>
-                  <div class="form-group"><label>EJE</label><input v-model="medida.eje_oi" type="number" min="0"
-                    max="180" placeholder="EJE" /></div>
-                    <div class="form-group"><label>ADIC</label><input v-model="medida.adic_oi" placeholder="ADIC" /></div>
-                    <div class="form-group"><label>PRISMA</label><input v-model="medida.prisma_oi" placeholder="PRISMA"
-                      @input="onPrismaChange(medida, 'oi')" /></div>
-                      <div class="form-group"><label>BASE</label>
-                        <AutoComplete v-model="medida.base_oi" :options="baseOptions" placeholder="Base"
-                      :disabled="!medida.prisma_oi || medida.prisma_oi === '0.00'" />
-                    </div>
-                    <div class="form-group"><label>ALTURA</label><input v-model="medida.altura_oi" placeholder="ALTURA" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-section-header-container">
-            <button type="button" @click="agregarMedida" class="btn-add-medida">+ Agregar Medida</button>
-          </div>
-          
-          <h4 class="form-section-header">Notas Adicionales</h4>
-          <div class="form-group">
-            <textarea v-model="formData.observacion_prescripcion" placeholder="Observaciones generales..."
-            rows="3"></textarea>
-          </div>
-        </form>
-        <template #footer>
-          <button @click="guardarPrescripcion" class="btn-guardar">{{ editId ? 'Actualizar' : 'Guardar' }}</button>
-          <button @click="mostrarModalFormulario = false" class="btn-cancelar">Cancelar</button>
-        </template>
-      </BaseModal>
-
-      <!-- Modal para detalles de prescripción -->
-      <BaseModal v-model="mostrarModalDetalles" title="Detalles de Prescripción" size="lg">
-      <div v-if="prescripcionSeleccionada" class="detalles-content">
-        <div class="info-grid">
-          <div><label>Nro. Receta:</label><span>{{ prescripcionSeleccionada.cod_receta }}</span></div>
-          <div><label>Cliente:</label><span>{{ prescripcionSeleccionada.cliente_nombre }}</span></div>
-          <div><label>Doctor:</label><span>{{ prescripcionSeleccionada.doctor_nombre }}</span></div>
-          <div><label>Fecha:</label><span>{{ formatearFecha(prescripcionSeleccionada.fecha_prescripcion) }}</span></div>
-        </div>
-        <div
-          v-if="prescripcionSeleccionada.observacion_prescripcion && prescripcionSeleccionada.observacion_prescripcion !== '-'"
-          class="observaciones-detalle">
-          <label>Observaciones:</label>
-          <p>{{ prescripcionSeleccionada.observacion_prescripcion }}</p>
-        </div>
-
-        <div class="medidas-section-detalle">
-          <h4>Medidas de Lentes</h4>
-          <div v-if="cargandoMedidas" class="loading">Cargando medidas...</div>
-          <div v-else-if="medidasModal.length > 0">
-            <div v-for="medida in medidasModal" :key="medida.cod_medida_lente" class="medida-detalle-item">
-              <div class="medida-header-detalle"><span>{{ medida.tipo_lente }}</span></div>
-              <div class="medidas-ojos-detalle">
-                <div class="ojo-detalle">
-                  <h6>Ojo Derecho (OD)</h6>
-                  <p><span>ESF:</span> {{ medida.esf_od }} | <span>CIL:</span> {{ medida.cil_od }} | <span>EJE:</span>
-                    {{
-                      medida.eje_od }}</p>
-                  <p><span>ADIC:</span> {{ medida.adic_od }} | <span>ALT:</span> {{ medida.altura_od }}</p>
-                  <p v-if="medida.prisma_od && medida.prisma_od !== '0.00'"><span>PRISMA:</span> {{ medida.prisma_od }}
-                    <span>BASE:</span> {{ medida.base_od }}
-                  </p>
-                </div>
-                <div class="ojo-detalle">
-                  <h6>Ojo Izquierdo (OI)</h6>
-                  <p><span>ESF:</span> {{ medida.esf_oi }} | <span>CIL:</span> {{ medida.cil_oi }} | <span>EJE:</span>
-                    {{
-                      medida.eje_oi }}</p>
-                  <p><span>ADIC:</span> {{ medida.adic_oi }} | <span>ALT:</span> {{ medida.altura_oi }}</p>
-                  <p v-if="medida.prisma_oi && medida.prisma_oi !== '0.00'"><span>PRISMA:</span> {{ medida.prisma_oi }}
-                    <span>BASE:</span> {{ medida.base_oi }}
-                  </p>
-                </div>
-              </div>
-              <div class="dip-detalle">
-                <h6>DIP (mm):</h6>
-                <p><span>Binocular:</span> {{ medida.dip_lentes_binocular || 'N/A' }} | <span>OD Mono:</span> {{
-                  medida.dip_lentes_od_monocular || 'N/A' }} | <span>OI Mono:</span> {{ medida.dip_lentes_oi_monocular
-                    ||
-                    'N/A' }}</p>
-              </div>
-            </div>
-          </div>
-          <div v-else class="sin-resultados">
-            <p>No hay medidas registradas para esta prescripción.</p>
-          </div>
+    <form @submit.prevent="guardarPrescripcion" class="form-container" v-if="!cargando">
+      <div class="form-grid-4-col">
+        <div class="form-group"><input :value="clienteNombreCompleto" readonly class="form-input campo-readonly" /></div>
+        <div class="form-group"><input ref="recetaInputRef" v-model="formData.cod_receta" placeholder="Cód. Receta Ej. 1234-A" class="form-input" /></div>
+        <div class="form-group"><input v-model="formData.fecha_prescripcion" type="date" class="form-input" /></div>
+        <div class="form-group">
+          <AutoComplete v-model="formData.doctor_prescriptor" :options="doctoresOptions" placeholder="Doctor Prescriptor" />
         </div>
       </div>
-      <template #footer>
-        <button @click="mostrarModalDetalles = false" class="btn-cancelar">Cerrar</button>
-      </template>
-    </BaseModal>
-    
-    <!-- --- INICIO: NUEVO MODAL PARA AGREGAR DOCTOR --- -->
-    <BaseModal v-model="mostrarModalNuevoDoctor" title="Registrar Nuevo Doctor">
-      <form @submit.prevent="guardarNuevoDoctor" class="form-container">
-        <div class="form-group">
-          <label for="nombre_doctor">Nombre Completo:</label>
-          <input id="nombre_doctor" v-model="nuevoDoctorData.nombre_doctor" required placeholder="Nombre del Doctor" class="filtro-input"/>
-        </div>
-        <div class="form-group">
-          <label for="telefono_doctor">Teléfono:</label>
-          <input id="telefono_doctor" v-model="nuevoDoctorData.telefono_doctor" placeholder="Teléfono (opcional)" class="filtro-input"/>
-        </div>
-        <div class="form-group">
-          <label for="especialidad_doctor">Especialidad:</label>
-          <input id="especialidad_doctor" v-model="nuevoDoctorData.especialidad_doctor" placeholder="Especialidad (opcional)" class="filtro-input"/>
-        </div>
-      </form>
-      <template #footer>
-        <button @click="guardarNuevoDoctor" class="btn-guardar">Guardar Doctor</button>
-        <button @click="mostrarModalNuevoDoctor = false" class="btn-cancelar">Cancelar</button>
-      </template>
-    </BaseModal>
-    <!-- --- FIN: NUEVO MODAL PARA AGREGAR DOCTOR --- -->
 
+      <div class="medidas-grid-container">
+          <div class="medida-columna">
+            <div class="medida-header">Lente 1</div>
+            <div class="tipo-dip-grupo">
+              <div class="form-group"><AutoComplete v-model="formData.distancia_lente1" :options="tipoLenteDistanciaOptions" placeholder="DISTANCIA" /></div>
+              <div class="form-group"><input v-model="formData.l1_dip" class="form-input" placeholder="DIP" /></div>
+            </div>
+            <div class="ojos-fila">
+              <div class="ojo-grupo">
+                <label class="ojo-label">OD</label>
+                <input v-model="formData.l1_esf_od" placeholder="ESF" class="form-input" />
+                <input v-model="formData.l1_cil_od" placeholder="CIL" class="form-input" />
+                <input v-model="formData.l1_eje_od" placeholder="EJE" class="form-input" />
+              </div>
+              <div class="ojo-grupo">
+                <label class="ojo-label">OI</label>
+                <input v-model="formData.l1_esf_oi" placeholder="ESF" class="form-input" />
+                <input v-model="formData.l1_cil_oi" placeholder="CIL" class="form-input" />
+                <input v-model="formData.l1_eje_oi" placeholder="EJE" class="form-input" />
+              </div>
+            </div>
+          </div>
+          <div class="medida-columna">
+            <div class="medida-header">Lente 2</div>
+            <div class="tipo-dip-grupo">
+              <div class="form-group"><AutoComplete v-model="formData.distancia_lente2" :options="tipoLenteDistanciaOptions" placeholder="DISTANCIA" /></div>
+              <div class="form-group"><input v-model="formData.l2_dip" class="form-input" placeholder="DIP" /></div>
+            </div>
+            <div class="ojos-fila">
+              <div class="ojo-grupo">
+                <label class="ojo-label">OD</label>
+                <input v-model="formData.l2_esf_od" placeholder="ESF" class="form-input" />
+                <input v-model="formData.l2_cil_od" placeholder="CIL" class="form-input" />
+                <input v-model="formData.l2_eje_od" placeholder="EJE" class="form-input" />
+              </div>
+              <div class="ojo-grupo">
+                <label class="ojo-label">OI</label>
+                <input v-model="formData.l2_esf_oi" placeholder="ESF" class="form-input" />
+                <input v-model="formData.l2_cil_oi" placeholder="CIL" class="form-input" />
+                <input v-model="formData.l2_eje_oi" placeholder="EJE" class="form-input" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cristales-grid-container">
+            <label class="cristal-row-label">Cristal 1:</label>
+            <div class="form-group"><input v-model.number="formData.l1_cantidad_cristal" type="number" min="0" class="form-input" /></div>
+            <div class="form-group"><AutoComplete v-model="formData.l1_material_cristal" :options="materialesOptions" placeholder="Material" /></div>
+            <div class="form-group"><AutoComplete v-model="formData.l1_tipo_lente" :options="tiposLenteOptions" placeholder="Tipo"/></div>
+            <div class="form-group"><MultiSelect v-model="formData.l1_tratamientos" :options="tratamientosOptions" placeholder="Tratamientos" /></div>
+            <div class="form-group"><AutoComplete v-model="formData.l1_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
+            <div class="form-group"><input v-model="formData.l1_extra_cristal" class="form-input" placeholder="Extras"/></div>
+            
+            <label class="cristal-row-label">Cristal 2:</label>
+            <div class="form-group"><input v-model.number="formData.l2_cantidad_cristal" type="number" min="0" class="form-input" /></div>
+            <div class="form-group"><AutoComplete v-model="formData.l2_material_cristal" :options="materialesOptions" placeholder="Material"/></div>
+            <div class="form-group"><AutoComplete v-model="formData.l2_tipo_lente" :options="tiposLenteOptions" placeholder="Tipo" /></div>
+            <div class="form-group"><MultiSelect v-model="formData.l2_tratamientos" :options="tratamientosOptions" placeholder="Tratamientos"/></div>
+            <div class="form-group"><AutoComplete v-model="formData.l2_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
+            <div class="form-group"><input v-model="formData.l2_extra_cristal" class="form-input" placeholder="Extras"/></div>
+        </div>
+
+        <div class="form-grid-5-col">
+          <div class="form-group"><AutoComplete v-model="formData.cod_proveedor" :options="proveedoresOptions" placeholder="Proveedor" /></div>
+          <div class="form-group"><AutoComplete v-model="formData.cod_armador" :options="armadoresOptions" placeholder="Armador" /></div>
+          <div class="form-group"><input v-model="formData.fecha_entrega" type="date" class="form-input" placeholder="Fecha entrega"/></div>
+          <div class="form-group"><AutoComplete v-model="formData.cod_armazon" :options="armazonesOptions" placeholder="Armazón"/></div>
+          <div class="form-group"><input v-model="formData.num_sobre" type="text" class="form-input" placeholder="Núm. Sobre"/></div>
+          <div class="form-group"><input v-model="formData.cod_pedido1" class="form-input" placeholder="Núm. Pedido 1" /></div>
+          <div class="form-group"><input v-model="formData.cod_pedido2" class="form-input" placeholder="Núm. Pedido 2"/></div>
+        </div>
+
+      <div class="form-group">
+        <textarea v-model="formData.notas_adicionales" rows="2" class="form-input" placeholder="Observaciones o notas adicionales"></textarea>
+      </div>
+
+      <div class="form-footer">
+        <button type="button" @click="cancelar" class="btn-cancelar">Cancelar</button>
+        <button type="submit" class="btn-guardar">{{ isEditing ? 'Actualizar Prescripción' : 'Guardar Prescripción' }}</button>
+      </div>
+    </form>
+     <div v-else class="loading">Cargando datos...</div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, reactive, computed, nextTick } from 'vue';
-import { supabase } from '../lib/supabaseClient.js';
-import BaseModal from './BaseModal.vue';
+import { useRouter } from 'vue-router';
+import { supabase } from '../lib/supabaseClient';
 import AutoComplete from './Autocomplete.vue';
+import MultiSelect from './MultiSelect.vue';
 
-// --- ESTADO GENERAL ---
-const prescripciones = ref([]);
+const props = defineProps({
+  clienteId: { type: String, required: true },
+  prescripcionId: { type: String, default: null }
+});
+
+const router = useRouter();
+const isEditing = computed(() => !!props.prescripcionId);
+
+// --- ESTADO ---
+const cargando = ref(true);
+const cliente = ref(null);
+const recetaInputRef = ref(null);
+
+// --- DATOS PARA SELECTS/AUTOCOMPLETES ---
 const doctores = ref([]);
-const clientes = ref([]);
-const cargando = ref(false);
-const editId = ref(null);
-const clienteRef = ref(null);
+const materiales = ref([]);
+const colores = ref([]);
+const tiposLente = ref([]);
+const tratamientos = ref([]);
+const proveedores = ref([]);
+const armadores = ref([]);
+const armazones = ref([]);
 
-// --- ESTADO PARA FILTROS ---
-const filtros = reactive({
-  busqueda: '',
-  doctor: '',
-  fechaDesde: '',
-  fechaHasta: ''
-});
-
-// --- ESTADO PARA MODALES ---
-const mostrarModalFormulario = ref(false);
-const mostrarModalDetalles = ref(false);
-const prescripcionSeleccionada = ref(null);
-const medidasModal = ref([]);
-const cargandoMedidas = ref(false);
-
-// --- ESTADO PARA FORMULARIO ---
-const formData = reactive({
+const getInitialFormData = () => ({
+  cod_prescripcion: null,
+  cod_cliente: parseInt(props.clienteId),
   cod_receta: '',
-  cliente: '', // Se usará el ID del cliente
-  doctor_prescriptor: '',
   fecha_prescripcion: new Date().toISOString().split('T')[0],
-  observacion_prescripcion: ''
+  doctor_prescriptor: null,
+  distancia_lente1: 'LEJOS', l1_dip: '', l1_esf_od: '', l1_cil_od: '', l1_eje_od: '', l1_esf_oi: '', l1_cil_oi: '', l1_eje_oi: '',
+  distancia_lente2: 'CERCA', l2_dip: '', l2_esf_od: '', l2_cil_od: '', l2_eje_od: '', l2_esf_oi: '', l2_cil_oi: '', l2_eje_oi: '',
+  l1_cantidad_cristal: 2, l1_material_cristal: null, l1_tipo_lente: null, l1_color_cristal: null, l1_extra_cristal: '', l1_tratamientos: [],
+  l2_cantidad_cristal: 2, l2_material_cristal: null, l2_tipo_lente: null, l2_color_cristal: null, l2_extra_cristal: '', l2_tratamientos: [],
+  cod_proveedor: null, cod_armador: null, cod_armazon: null,
+  fecha_entrega: new Date().toISOString().split('T')[0],
+  num_sobre: '', cod_pedido1: '', cod_pedido2: '', 
+  notas_adicionales: '',
 });
 
-const medidas = ref([]);
-
-const getMedidaInicial = () => ({
-  tipo_lente: '', esf_od: '', cil_od: '', eje_od: 0, prisma_od: '0.00', base_od: null, altura_od: '', adic_od: '',
-  esf_oi: '', cil_oi: '', eje_oi: 0, prisma_oi: '0.00', base_oi: null, altura_oi: '', adic_oi: '',
-  dip_lentes_binocular: null, dip_lentes_od_monocular: null, dip_lentes_oi_monocular: null
-});
-
-
-// --- NUEVO: ESTADO PARA EL MODAL DE NUEVO DOCTOR ---
-const mostrarModalNuevoDoctor = ref(false);
-const nuevoDoctorData = reactive({
-  nombre_doctor: '',
-  telefono_doctor: '',
-  especialidad_doctor: '',
-});
-const doctorSearchText = ref('');
-// --- FIN: NUEVO ESTADO ---
-
+const formData = reactive(getInitialFormData());
 
 // --- PROPIEDADES COMPUTADAS ---
-const tituloModalFormulario = computed(() => editId.value ? 'Editar Prescripción' : 'Registrar Nueva Prescripción');
+const pageTitle = computed(() => isEditing.value ? 'Editar Prescripción' : 'Registrar Nueva Prescripción');
+const clienteNombreCompleto = computed(() => cliente.value ? `${cliente.value.nombre_cliente} ${cliente.value.apellido_paterno_cliente}`.trim() : '');
 
-const prescripcionesFiltradas = computed(() => {
-  return prescripciones.value.filter(p => {
-    const busqueda = filtros.busqueda.toLowerCase();
-    const matchBusqueda = !busqueda ||
-      p.cod_receta.toLowerCase().includes(busqueda) ||
-      (p.cliente_nombre && p.cliente_nombre.toLowerCase().includes(busqueda)) ||
-      (p.cliente_telefono && p.cliente_telefono.toLowerCase().includes(busqueda)) ||
-      (p.doctor_nombre && p.doctor_nombre.toLowerCase().includes(busqueda));
+const doctoresOptions = computed(() => doctores.value.map(d => ({ value: d.cod_doctor, label: d.nombre_doctor })));
+const materialesOptions = computed(() => materiales.value.map(m => ({ value: m.cod_material_cristal, label: m.nombre_material })));
+const coloresOptions = computed(() => colores.value.map(c => ({ value: c.cod_color_cristal, label: c.nombre_color })));
+const tiposLenteOptions = computed(() => tiposLente.value.map(t => ({ value: t.id_tipo_lente, label: t.nombre_tipo_lente })));
+const tratamientosOptions = computed(() => tratamientos.value.map(t => ({ value: t.cod_tratamiento, label: t.nombre_tratamiento })));
+const proveedoresOptions = computed(() => proveedores.value.map(p => ({ value: p.cod_proveedor, label: p.nombre_proveedor })));
+const armadoresOptions = computed(() => armadores.value.map(a => ({ value: a.cod_armador, label: a.nombre_armador })));
+const armazonesOptions = computed(() => armazones.value.map(a => ({ value: a.cod_armazon, label: a.nombre_armazon })));
+const tipoLenteDistanciaOptions = ref([{ value: 'LEJOS', label: 'LEJOS' }, { value: 'CERCA', label: 'CERCA' }, { value: 'PROGRESIVO', label: 'PROGRESIVO' }, { value: 'BIFOCAL', label: 'BIFOCAL' }, { value: 'INTERMEDIO', label: 'INTERMEDIO' }]);
 
-    const matchDoctor = !filtros.doctor || p.doctor_prescriptor === parseInt(filtros.doctor);
-
-    const fechaPrescripcion = new Date(p.fecha_prescripcion + 'T00:00:00');
-    const matchFechaDesde = !filtros.fechaDesde || fechaPrescripcion >= new Date(filtros.fechaDesde + 'T00:00:00');
-    const matchFechaHasta = !filtros.fechaHasta || fechaPrescripcion <= new Date(filtros.fechaHasta + 'T00:00:00');
-
-    return matchBusqueda && matchDoctor && matchFechaDesde && matchFechaHasta;
-  });
+onMounted(async () => {
+  await inicializarFormulario();
+  nextTick(() => recetaInputRef.value?.focus());
 });
 
-const clientesOptions = computed(() => clientes.value.map(c => ({ value: c.cod_cliente, label: `${c.nombre_cliente} ${c.apellido_paterno_cliente}` })));
-const doctoresOptions = computed(() => doctores.value.map(d => ({ value: d.cod_doctor, label: d.nombre_doctor })));
-const tipoLenteOptions = ref([{ value: 'LEJOS', label: 'LEJOS' }, { value: 'CERCA', label: 'CERCA' }, { value: 'PROGRESIVO', label: 'PROGRESIVO' }, { value: 'INTERMEDIO', label: 'INTERMEDIO' }]);
-const baseOptions = ref([{ value: 'NASAL', label: 'NASAL' }, { value: 'TEMPORAL', label: 'TEMPORAL' }, { value: 'SUPERIOR', label: 'SUPERIOR' }, { value: 'INFERIOR', label: 'INFERIOR' }]);
-
-// --- CARGA DE DATOS ---
-async function cargarPrescripciones() {
+async function inicializarFormulario() {
   cargando.value = true;
   try {
-    const { data: presData, error: presError } = await supabase
-      .from('prescripcion_cliente')
-      .select(`
-        *,
-        clientes:cliente (nombre_cliente, apellido_paterno_cliente, telefono_cliente),
-        doctores:doctor_prescriptor (nombre_doctor)
-      `)
-      .order('fecha_prescripcion', { ascending: false });
+    const promises = [
+      supabase.from('clientes').select('*').eq('cod_cliente', props.clienteId).single(),
+      supabase.from('doctores').select('*'),
+      supabase.from('material_cristal').select('*'),
+      supabase.from('color_cristal').select('*'),
+      supabase.from('tipo_lente').select('*'),
+      supabase.from('tratamientos').select('*'),
+      supabase.from('proveedores').select('*'),
+      supabase.from('armador_lente').select('*'),
+      supabase.from('armazon_lente').select('*')
+    ];
 
-    if (presError) throw presError;
+    if (isEditing.value) {
+      promises.push(supabase.from('prescripcion_clienten').select('*').eq('cod_prescripcion', props.prescripcionId).single());
+      promises.push(supabase.from('prescripcion_tratamiento').select('cod_tratamiento, numero_lente').eq('cod_prescripcion', props.prescripcionId));
+    }
     
-    const { data: medidasData, error: medidasError } = await supabase
-      .from('medida_lente')
-      .select('prescripcion, tipo_lente');
+    const [clienteRes, ...formSelectsAndData] = await Promise.all(promises);
 
-    if (medidasError) throw medidasError;
-
-    const medidasPorPrescripcion = medidasData.reduce((acc, medida) => {
-      if (!acc[medida.prescripcion]) {
-        acc[medida.prescripcion] = new Set();
-      }
-      acc[medida.prescripcion].add(medida.tipo_lente);
-      return acc;
-    }, {});
-
-    prescripciones.value = presData.map(p => ({
-      ...p,
-      cliente_nombre: p.clientes ? `${p.clientes.nombre_cliente} ${p.clientes.apellido_paterno_cliente}`.trim() : 'N/A',
-      cliente_telefono: p.clientes ? p.clientes.telefono_cliente : 'N/A',
-      doctor_nombre: p.doctores ? p.doctores.nombre_doctor : 'N/A',
-      tipos_lente: medidasPorPrescripcion[p.cod_prescripcion] ? Array.from(medidasPorPrescripcion[p.cod_prescripcion]) : []
-    }));
+    cliente.value = clienteRes.data;
+    [doctores.value, materiales.value, colores.value, tiposLente.value, tratamientos.value, proveedores.value, armadores.value, armazones.value] = formSelectsAndData.slice(0, 8).map(res => res.data || []);
+    
+    if (isEditing.value) {
+      const prescripcionRes = formSelectsAndData[8];
+      const tratamientosRes = formSelectsAndData[9];
+      const l1_tratamientos = tratamientosRes.data?.filter(t => t.numero_lente === 1).map(t => t.cod_tratamiento) || [];
+      const l2_tratamientos = tratamientosRes.data?.filter(t => t.numero_lente === 2).map(t => t.cod_tratamiento) || [];
+      Object.assign(formData, { ...prescripcionRes.data, l1_tratamientos, l2_tratamientos });
+    }
 
   } catch (error) {
-    alert('Error al cargar prescripciones: ' + error.message);
+    console.error("Error al inicializar el formulario:", error);
+    alert("Error al cargar los datos: " + error.message);
   } finally {
     cargando.value = false;
   }
 }
 
-async function cargarDatosMaestros() {
-  const { data: doctoresData } = await supabase.from('doctores').select('cod_doctor, nombre_doctor').order('nombre_doctor');
-  doctores.value = doctoresData || [];
-
-  const { data: clientesData } = await supabase.from('clientes').select('cod_cliente, nombre_cliente, apellido_paterno_cliente').order('nombre_cliente');
-  clientes.value = clientesData || [];
-}
-
-async function cargarMedidasParaModal(codPrescripcion) {
-  cargandoMedidas.value = true;
-  medidasModal.value = [];
-  try {
-    const { data, error } = await supabase.from('medida_lente').select('*').eq('prescripcion', codPrescripcion).order('cod_medida_lente');
-    if (error) throw error;
-    medidasModal.value = data || [];
-  } catch (error) {
-    alert('Error al cargar las medidas: ' + error.message);
-  } finally {
-    cargandoMedidas.value = false;
-  }
-}
-
-// --- GESTIÓN DE MODALES ---
-const abrirModalFormularioParaCrear = () => {
-  limpiarFormulario();
-  mostrarModalFormulario.value = true;
-  nextTick(() => clienteRef.value?.focus());
-};
-
-const abrirModalFormularioParaEditar = async (prescripcion) => {
-  await cargarDatosEdicion(prescripcion);
-  mostrarModalFormulario.value = true;
-};
-
-const abrirModalDetalles = async (prescripcion) => {
-  prescripcionSeleccionada.value = prescripcion;
-  await cargarMedidasParaModal(prescripcion.cod_prescripcion);
-  mostrarModalDetalles.value = true;
-};
-
-// --- LÓGICA DEL FORMULARIO ---
-function limpiarFormulario() {
-  editId.value = null;
-  Object.assign(formData, {
-    cod_receta: '', cliente: '', doctor_prescriptor: '',
-    fecha_prescripcion: new Date().toISOString().split('T')[0], observacion_prescripcion: ''
-  });
-  medidas.value = [getMedidaInicial()];
-}
-
-function limpiarFiltros() {
-  Object.assign(filtros, { busqueda: '', doctor: '', fechaDesde: '', fechaHasta: '' });
-}
-
-function agregarMedida() {
-  medidas.value.push(getMedidaInicial());
-}
-
-function eliminarMedida(index) {
-  if (medidas.value.length > 1) {
-    medidas.value.splice(index, 1);
-  }
-}
-
-function onPrismaChange(medida, ojo) {
-  const prismaKey = `prisma_${ojo}`;
-  const baseKey = `base_${ojo}`;
-  if (!medida[prismaKey] || medida[prismaKey].trim() === '' || medida[prismaKey] === '0.00') {
-    medida[prismaKey] = '0.00';
-    medida[baseKey] = null;
-  }
-}
-
-
-/**
- * Verifica si un código de receta ya existe en la base de datos.
- * @param {string} codigo - El código de receta a verificar.
- * @returns {Promise<{duplicado: boolean, cliente?: string}>} - Un objeto indicando si es un duplicado y el nombre del cliente si lo es.
- */
-async function verificarCodigoReceta(codigo) {
-  // Si el código está vacío o es solo un guión, no se considera para la validación.
-  if (!codigo || codigo.trim() === '' || codigo.trim() === '-') {
-    return { duplicado: false };
-  }
-
-  // Inicia la consulta a la base de datos
-  let query = supabase
-    .from('prescripcion_cliente')
-    .select(`
-      cod_receta,
-      clientes:cliente (nombre_cliente, apellido_paterno_cliente)
-    `)
-    .eq('cod_receta', codigo.trim());
-
-  // Si estamos editando, debemos excluir la prescripción actual de la búsqueda.
-  if (editId.value) {
-    query = query.neq('cod_prescripcion', editId.value);
-  }
-
-  const { data, error } = await query.limit(1).single();
-
-  // Ignoramos el error 'PGRST116' que significa que no se encontraron filas.
-  if (error && error.code !== 'PGRST116') { 
-    console.error("Error al verificar el código de receta:", error);
-    throw new Error('No se pudo verificar el código de receta. Inténtelo de nuevo.');
-  }
-
-  // Si se encontraron datos, el código ya existe.
-  if (data) {
-    const clienteNombre = `${data.clientes.nombre_cliente} ${data.clientes.apellido_paterno_cliente}`.trim();
-    return { duplicado: true, cliente: clienteNombre };
-  }
-
-  // Si no se encontraron datos, el código es único.
-  return { duplicado: false };
-}
-
-
-
-// --- ACCIONES CRUD ---
 async function guardarPrescripcion() {
-  if (!formData.cliente) {
-    alert('Debe seleccionar un cliente.');
-    return;
-  }
-  if (medidas.value.some(m => !m.tipo_lente)) {
-    alert('Todas las medidas deben tener un tipo de lente seleccionado.');
-    return;
-  }
-
-
-// --- INICIO: VALIDACIÓN DE CÓDIGO DE RECETA DUPLICADO ---
   try {
-    const verificacion = await verificarCodigoReceta(formData.cod_receta);
-    if (verificacion.duplicado) {
-      alert(`El código de receta "${formData.cod_receta}" ya está en uso por el cliente: ${verificacion.cliente}. Por favor, ingrese un código diferente.`);
-      return; // Detenemos la ejecución
-    }
-  } catch (error) {
-    alert(error.message);
-    return;
-  }
-  // --- FIN: VALIDACIÓN DE CÓDIGO DE RECETA DUPLICADO ---
+    const { l1_tratamientos, l2_tratamientos, ...prescripcionBaseData } = formData;
+    let prescripcionData = { ...prescripcionBaseData };
 
-
-
-  try {
-    const prescripcionData = {
-      cod_receta: formData.cod_receta || null,
-      cliente: parseInt(formData.cliente),
-      doctor_prescriptor: formData.doctor_prescriptor ? parseInt(formData.doctor_prescriptor) : null,
-      fecha_prescripcion: formData.fecha_prescripcion,
-      observacion_prescripcion: formData.observacion_prescripcion || '-'
-    };
-
-    if (editId.value) { // --- ACTUALIZAR ---
-      const { error: errPres } = await supabase.from('prescripcion_cliente').update(prescripcionData).eq('cod_prescripcion', editId.value);
-      if (errPres) throw errPres;
-
-      await supabase.from('medida_lente').delete().eq('prescripcion', editId.value);
-
-      const medidasData = medidas.value.map(m => ({ prescripcion: editId.value, ...prepararDatosMedida(m) }));
-      const { error: errMed } = await supabase.from('medida_lente').insert(medidasData);
-      if (errMed) throw errMed;
-      alert('Prescripción actualizada exitosamente.');
-
-    } else { // --- CREAR ---
-      const { data: nuevaPres, error: errPres } = await supabase.from('prescripcion_cliente').insert(prescripcionData).select().single();
-      if (errPres) throw errPres;
-
-      const medidasData = medidas.value.map(m => ({ prescripcion: nuevaPres.cod_prescripcion, ...prepararDatosMedida(m) }));
-      const { error: errMed } = await supabase.from('medida_lente').insert(medidasData);
-      if (errMed) throw errMed;
-      alert('Prescripción guardada exitosamente.');
+    if (!isEditing.value) {
+      delete prescripcionData.cod_prescripcion;
     }
 
-    mostrarModalFormulario.value = false;
-    await cargarPrescripciones();
-
-  } catch (error) {
-    alert('Error al guardar la prescripción: ' + error.message);
-  }
-}
-
-async function cargarDatosEdicion(prescripcion) {
-  limpiarFormulario();
-  editId.value = prescripcion.cod_prescripcion;
-
-  Object.assign(formData, {
-    cod_receta: prescripcion.cod_receta,
-    cliente: prescripcion.cliente,
-    doctor_prescriptor: prescripcion.doctor_prescriptor,
-    fecha_prescripcion: prescripcion.fecha_prescripcion,
-    observacion_prescripcion: prescripcion.observacion_prescripcion
-  });
-
-  const { data: medidasData } = await supabase.from('medida_lente').select('*').eq('prescripcion', prescripcion.cod_prescripcion).order('cod_medida_lente');
-  if (medidasData && medidasData.length > 0) {
-    medidas.value = medidasData;
-  } else {
-    medidas.value = [getMedidaInicial()];
-  }
-}
-
-async function eliminarPrescripcion(id) {
-  if (!confirm('¿Está seguro de que desea eliminar esta prescripción? Esta acción es irreversible.')) return;
-
-  try {
-    await supabase.from('medida_lente').delete().eq('prescripcion', id);
-    await supabase.from('prescripcion_cliente').delete().eq('cod_prescripcion', id);
-    alert('Prescripción eliminada exitosamente.');
-    await cargarPrescripciones();
-  } catch (error) {
-    alert('Error al eliminar la prescripción: ' + error.message);
-  }
-}
-
-// --- INICIO: NUEVAS FUNCIONES PARA GESTIONAR DOCTORES ---
-/**
- * Captura el texto de búsqueda del componente AutoComplete.
- * NOTA: Tu componente AutoComplete.vue debe emitir este evento.
- * Ejemplo en AutoComplete.vue: emits: ['update:modelValue', 'searchInput']
- * y al teclear: emit('searchInput', textoActual)
- */
-function handleDoctorSearch(searchText) {
-  doctorSearchText.value = searchText;
-}
-
-function abrirModalNuevoDoctor() {
-  // Limpiar formulario de nuevo doctor
-  Object.assign(nuevoDoctorData, { nombre_doctor: '', telefono_doctor: '', especialidad_doctor: ''});
-  
-  // Pre-llenar con el texto de búsqueda si no es un doctor existente
-  const esDoctorExistente = doctores.value.some(d => d.nombre_doctor.toLowerCase() === doctorSearchText.value.toLowerCase());
-  if (doctorSearchText.value && !esDoctorExistente) {
-    nuevoDoctorData.nombre_doctor = doctorSearchText.value;
-  }
-  
-  mostrarModalNuevoDoctor.value = true;
-}
-
-async function guardarNuevoDoctor() {
-  if (!nuevoDoctorData.nombre_doctor.trim()) {
-    alert('El nombre del doctor no puede estar vacío.');
-    return;
-  }
-
-  try {
-    const { data: nuevoDoctor, error } = await supabase
-      .from('doctores')
-      .insert({
-        nombre_doctor: nuevoDoctorData.nombre_doctor.trim(),
-        telefono_doctor: nuevoDoctorData.telefono_doctor.trim() || '-',
-        especialidad_doctor: nuevoDoctorData.especialidad_doctor.trim() || '-'
-      })
+    if (!prescripcionData.doctor_prescriptor) {
+      alert('El campo "Doctor Prescriptor" es obligatorio.');
+      return;
+    }
+    
+    const { data: prescripcionGuardada, error } = await supabase
+      .from('prescripcion_clienten')
+      .upsert(prescripcionData) 
       .select()
       .single();
 
     if (error) throw error;
-
-    // Agregar a la lista local para que esté disponible inmediatamente
-    doctores.value.push(nuevoDoctor);
-    // Opcional: re-ordenar la lista
-    doctores.value.sort((a, b) => a.nombre_doctor.localeCompare(b.nombre_doctor));
     
-    // Seleccionar automáticamente el doctor recién creado
-    formData.doctor_prescriptor = nuevoDoctor.cod_doctor;
+    const nuevaPrescripcionId = prescripcionGuardada.cod_prescripcion;
 
-    alert('Doctor guardado exitosamente.');
-    mostrarModalNuevoDoctor.value = false;
+    await supabase.from('prescripcion_tratamiento').delete().eq('cod_prescripcion', nuevaPrescripcionId);
 
+    const tratamientosParaInsertar = [
+      ...(l1_tratamientos || []).map(tratId => ({ cod_prescripcion: nuevaPrescripcionId, cod_tratamiento: tratId, numero_lente: 1 })),
+      ...(l2_tratamientos || []).map(tratId => ({ cod_prescripcion: nuevaPrescripcionId, cod_tratamiento: tratId, numero_lente: 2 }))
+    ];
+
+    if (tratamientosParaInsertar.length > 0) {
+      const { error: errorTratamientos } = await supabase.from('prescripcion_tratamiento').insert(tratamientosParaInsertar);
+      if (errorTratamientos) throw errorTratamientos;
+    }
+
+    alert(isEditing.value ? 'Prescripción actualizada con éxito.' : 'Prescripción guardada con éxito.');
+    router.push({ name: 'PanelCliente', params: { id: props.clienteId } });
   } catch (error) {
-    alert('Error al guardar el doctor: ' + error.message);
+    console.error("Error al guardar:", error); 
+    alert('Error al guardar la prescripción: ' + error.message);
   }
 }
-// --- FIN: NUEVAS FUNCIONES ---
 
-
-// --- FUNCIONES AUXILIARES ---
-const prepararDatosMedida = (medida) => ({
-  tipo_lente: medida.tipo_lente,
-  esf_od: medida.esf_od || '-', cil_od: medida.cil_od || '-', eje_od: parseInt(medida.eje_od) || 0,
-  prisma_od: medida.prisma_od || '0.00', base_od: medida.base_od || null, altura_od: medida.altura_od || '0.00', adic_od: medida.adic_od || '0.00',
-  esf_oi: medida.esf_oi || '-', cil_oi: medida.cil_oi || '-', eje_oi: parseInt(medida.eje_oi) || 0,
-  prisma_oi: medida.prisma_oi || '0.00', base_oi: medida.base_oi || null, altura_oi: medida.altura_oi || '0.00', adic_oi: medida.adic_oi || '0.00',
-  dip_lentes_binocular: medida.dip_lentes_binocular ? parseFloat(medida.dip_lentes_binocular) : null,
-  dip_lentes_od_monocular: medida.dip_lentes_od_monocular ? parseFloat(medida.dip_lentes_od_monocular) : null,
-  dip_lentes_oi_monocular: medida.dip_lentes_oi_monocular ? parseFloat(medida.dip_lentes_oi_monocular) : null
-});
-
-const formatearFecha = (fecha) => {
-  if (!fecha) return 'N/A';
-  const date = new Date(fecha + 'T00:00:00Z');
-  return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
-};
-
-
-// --- CICLO DE VIDA ---
-onMounted(() => {
-  cargarDatosMaestros();
-  cargarPrescripciones();
-});
+function cancelar() {
+  if(confirm('¿Está seguro de que desea cancelar? Perderá los cambios no guardados.')) {
+    router.back();
+  }
+}
 </script>
 
 <style scoped>
-/* ESTILOS GENERALES */
-h3 {
-  margin: 0 0 20px 0;
-  color: #333;
-  font-size: 24px;
-  font-weight: 600;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #e0e0e0;
-}
+/* Estilos generales de la página del formulario */
+.form-page-container { padding: 24px; max-width: 1200px; margin: auto; }
+.form-page-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #dee2e6; }
+.form-page-header h2 { margin-top: 0; }
+.form-page-header p { color: #6c757d; }
+.loading { text-align: center; padding: 2rem; color: #6c757d; font-size: 1.1rem; }
 
-.botones-arriba {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  align-items: center;
-  flex-wrap: wrap;
-}
+/* Estilos de botones de pie de página del formulario */
+.btn-guardar, .btn-cancelar { color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+.btn-guardar { background: #007bff; } .btn-guardar:hover { background: #0056b3; }
+.btn-cancelar { background: #6c757d; } .btn-cancelar:hover { background: #5a6268; }
+.form-footer { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #dee2e6; }
 
-.btn-nueva-montura {
-  background: #007bff;
-  color: white;
-}
+/* (COPIAR TODOS LOS ESTILOS DE FORMULARIO DEL COMPONENTE ANTERIOR AQUÍ) */
+.form-container, .details-view-container { display: flex; flex-direction: column; gap: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-input, .form-group textarea { padding: 5px 12px; border: 1px solid #ced4da; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 14px; }
+.form-input:focus-within, .form-group textarea:focus-within { border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); }
+.campo-readonly { background-color: #e9ecef; cursor: not-allowed; }
 
-.btn-nueva-montura:hover {
-  background: #0056b3;
-}
-
-button {
-  border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s;
-}
-
-.filtro-input,
-.filtro-select {
-  padding: 8px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 14px;
-  height: 38px;
-}
-
-.filtro-input {
-  flex: 1 1 180px;
-}
-
-/* ESTILOS DE LA TABLA */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-}
-
-th {
-  background: #343a40;
-  color: white;
-  padding: 12px 8px;
-  text-align: left;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-td {
-  padding: 10px 8px;
-  border-bottom: 1px solid #dee2e6;
-  font-size: 13px;
-  vertical-align: middle;
-}
-
-tr:hover {
-  background: #f8f9fa;
-}
-
-.acciones-tabla {
-  display: flex;
-  gap: 5px;
-  flex-wrap: nowrap;
-}
-
-td button {
-  padding: 4px 8px;
-  margin: 0;
-  border-radius: 3px;
-  font-size: 11px;
-  white-space: nowrap;
-}
-
-.btn-desactivar {
-  background: #dc3545;
-  color: white;
-}
-
-.btn-desactivar:hover {
-  background: #c82333;
-}
-
-td button:not(.btn-desactivar) {
-  background: #ffc107;
-  color: #212529;
-}
-
-td button:not(.btn-desactivar):hover {
-  background: #e0a800;
-}
-
-.badge-lente {
-  display: inline-block;
-  padding: 3px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  background-color: #e9ecef;
-  color: #495057;
-  border-radius: 10px;
-  margin-right: 4px;
-  margin-bottom: 4px;
-}
-
-.loading,
-.sin-resultados {
-  text-align: center;
-  padding: 2rem;
-  color: #6c757d;
-  font-size: 1.1rem;
-}
-
-/* ESTILOS PARA EL FORMULARIO EN EL MODAL */
-.form-container {
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.form-section-header {
-  font-size: 16px;
-  font-weight: 600;
-  color: #343a40;
-  margin: 20px 0 15px 0;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.form-section-header:first-child {
-  margin-top: 0;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.distancia-tipo {
-  display: flex;
-  align-items: flex-end;
-  margin-bottom: 1rem;
-  gap: 1rem;
-}
-
-.form-group label {
-  font-weight: 500;
-  color: #333;
-  font-size: 13px;
-  white-space: nowrap;
-}
-
-.form-group input,
-.form-group textarea {
-  padding: 8px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 14px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.form-group textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.form-section-header-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.btn-add-medida {
-  margin-top: 2rem;
-  padding: 10px 10px;
-  font-size: 12px;
-  background-color: #28a745;
-  color: white;
-}
-
-.medida-container {
-  border: 1px solid #e9ecef;
-  border-radius: 6px;
-  padding: 15px;
-  margin-top: 1rem;
-  background-color: #fcfcfc;
-}
-
-.btn-eliminar-medida {
-  padding: 6px 10px;
-  font-size: 11px;
-  height: fit-content;
-  margin-bottom: 2px; /* Alineación con los inputs */
-}
-
-.form-column-ojos {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.ojo-section {
-  padding: 10px;
-  border: 1px solid #e8e8e8;
-  border-radius: 8px;
-  background-color: white;
-}
-
-.ojo-header {
-  font-size: 14px;
-  font-weight: bold;
-  margin: 0 0 10px 0;
-  text-align: center;
-}
-
-.medidas-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.form-row-strict {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
-  align-items: end;
-}
-
-.btn-guardar {
-  background: #007bff;
-  color: white;
-}
-
-.btn-cancelar {
-  background: #6c757d;
-  color: white;
-}
-
-/* --- INICIO: NUEVOS ESTILOS PARA EL BOTÓN DE AGREGAR --- */
-.autocomplete-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.autocomplete-container > :first-child {
-    flex-grow: 1;
-}
-
-.btn-add-inline {
-  padding: 0;
-  width: 38px;
-  height: 38px;
-  font-size: 20px;
-  font-weight: bold;
-  line-height: 38px;
-  text-align: center;
-  background-color: #28a745;
-  color: white;
-  border-radius: 4px;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-.btn-add-inline:hover {
-    background-color: #218838;
-}
-/* --- FIN: NUEVOS ESTILOS --- */
-
-
-/* ESTILOS PARA MODAL DE DETALLES */
-.detalles-content .info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-  background-color: #f8f9fa;
-  padding: 1rem;
-  border-radius: 6px;
-}
-
-.detalles-content .info-grid label {
-  font-weight: 600;
-  color: #495057;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.observaciones-detalle {
-  margin-top: 1rem;
-  padding: 1rem;
-  border-left: 4px solid #007bff;
-  background-color: #f8f9fa;
-}
-
-.medidas-section-detalle {
-  margin-top: 1rem;
-}
-
-.medida-detalle-item {
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-}
-
-.medida-header-detalle {
-  padding: 0.5rem 1rem;
-  background-color: #343a40;
-  color: white;
-  font-weight: bold;
-  border-radius: 6px 6px 0 0;
-}
-
-.medidas-ojos-detalle {
-  display: flex;
-  gap: 1rem;
-  padding: 1rem;
-  flex-wrap: wrap;
-}
-
-.ojo-detalle {
-  flex: 1;
-  min-width: 250px;
-}
-
-.ojo-detalle h6 {
-  margin-top: 0;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 5px;
-}
-
-.ojo-detalle p,
-.dip-detalle p {
-  margin: 0.25rem 0;
-  font-size: 0.9rem;
-}
-
-.ojo-detalle span,
-.dip-detalle span {
-  font-weight: 600;
-  color: #555;
-}
-
-.dip-detalle {
-  padding: 0.5rem 1rem;
-  background-color: #f8f9fa;
-  border-top: 1px solid #e9ecef;
-  border-radius: 0 0 6px 6px;
-}
-
-/* RESPONSIVIDAD */
-@media (max-width: 1200px) {
-    .form-row-strict {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-
-@media (max-width: 992px) {
-  .form-column-ojos {
-    grid-template-columns: 1fr;
-  }
-  .form-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .botones-arriba {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .form-grid,
-  .form-row-strict {
-    grid-template-columns: 1fr;
-  }
-}
+.form-grid-4-col { display: grid; grid-template-columns: 350px 1fr .7fr 1.1fr; gap: .5rem; }
+.form-grid-5-col { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr; gap: .5rem; }
+.medidas-grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; background-color: #f8f9fa; padding: .5rem; border-radius: 8px; border: 1px solid #e9ecef; }
+.medida-columna { display: flex; flex-direction: column; gap: 1rem; }
+.medida-header { font-weight: 600; color: #495057; padding-bottom: 0.1rem; margin-bottom: 0.1rem; border-bottom: 1px solid #dee2e6; }
+.tipo-dip-grupo { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.ojos-fila { display: flex; flex-direction: column; gap: 0.5rem; }
+.ojo-grupo { display: grid; grid-template-columns: 30px 1fr 1fr 1fr; gap: 0.5rem; align-items: center; }
+.ojo-label { font-weight: bold; font-size: 1rem; text-align: center; }
+.cristales-grid-container { display: grid; grid-template-columns: 80px 80px 1fr 1fr 1.5fr 1fr 1fr; gap: 0.5rem .5rem; align-items: center; }
+.cristal-row-label { font-size: 0.9rem; font-weight: 600; text-align: right; }
 </style>
