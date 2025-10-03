@@ -172,6 +172,7 @@ export default {
 .autocomplete-container {
   position: relative;
   width: 100%;
+  font-size: .8rem;
 }
 
 .autocomplete-input {

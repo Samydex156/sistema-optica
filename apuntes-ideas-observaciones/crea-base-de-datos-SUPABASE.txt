@@ -1,0 +1,17 @@
+// CREAR PROYECTO EN SUPABASE //
+iniciar sesión en supabase
+clic en New project
+escribir nombre del proyecto: optica-optalvis
+definir contraseña de la base de datos: optalvis1562025
+elegir la region más cercana: South America Sao Paulo, sa-east-1
+clic en Create new project
+
+// VARIABLES DE ENTORNO PARA CONEXION //
+clic en el botón Connect en la parte superior.
+Seleccionar App Frameworks
+Elegir el framework: Vuejs
+En la pestaña de .env.local, copiar la URL y la KEY
+copiar los códigos en el archivo .env local
+
+
+

@@ -1,7 +1,7 @@
 <template>
   <div class="page-container">
     <header class="page-header">
-      <h2>Registro de Clientes</h2>
+      <h1>Gestión de Clientes</h1>
       <div class="header-actions">
         <button @click="abrirModalCrear" class="btn btn-primary">
           &#10010; Nuevo Cliente
@@ -15,6 +15,7 @@
         v-model="busqueda"
         placeholder="Buscar cliente por nombre, teléfono, cód. receta, nro. sobre o pedido."
         class="search-input"
+        ref="searchInputRef"
       />
     </div>
     
@@ -28,20 +29,20 @@
             <th>Teléfono</th>
             <th>Cód. Receta</th>
             <th>Nro. Sobre</th>
-            <th>Pedidos</th>
+            <th>Nro. Pedido</th>
             <th class="text-center">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-if="clientesFiltrados.length === 0">
-            <td colspan="6" class="no-results">No se encontraron clientes que coincidan con la búsqueda.</td>
+          <tr v-if="clientes.length === 0">
+            <td colspan="6" class="no-results">No se encontraron clientes.</td>
           </tr>
-          <tr v-for="cliente in clientesFiltrados" :key="cliente.cod_cliente">
+          <tr v-for="cliente in clientes" :key="cliente.cod_cliente">
             <td data-label="Nombre">{{ cliente.nombreCompleto }}</td>
             <td data-label="Teléfono">{{ cliente.telefono_cliente || '-' }}</td>
             <td data-label="Cód. Receta">{{ cliente.cod_receta || '-' }}</td>
-            <td data-label="Nro. Sobre">{{ cliente.nro_sobre || '-' }}</td>
-            <td data-label="Pedidos">{{ cliente.pedidos || '-' }}</td>
+            <td data-label="Nro. Sobre">{{ cliente.num_sobre || '-' }}</td>
+            <td data-label="Nro. Pedido">{{ cliente.pedidos || '-' }}</td>
             <td data-label="Acciones" class="actions-cell">
               <button @click="irAPanelCliente(cliente.cod_cliente)" class="btn-icon btn-panel" title="Ver Panel del Cliente">&#128221;</button>
               <button @click="editarCliente(cliente)" class="btn-icon btn-edit" title="Editar Cliente">&#9998;</button>
@@ -52,6 +53,17 @@
       </table>
     </div>
 
+    <div v-if="!cargando && totalPaginas > 1" class="pagination-container">
+      <button @click="cambiarPagina(paginaActual - 1)" :disabled="paginaActual === 1" class="btn-pagination">
+        &laquo; Anterior
+      </button>
+      <span class="pagination-info">
+        Página {{ paginaActual }} de {{ totalPaginas }}
+      </span>
+      <button @click="cambiarPagina(paginaActual + 1)" :disabled="paginaActual === totalPaginas" class="btn-pagination">
+        Siguiente &raquo;
+      </button>
+    </div>
     <BaseModal v-model="showModal" :title="editId ? 'Editar Cliente' : 'Registrar Nuevo Cliente'">
       <div class="form-container">
         <input v-model="nombreCliente" placeholder="Nombre del cliente *" ref="nameCliente" class="form-input" />
@@ -68,10 +80,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick, computed } from "vue";
+import { ref, onMounted, nextTick, computed, watch } from "vue";
 import { useRouter } from 'vue-router';
 import { supabase } from "../lib/supabaseClient.js";
 import BaseModal from "./BaseModal.vue";
+import { debounce } from 'lodash-es'; // Importamos debounce
 
 const router = useRouter();
 
@@ -81,84 +94,83 @@ const showModal = ref(false);
 const editId = ref(null);
 const busqueda = ref("");
 
+// --- NUEVO ESTADO PARA PAGINACIÓN ---
+const paginaActual = ref(1);
+const clientesPorPagina = ref(20); // Puedes ajustar este valor
+const totalClientes = ref(0);
+
 const nombreCliente = ref("");
 const apellidoPaterno = ref("");
 const apellidoMaterno = ref("");
 const telefonoCliente = ref("");
 const nameCliente = ref(null);
+const searchInputRef = ref(null);
 
-// PROPIEDAD COMPUTADA PARA PROCESAR Y APLANAR LOS DATOS
-const clientesConDatos = computed(() => {
-  return clientes.value.map(cliente => {
-    // Ordenar prescripciones para obtener la más reciente primero
-    const prescripcionesOrdenadas = [...(cliente.prescripcion_cliente || [])]
-      .sort((a, b) => new Date(b.fecha_prescripcion) - new Date(a.fecha_prescripcion));
-    
-    const ultimaPrescripcion = prescripcionesOrdenadas[0];
-
-    // Extraer los números de pedido de los cristales asociados a la última prescripción
-    let pedidos = [];
-    if (ultimaPrescripcion?.medida_lente) {
-        pedidos = ultimaPrescripcion.medida_lente
-            .flatMap(medida => medida.cristal_medida || [])
-            .map(cristal => cristal.nro_sobre)
-            .filter(Boolean); // Filtrar valores nulos o vacíos
-    }
-
-    return {
-      ...cliente,
-      nombreCompleto: `${cliente.nombre_cliente} ${cliente.apellido_paterno_cliente} ${cliente.apellido_materno_cliente || ''}`.trim(),
-      cod_receta: ultimaPrescripcion?.cod_receta,
-      nro_sobre: ultimaPrescripcion?.codigo_pedido,
-      pedidos: pedidos.join(', ')
-    };
-  });
+// --- PROPIEDAD COMPUTADA PARA CALCULAR EL TOTAL DE PÁGINAS ---
+const totalPaginas = computed(() => {
+  return Math.ceil(totalClientes.value / clientesPorPagina.value);
 });
 
-// PROPIEDAD COMPUTADA PARA FILTRAR SOBRE LOS DATOS YA PROCESADOS
-const clientesFiltrados = computed(() => {
-  if (!busqueda.value) {
-    return clientesConDatos.value;
-  }
-  const termino = busqueda.value.toLowerCase();
-  return clientesConDatos.value.filter(cliente => {
-    return (
-      cliente.nombreCompleto.toLowerCase().includes(termino) ||
-      (cliente.telefono_cliente || '').toLowerCase().includes(termino) ||
-      (cliente.cod_receta || '').toLowerCase().includes(termino) ||
-      (cliente.nro_sobre || '').toLowerCase().includes(termino) ||
-      (cliente.pedidos || '').toLowerCase().includes(termino)
-    );
-  });
-});
-
-async function getClientes() {
+// --- FUNCIÓN DE BÚSQUEDA Y CARGA DE DATOS REFACTORIZADA ---
+async function fetchClientes() {
   cargando.value = true;
   try {
-    const { data, error } = await supabase
-      .from("clientes")
-      .select(`
-        *,
-        prescripcion_cliente (
-          cod_receta,
-          codigo_pedido,
-          fecha_prescripcion,
-          medida_lente (
-            cristal_medida (
-              nro_sobre
-            )
-          )
-        )
-      `)
-      .order("fecha_registro_cliente", { ascending: false });
+    const limite = clientesPorPagina.value;
+    const desplazamiento = (paginaActual.value - 1) * limite;
+
+    // Llamamos a la función RPC que creamos en Supabase
+    const { data, error } = await supabase.rpc('buscar_clientes_con_prescripcion', {
+      termino_busqueda: busqueda.value,
+      limite: limite,
+      desplazamiento: desplazamiento
+    });
     
     if (error) throw error;
-    clientes.value = data || [];
+
+    // Procesamos los datos recibidos del servidor
+    clientes.value = (data || []).map(cliente => {
+      // Combinamos los códigos de pedido, similar a como lo hacías antes
+      const pedidos = [cliente.cod_pedido1, cliente.cod_pedido2].filter(p => {
+        const val = (p || '').toString().trim();
+        return val !== '' && val !== '0' && val !== '-';
+      }).join(', ');
+      
+      return {
+        ...cliente,
+        nombreCompleto: `${cliente.nombre_cliente} ${cliente.apellido_paterno_cliente} ${cliente.apellido_materno_cliente || ''}`.trim(),
+        pedidos: pedidos || '-'
+      };
+    });
+    
+    // El conteo total lo obtenemos del primer registro (es el mismo para todos)
+    if (data && data.length > 0) {
+      totalClientes.value = data[0].conteo_total;
+    } else {
+      totalClientes.value = 0;
+    }
+
   } catch (error) {
     console.error("Error al obtener clientes:", error);
     alert("No se pudieron cargar los datos de los clientes.");
   } finally {
     cargando.value = false;
+  }
+}
+
+// --- WATCHER CON DEBOUNCE PARA LA BÚSQUEDA ---
+// Esto evita que se haga una llamada a la API con cada tecla presionada.
+// Espera 500ms después de que el usuario deja de escribir para buscar.
+watch(busqueda, debounce(() => {
+  paginaActual.value = 1; // Reseteamos a la página 1 en cada nueva búsqueda
+  fetchClientes();
+}, 500));
+
+
+// --- FUNCIÓN PARA CAMBIAR DE PÁGINA ---
+function cambiarPagina(nuevaPagina) {
+  if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas.value) {
+    paginaActual.value = nuevaPagina;
+    fetchClientes();
   }
 }
 
@@ -171,26 +183,21 @@ async function guardarCliente() {
       alert("El nombre y el apellido paterno son obligatorios.");
       return;
   }
-
   const clienteData = {
     nombre_cliente: nombreCliente.value.trim(),
     apellido_paterno_cliente: apellidoPaterno.value.trim(),
     apellido_materno_cliente: apellidoMaterno.value.trim() || null,
     telefono_cliente: telefonoCliente.value.trim() || null
   };
-
+  if (editId.value) {
+    clienteData.cod_cliente = editId.value;
+  }
   try {
-    let error;
-    if (editId.value) {
-      ({ error } = await supabase.from("clientes").update(clienteData).eq("cod_cliente", editId.value));
-    } else {
-      ({ error } = await supabase.from("clientes").insert(clienteData));
-    }
-    
+    const { error } = await supabase.from("clientes").upsert(clienteData);
     if (error) throw error;
-    
     alert(editId.value ? "Cliente actualizado exitosamente" : "Cliente creado exitosamente");
     cerrarModal();
+    fetchClientes(); // Recargamos los datos para ver el cambio
   } catch (error) {
     alert("Error al guardar el cliente: " + error.message);
   }
@@ -199,16 +206,13 @@ async function guardarCliente() {
 async function eliminarCliente(id) {
   if (confirm("¿Está seguro de que desea eliminar este cliente? Esta acción no se puede deshacer.")) {
     try {
+      // IMPORTANTE: La función RPC podría fallar si se elimina un cliente que tiene prescripciones
+      // Supabase se encarga de esto con las foreign keys. Primero eliminamos prescripciones.
+      await supabase.from("prescripcion_clienten").delete().eq("cod_cliente", id);
       const { error } = await supabase.from("clientes").delete().eq("cod_cliente", id);
-      if (error) {
-          if (error.code === '23503') { // Foreign key violation
-               alert("Error: No se puede eliminar el cliente porque tiene prescripciones u órdenes asociadas.");
-          } else {
-              throw error;
-          }
-      } else {
-        alert("Cliente eliminado exitosamente");
-      }
+      if (error) throw error;
+      alert("Cliente eliminado exitosamente");
+      fetchClientes(); // Recargamos los datos
     } catch (error) {
       alert("Error al eliminar el cliente: " + error.message);
     }
@@ -244,54 +248,42 @@ function limpiarFormulario() {
   telefonoCliente.value = "";
 }
 
-function subscribeToClientes() {
-  const channel = supabase
-    .channel("clientes")
-    .on("postgres_changes", { event: "*", schema: "public", table: "clientes" },
-      (payload) => {
-        // Para asegurar que los datos anidados se recarguen, es mejor re-llamar a getClientes.
-        getClientes();
-      }
-    ).subscribe();
-  return () => supabase.removeChannel(channel);
-}
+// Ya no necesitamos la suscripción en tiempo real, ya que recargamos
+// los datos después de cada acción CRUD. Si la necesitas, puedes mantenerla,
+// pero ten en cuenta que podría causar recargas inesperadas.
+// La eliminamos por simplicidad y rendimiento.
 
 onMounted(() => {
-  getClientes();
-  const unsubscribe = subscribeToClientes();
-  onUnmounted(unsubscribe);
+  fetchClientes(); // Carga inicial
+  nextTick(()=>{
+    searchInputRef.value?.focus();
+  });
 });
+
 </script>
 
 <style scoped>
-/* ESTILOS GENERALES Y VARIABLES */
-
 .page-container {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  padding: 2rem;
+  padding: .1rem 3rem;
   background-color: #f8f9fa;
   color: #212529;
 }
-
-/* CABECERA */
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #dee2e6;
+  margin-bottom: 1rem;
+  padding-bottom: .5rem;
+  border-bottom: 1px solid #b4b4b4;
 }
-
 .page-header h1 {
   margin: 0;
   font-size: 1.75rem;
   font-weight: 600;
 }
-
-/* BOTONES */
 .btn {
-  padding: 0.6rem 1rem;
+  padding: 0.6rem 4rem;
   border: 1px solid transparent;
   border-radius: 6px;
   cursor: pointer;
@@ -299,7 +291,6 @@ onMounted(() => {
   font-weight: 500;
   transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
 }
-
 .btn-primary {
   background-color: #005A9C;
   color: white;
@@ -308,7 +299,6 @@ onMounted(() => {
   background-color: #00487c;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
-
 .btn-secondary {
   background-color: #6c757d;
   color: white;
@@ -316,7 +306,6 @@ onMounted(() => {
 .btn-secondary:hover {
   background-color: #5a6268;
 }
-
 .btn-icon {
   background-color: transparent;
   border: none;
@@ -336,18 +325,16 @@ onMounted(() => {
 .btn-panel { color: #0d6efd; }
 .btn-edit { color: #198754; }
 .btn-delete { color: #dc3545; }
-
-/* BÚSQUEDA */
 .search-container {
   position: relative;
   margin-bottom: 2rem;
+  box-shadow: 5px 5px 5px #b6b6b6;
 }
-
 .search-input {
   width: 100%;
   padding: 0.75rem 1rem 0.75rem 2.5rem;
   font-size: 1rem;
-  border: 1px solid #dee2e6;
+  border: 1px solid #7c7c7c;
   border-radius: 6px;
   box-sizing: border-box;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -357,7 +344,6 @@ onMounted(() => {
   border-color: #005A9C;
   box-shadow: 0 0 0 3px rgba(0, 90, 156, 0.2);
 }
-
 .search-icon {
   position: absolute;
   left: 0.75rem;
@@ -366,8 +352,6 @@ onMounted(() => {
   color: #6c757d;
   font-size: 1.2rem;
 }
-
-/* TABLA */
 .table-responsive {
   overflow-x: auto;
   background-color: #ffffff;
@@ -375,44 +359,38 @@ onMounted(() => {
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
-
 table {
   width: 100%;
   border-collapse: collapse;
 }
-
 th, td {
-  padding: 1rem;
+  padding: .2rem 2rem;
   text-align: left;
   border-bottom: 1px solid #dee2e6;
   vertical-align: middle;
 }
-
 thead {
   background-color: #f8f9fa;
-}
 
+}
 th {
   font-size: 0.75rem;
   font-weight: 600;
   color: #6c757d;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  padding: 1rem 2rem;
 }
-
 tbody tr:last-child td {
   border-bottom: none;
 }
-
 tbody tr:hover {
   background-color: #e6f0f7;
 }
-
 td {
   font-size: 0.9rem;
   color: #212529;
 }
-
 .actions-cell {
   display: flex;
   justify-content: center;
@@ -420,24 +398,19 @@ td {
   gap: 0.5rem;
   white-space: nowrap;
 }
-
 .text-center {
   text-align: center;
 }
-
 .loading-indicator, .no-results {
   text-align: center;
   padding: 2rem;
   color: #6c757d;
 }
-
-/* FORMULARIO EN MODAL */
 .form-container {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
-
 .form-input {
   width: 100%;
   padding: 0.75rem 1rem;
@@ -447,10 +420,37 @@ td {
   box-sizing: border-box;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-
 .form-input:focus {
   outline: none;
   border-color: #005A9C;
   box-shadow: 0 0 0 3px rgba(0, 90, 156, 0.2);
+}
+/* --- ESTILOS PARA LA PAGINACIÓN --- */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #dee2e6;
+}
+.btn-pagination {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.btn-pagination:hover:not(:disabled) {
+  background-color: #f8f9fa;
+}
+.btn-pagination:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.pagination-info {
+  font-size: 0.9rem;
+  color: #6c757d;
 }
 </style>
