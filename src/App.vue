@@ -58,9 +58,9 @@ body {
 }
 
 .main-content {
-  padding: 10px;
+  padding: 5px;
   max-width: 1300px;
-  margin: 10px 10px;
+  margin: 5px 10px;
   width: 100%;
 }
 </style>

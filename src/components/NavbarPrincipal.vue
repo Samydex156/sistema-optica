@@ -110,7 +110,7 @@ watch(user, getNombreTienda, { immediate: true });
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 60px;
+  min-height: 50px;
   color: white;
   position: relative; /* Necesario para posicionar el menú desplegable */
   z-index: 1010; /* Asegura que la barra de navegación esté por encima de otros elementos */
@@ -135,7 +135,7 @@ watch(user, getNombreTienda, { immediate: true });
   padding: 0 20px;
   display: flex;
   align-items: center;
-  height: 60px;
+  height: 50px;
   transition: background-color 0.3s;
 }
 .nav-link:hover {
@@ -152,7 +152,7 @@ watch(user, getNombreTienda, { immediate: true });
   color: white;
   text-decoration: none;
   padding: 0 20px;
-  height: 60px;
+  height: 50px;
   display: flex;
   align-items: center;
   border: none;
