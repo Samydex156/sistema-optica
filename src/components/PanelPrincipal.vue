@@ -5,7 +5,6 @@
       <p>Seleccione un módulo para iniciar operaciones.</p>
     </header>
     <div class="modules-grid">
-      <!-- Tarjeta para Inventarios -->
       <div class="module-card" @click="navegarA('/productos/registrar')">
         <div class="icon-container">
           📦
@@ -13,7 +12,6 @@
         <h2>Productos</h2>
         <p>Creación de nuevos productos.</p>
       </div>
-      <!--TARJETA PARA INVENTARIO-->
       <div class="module-card" @click="navegarA('/inventario')">
         <div class="icon-container">
           📊
@@ -21,7 +19,6 @@
         <h2>Inventario</h2>
         <p>Gestión de entradas, salidas o traspasos.</p>
       </div>
-      <!--TARJETA PARA CONSULTA DE STOCK-->
       <div class="module-card" @click="navegarA('/stock')">
         <div class="icon-container">
           👀
@@ -29,7 +26,6 @@
         <h2>Consultar Stock</h2>
         <p>Visualiza cantidades actuales del inventario.</p>
       </div>      
-      <!-- Tarjeta para Clientes -->
       <div class="module-card" @click="navegarA('/clientes')">
         <div class="icon-container">
           👥
@@ -37,13 +33,19 @@
         <h2>Clientes</h2>
         <p>Gestión y registro de Clientes y Recetas médicas.</p>
       </div>
-      <!-- Tarjeta para Caja -->
       <div class="module-card" @click="navegarA('/ordenes')">
         <div class="icon-container">
           🛒
         </div>
         <h2>Caja</h2>
         <p>Registro de órdenes de trabajo y pagos.</p>
+      </div>
+      <div class="module-card" @click="navegarA('/reportes/prescripciones')">
+        <div class="icon-container">
+          📈
+        </div>
+        <h2>Reportes</h2>
+        <p>Análisis y reportes de prescripciones.</p>
       </div>
     </div>
   </div>

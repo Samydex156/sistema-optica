@@ -68,6 +68,8 @@ onUnmounted(() => {
   color: white;
   text-align: right;
   padding: 2px 20px;
+  position: sticky;
+  top: 50px;
   z-index: 1000;
   font-family: sans-serif;
   display: flex;

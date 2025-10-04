@@ -27,6 +27,9 @@ import EjerciciosComputed from "../components/EjerciciosComputed.vue";
 // Importar el nuevo componente de la Landing Page
 import LandingPage from "../components/LandingPage.vue";
 
+// **** IMPORTAR EL NUEVO COMPONENTE DE REPORTE ****
+import ReportePrescripciones from "../components/ReportePrescripciones.vue";
+
 const routes = [
   {
     // Redirije al panel principal por defecto
@@ -79,6 +82,13 @@ const routes = [
     name: 'EditarPrescripcion',
     component: RegistrarPrescripcion,
     props: true, // Pasa los params de la ruta como props
+    meta: { requiresAuth: true },
+  },
+  // **** NUEVA RUTA PARA EL REPORTE DE PRESCRIPCIONES ****
+  {
+    path: '/reportes/prescripciones',
+    name: 'ReportePrescripciones',
+    component: ReportePrescripciones,
     meta: { requiresAuth: true },
   },
   {

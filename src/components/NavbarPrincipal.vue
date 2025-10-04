@@ -112,7 +112,8 @@ watch(user, getNombreTienda, { immediate: true });
   justify-content: space-between;
   min-height: 50px;
   color: white;
-  position: relative; /* Necesario para posicionar el menú desplegable */
+  position: sticky;
+  top: 0;
   z-index: 1010; /* Asegura que la barra de navegación esté por encima de otros elementos */
 }
 .navbar-brand {
