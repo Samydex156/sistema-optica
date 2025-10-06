@@ -191,6 +191,29 @@ async function inicializarFormulario() {
     cliente.value = clienteRes.data;
     [doctores.value, materiales.value, colores.value, tratamientos.value, proveedores.value, armadores.value, armazones.value] = formSelectsAndData.slice(0, 7).map(res => res.data || []);
     
+    // --- INICIO DE LA MODIFICACIÓN ---
+    // Si NO estamos editando, prellenamos los campos comunes.
+    if (!isEditing.value) {
+      // Buscar el proveedor 'OPTALVISION' y asignar su ID
+      const proveedorDefault = proveedores.value.find(p => p.nombre_proveedor.toUpperCase() === 'OPTALVISION');
+      if (proveedorDefault) {
+        formData.cod_proveedor = proveedorDefault.cod_proveedor;
+      }
+
+      // Buscar el armador 'JAIME' y asignar su ID
+      const armadorDefault = armadores.value.find(a => a.nombre_armador.toUpperCase() === 'JAIME');
+      if (armadorDefault) {
+        formData.cod_armador = armadorDefault.cod_armador;
+      }
+
+      // Buscar el armazón 'PROPIO' y asignar su ID
+      const armazonDefault = armazones.value.find(a => a.nombre_armazon.toUpperCase() === 'PROPIO');
+      if (armazonDefault) {
+        formData.cod_armazon = armazonDefault.cod_armazon;
+      }
+    }
+    // --- FIN DE LA MODIFICACIÓN ---
+
     if (isEditing.value) {
       const prescripcionRes = formSelectsAndData[7];
       const tratamientosRes = formSelectsAndData[8];
