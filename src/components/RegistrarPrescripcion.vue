@@ -560,7 +560,7 @@ function cancelar() {
 /* FIN: Estilos para el grupo de campo + botón */
 
 .form-grid-4-col { display: grid; grid-template-columns: 70px 1fr 1fr .7fr 1.1fr; gap: .5rem; align-items: center; }
-.form-grid-5-col { display: grid; grid-template-columns: repeat(7, 1fr); gap: .5rem; }
+.form-grid-5-col { display: grid; grid-template-columns: .8fr .5fr 1.8fr .8fr .5fr .5fr .5fr; gap: .5rem; }
 .medidas-grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; background-color: #f8f9fa; padding: .5rem; border-radius: 8px; border: 1px solid #e9ecef; }
 .medida-columna { display: flex; flex-direction: column; gap: 1rem; }
 .medida-header { font-weight: 600; color: #495057; padding-bottom: 0.1rem; margin-bottom: 0.1rem; border-bottom: 1px solid #dee2e6; }
