@@ -5,14 +5,23 @@
     </header>
 
     <form @submit.prevent="guardarPrescripcion" class="form-container" v-if="!cargando">
-      <!-- Fila 1: Cliente, Receta, Fecha, Doctor -->
       <div class="form-grid-4-col">
         <div><strong>Cliente:</strong></div>
         <div class="form-group"><input :value="clienteNombreCompleto" readonly class="form-input campo-readonly" /></div>
-        <div class="form-group"><input ref="recetaInputRef" v-model="formData.cod_receta" placeholder="Cód. Receta Ej. 1234-A" class="form-input" /></div>
+        
+        <div class="form-group campo-receta-grupo">
+          <input 
+            ref="recetaInputRef" 
+            v-model="recetaNumerica" 
+            placeholder="Cód. Receta Ej. 1234" 
+            class="form-input" 
+            @input="formateaRecetaInput"
+          />
+          <span class="receta-sufijo">{{ sufijoReceta }}</span>
+        </div>
+        
         <div class="form-group"><input v-model="formData.fecha_prescripcion" type="date" class="form-input" /></div>
         
-        <!-- CAMBIO: Campo de Doctor con botón para añadir nuevo -->
         <div class="form-group-with-button">
           <AutoComplete v-model="formData.doctor_prescriptor" :options="doctoresOptions" placeholder="Doctor Prescriptor" />
           <button type="button" @click="abrirModal({
@@ -25,9 +34,7 @@
             })" class="btn-add">+</button>
         </div>
       </div>
-
-      <!-- Fila 2: Medidas de Lentes -->
-      <div class="medidas-grid-container">
+<div class="medidas-grid-container">
           <div class="medida-columna">
             <div class="medida-header">Lente 1</div>
             <div class="medidas-layout">
@@ -76,12 +83,10 @@
           </div>
         </div>
       
-      <!-- Fila 3: Detalles de Cristales -->
       <div class="cristales-grid-container">
           <label class="cristal-row-label">Cristal 1:</label>
           <div class="form-group"><input v-model.number="formData.l1_cantidad_cristal" type="number" min="0" class="form-input" /></div>
           <div class="form-group"><AutoComplete v-model="formData.l1_material_cristal" :options="materialesOptions" placeholder="Material" /></div>
-          <!-- CAMBIO: Campo de Tratamiento con botón para añadir nuevo -->
           <div class="form-group-with-button">
             <TratamientoSelector v-model="formData.l1_tratamientos" :options="tratamientosOptions" placeholder="Tratamientos" />
              <button type="button" @click="abrirModal({
@@ -102,9 +107,7 @@
           <div class="form-group"><input v-model="formData.l2_extra_cristal" class="form-input" placeholder="Extras"/></div>
       </div>
       
-      <!-- Fila 4: Detalles del Pedido -->
       <div class="form-grid-5-col">
-        <!-- CAMBIO: Campo de Proveedor con botón para añadir nuevo -->
         <div class="form-group-with-button">
           <AutoComplete v-model="formData.cod_proveedor" :options="proveedoresOptions" placeholder="Proveedor" />
           <button type="button" @click="abrirModal({
@@ -118,7 +121,6 @@
         </div>
         <div class="form-group"><AutoComplete v-model="formData.cod_armador" :options="armadoresOptions" placeholder="Armador" /></div>
         
-        <!-- CAMBIO: Campo de Armazón con botón para añadir nuevo -->
         <div class="form-group-with-button">
           <AutoComplete v-model="formData.cod_armazon" :options="armazonesOptions" placeholder="Armazón"/>
           <button type="button" @click="abrirModal({
@@ -136,12 +138,10 @@
         <div class="form-group"><input v-model="formData.cod_pedido2" class="form-input" placeholder="Núm. Pedido 2"/></div>
       </div>
 
-      <!-- Fila 5: Notas -->
       <div class="form-group">
         <textarea v-model="formData.notas_adicionales" rows="2" class="form-input" placeholder="Observaciones o notas adicionales"></textarea>
       </div>
 
-      <!-- Fila 6: Botones de Acción -->
       <div class="form-footer">
         <button type="button" @click="cancelar" class="btn-cancelar">Cancelar</button>
         <button type="submit" class="btn-guardar">{{ isEditing ? 'Actualizar Prescripción' : 'Guardar Prescripción' }}</button>
@@ -149,7 +149,6 @@
     </form>
     <div v-else class="loading">Cargando datos...</div>
 
-    <!-- INICIO: MODAL GENÉRICO PARA AÑADIR NUEVOS ÍTEMS -->
     <BaseModal v-model="showNuevoItemModal" :title="nuevoItemData.title" size="sm">
         <div class="form-group">
             <label :for="`input-${nuevoItemData.fieldName}`" class="form-label">{{ nuevoItemData.placeholder }}</label>
@@ -169,8 +168,7 @@
             </button>
         </template>
     </BaseModal>
-    <!-- FIN: MODAL -->
-  </div>
+    </div>
 </template>
 
 <script setup>
@@ -195,6 +193,8 @@ const isEditing = computed(() => !!props.prescripcionId);
 const cargando = ref(true);
 const cliente = ref(null);
 const recetaInputRef = ref(null);
+// NUEVA REFERENCIA: Contiene solo la parte numérica ingresada por el usuario
+const recetaNumerica = ref(''); 
 
 // --- INICIO: ESTADO Y REFERENCIAS PARA EL MODAL ---
 const showNuevoItemModal = ref(false);
@@ -232,7 +232,7 @@ const armazones = ref([]);
 const getInitialFormData = () => ({
   cod_prescripcion: null,
   cod_cliente: parseInt(props.clienteId),
-  cod_receta: '',
+  // Eliminamos cod_receta de aquí, se maneja por computed
   fecha_prescripcion: new Date().toISOString().split('T')[0],
   doctor_prescriptor: null,
   distancia_lente1: 'LEJOS', l1_dip: '', l1_esf_od: '', l1_cil_od: '', l1_eje_od: '', l1_esf_oi: '', l1_cil_oi: '', l1_eje_oi: '',
@@ -249,7 +249,28 @@ const formData = reactive(getInitialFormData());
 
 // --- PROPIEDADES COMPUTADAS ---
 const pageTitle = computed(() => isEditing.value ? 'Editar Prescripción' : 'Registrar Nueva Prescripción');
-const clienteNombreCompleto = computed(() => cliente.value ? `${cliente.value.nombre_cliente} ${cliente.value.apellido_paterno_cliente}`.trim() : '');
+const clienteNombreCompleto = computed(() => cliente.value ? `${cliente.value.nombre_cliente} ${cliente.value.apellido_paterno_cliente || ''}`.trim() : '');
+
+// NUEVA PROPIEDAD COMPUTADA: Sufijo de la receta
+const sufijoReceta = computed(() => {
+  const apellidoPaterno = cliente.value?.apellido_paterno_cliente;
+  if (apellidoPaterno) {
+    const primeraLetra = apellidoPaterno.trim().charAt(0).toUpperCase();
+    if (primeraLetra && /^[A-Z]$/.test(primeraLetra)) {
+      return `-${primeraLetra}`;
+    }
+  }
+  return ''; // Si no hay apellido o no empieza con letra, no hay sufijo
+});
+
+// NUEVA PROPIEDAD COMPUTADA: Código de Receta Completo
+const codigoRecetaCompleto = computed(() => {
+    // Solo si hay parte numérica y es válida, se añade el sufijo
+    if (recetaNumerica.value && /^\d{1,4}$/.test(recetaNumerica.value.trim())) {
+        return `${recetaNumerica.value.trim()}${sufijoReceta.value}`;
+    }
+    return recetaNumerica.value.trim(); // Devuelve solo el número si no aplica el sufijo
+});
 
 const doctoresOptions = computed(() => doctores.value.map(d => ({ value: d.cod_doctor, label: d.nombre_doctor })));
 const materialesOptions = computed(() => materiales.value.map(m => ({ value: m.cod_material_cristal, label: m.nombre_material })));
@@ -302,7 +323,17 @@ async function inicializarFormulario() {
       const { data: tratamientosData } = await supabase.from('prescripcion_tratamiento').select('cod_tratamiento, numero_lente').eq('cod_prescripcion', props.prescripcionId);
       const l1_tratamientos = tratamientosData?.filter(t => t.numero_lente === 1).map(t => t.cod_tratamiento) || [];
       const l2_tratamientos = tratamientosData?.filter(t => t.numero_lente === 2).map(t => t.cod_tratamiento) || [];
+      
+      // CAMBIO CLAVE: Extraemos la parte numérica del cod_receta existente para llenar recetaNumerica
+      let codRecetaExistente = prescripcionData.cod_receta || '';
+      // Asume que el código es NUMEROS-LETRA
+      const match = codRecetaExistente.match(/^(\d+)/);
+      recetaNumerica.value = match ? match[1] : '';
+
       Object.assign(formData, { ...prescripcionData, l1_tratamientos, l2_tratamientos });
+      // Se mantiene formData.cod_receta en el objeto reactivo, pero se sobreescribe al guardar
+      // para asegurar que el formulario muestra los datos de la DB al cargar.
+
     } else {
       // Prellenar campos comunes para nuevas prescripciones
       const proveedorDefault = proveedores.value.find(p => p.nombre_proveedor.toUpperCase() === 'OPTALVISION');
@@ -320,6 +351,14 @@ async function inicializarFormulario() {
   }
 }
 
+/**
+ * Función para asegurar que solo se ingresen dígitos en recetaNumerica
+ * y limitar la longitud (ej. a 4 dígitos).
+ */
+function formateaRecetaInput(event) {
+    let valor = event.target.value.replace(/\D/g, ''); // Elimina todo lo que no sea dígito
+    recetaNumerica.value = valor.substring(0, 4); // Limita a 4 dígitos
+}
 
 // --- INICIO: FUNCIONES DEL MODAL ---
 function abrirModal(config) {
@@ -370,15 +409,18 @@ async function guardarNuevoItem() {
 
 
 async function guardarPrescripcion() {
-  if (!formData.cod_receta || !formData.cod_receta.trim()) {
-    alert('El campo "Cód. Receta" es obligatorio.');
+  const recetaFinal = codigoRecetaCompleto.value;
+  if (!recetaFinal || !recetaNumerica.value.trim()) {
+    alert('El campo "Cód. Receta" es obligatorio y debe tener la parte numérica.');
     recetaInputRef.value?.focus();
     return;
   }
 
   try {
     const { l1_tratamientos, l2_tratamientos, ...prescripcionBaseData } = formData;
-    let prescripcionData = { ...prescripcionBaseData };
+    
+    // CAMBIO CLAVE: Incluir el código de receta COMPLETO antes de guardar
+    let prescripcionData = { ...prescripcionBaseData, cod_receta: recetaFinal };
 
     if (!isEditing.value) {
       delete prescripcionData.cod_prescripcion;
@@ -425,13 +467,46 @@ async function guardarPrescripcion() {
 }
 
 function cancelar() {
-  if(confirm('¿Está seguro de que desea cancelar? Perderá los cambios no guardados.')) {
+  if(confirm('Los cambios no se guardarán. Clic en Aceptar para volver atrás.')) {
     router.back();
   }
 }
 </script>
 
 <style scoped>
+/* ... Mantener estilos previos ... */
+
+/* Estilos específicos para el nuevo campo de receta */
+.campo-receta-grupo {
+  position: relative;
+  display: flex; /* Asegura que el input y el sufijo estén en línea */
+  align-items: center;
+  /* El input ya tiene height: 30px; */
+}
+
+.receta-sufijo {
+  position: absolute;
+  /* Posicionamiento a la derecha del input */
+  right: 12px; 
+  top: 50%;
+  transform: translateY(-50%);
+  
+  /* Estilos para que parezca parte del input pero sea un valor fijo */
+  padding: 0 5px;
+  background-color: #f1f1f1; 
+  color: #6c757d; /* Color de texto más tenue */
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  pointer-events: none; /* Ignora clics, permite interacción con el input debajo */
+  z-index: 2; /* Sobre el input */
+}
+
+/* Ajuste al input para que el sufijo no lo tape */
+.campo-receta-grupo .form-input {
+    padding-right: 50px; /* Suficiente espacio para el sufijo (-A) */
+}
+
 /* Estilos del contenedor */
 .form-page-container { padding: 2px 30px; max-width: 1200px; margin: auto; border: solid 1px #d1d1d1; border-radius: 10px;box-shadow: 3px 3px 10px #d4d4d4; padding: 15px 20px;}
 .form-page-header { margin-bottom: 10px; padding-bottom: 1px; border-bottom: 1px solid #dee2e6; }
