@@ -5,16 +5,28 @@
     </header>
 
     <form @submit.prevent="guardarPrescripcion" class="form-container" v-if="!cargando">
+      <!-- Fila 1: Cliente, Receta, Fecha, Doctor -->
       <div class="form-grid-4-col">
         <div><strong>Cliente:</strong></div>
         <div class="form-group"><input :value="clienteNombreCompleto" readonly class="form-input campo-readonly" /></div>
         <div class="form-group"><input ref="recetaInputRef" v-model="formData.cod_receta" placeholder="Cód. Receta Ej. 1234-A" class="form-input" /></div>
         <div class="form-group"><input v-model="formData.fecha_prescripcion" type="date" class="form-input" /></div>
-        <div class="form-group">
+        
+        <!-- CAMBIO: Campo de Doctor con botón para añadir nuevo -->
+        <div class="form-group-with-button">
           <AutoComplete v-model="formData.doctor_prescriptor" :options="doctoresOptions" placeholder="Doctor Prescriptor" />
+          <button type="button" @click="abrirModal({
+              tableName: 'doctores',
+              fieldName: 'nombre_doctor',
+              idField: 'cod_doctor',
+              fieldToUpdate: 'doctor_prescriptor',
+              placeholder: 'Nombre del Doctor',
+              title: 'Añadir Nuevo Doctor'
+            })" class="btn-add">+</button>
         </div>
       </div>
 
+      <!-- Fila 2: Medidas de Lentes -->
       <div class="medidas-grid-container">
           <div class="medida-columna">
             <div class="medida-header">Lente 1</div>
@@ -63,51 +75,113 @@
             </div>
           </div>
         </div>
-
-        <div class="cristales-grid-container">
-            <label class="cristal-row-label">Cristal 1:</label>
-            <div class="form-group"><input v-model.number="formData.l1_cantidad_cristal" type="number" min="0" class="form-input" /></div>
-            <div class="form-group"><AutoComplete v-model="formData.l1_material_cristal" :options="materialesOptions" placeholder="Material" /></div>
-            <div class="form-group"><TratamientoSelector v-model="formData.l1_tratamientos" :options="tratamientosOptions" placeholder="Tratamientos" /></div>
-            <div class="form-group"><AutoComplete v-model="formData.l1_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
-            <div class="form-group"><input v-model="formData.l1_extra_cristal" class="form-input" placeholder="Extras"/></div>
-            
-            <label class="cristal-row-label">Cristal 2:</label>
-            <div class="form-group"><input v-model.number="formData.l2_cantidad_cristal" type="number" min="0" class="form-input" /></div>
-            <div class="form-group"><AutoComplete v-model="formData.l2_material_cristal" :options="materialesOptions" placeholder="Material"/></div>
-            <div class="form-group"><TratamientoSelector v-model="formData.l2_tratamientos" :options="tratamientosOptions" placeholder="Tratamientos"/></div>
-            <div class="form-group"><AutoComplete v-model="formData.l2_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
-            <div class="form-group"><input v-model="formData.l2_extra_cristal" class="form-input" placeholder="Extras"/></div>
+      
+      <!-- Fila 3: Detalles de Cristales -->
+      <div class="cristales-grid-container">
+          <label class="cristal-row-label">Cristal 1:</label>
+          <div class="form-group"><input v-model.number="formData.l1_cantidad_cristal" type="number" min="0" class="form-input" /></div>
+          <div class="form-group"><AutoComplete v-model="formData.l1_material_cristal" :options="materialesOptions" placeholder="Material" /></div>
+          <!-- CAMBIO: Campo de Tratamiento con botón para añadir nuevo -->
+          <div class="form-group-with-button">
+            <TratamientoSelector v-model="formData.l1_tratamientos" :options="tratamientosOptions" placeholder="Tratamientos" />
+             <button type="button" @click="abrirModal({
+                tableName: 'tratamientos',
+                fieldName: 'nombre_tratamiento',
+                placeholder: 'Nombre del Tratamiento',
+                title: 'Añadir Nuevo Tratamiento'
+              })" class="btn-add">+</button>
+          </div>
+          <div class="form-group"><AutoComplete v-model="formData.l1_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
+          <div class="form-group"><input v-model="formData.l1_extra_cristal" class="form-input" placeholder="Extras"/></div>
+          
+          <label class="cristal-row-label">Cristal 2:</label>
+          <div class="form-group"><input v-model.number="formData.l2_cantidad_cristal" type="number" min="0" class="form-input" /></div>
+          <div class="form-group"><AutoComplete v-model="formData.l2_material_cristal" :options="materialesOptions" placeholder="Material"/></div>
+          <div class="form-group"><TratamientoSelector v-model="formData.l2_tratamientos" :options="tratamientosOptions" placeholder="Tratamientos"/></div>
+          <div class="form-group"><AutoComplete v-model="formData.l2_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
+          <div class="form-group"><input v-model="formData.l2_extra_cristal" class="form-input" placeholder="Extras"/></div>
+      </div>
+      
+      <!-- Fila 4: Detalles del Pedido -->
+      <div class="form-grid-5-col">
+        <!-- CAMBIO: Campo de Proveedor con botón para añadir nuevo -->
+        <div class="form-group-with-button">
+          <AutoComplete v-model="formData.cod_proveedor" :options="proveedoresOptions" placeholder="Proveedor" />
+          <button type="button" @click="abrirModal({
+              tableName: 'proveedores',
+              fieldName: 'nombre_proveedor',
+              idField: 'cod_proveedor',
+              fieldToUpdate: 'cod_proveedor',
+              placeholder: 'Nombre del Proveedor',
+              title: 'Añadir Nuevo Proveedor'
+            })" class="btn-add">+</button>
         </div>
-        <div class="form-grid-5-col">
-          <div class="form-group"><AutoComplete v-model="formData.cod_proveedor" :options="proveedoresOptions" placeholder="Proveedor" /></div>
-          <div class="form-group"><AutoComplete v-model="formData.cod_armador" :options="armadoresOptions" placeholder="Armador" /></div>
-          <div class="form-group"><input v-model="formData.fecha_entrega" type="date" class="form-input" placeholder="Fecha entrega"/></div>
-          <div class="form-group"><AutoComplete v-model="formData.cod_armazon" :options="armazonesOptions" placeholder="Armazón"/></div>
-          <div class="form-group"><input v-model="formData.num_sobre" type="text" class="form-input" placeholder="Núm. Sobre"/></div>
-          <div class="form-group"><input v-model="formData.cod_pedido1" class="form-input" placeholder="Núm. Pedido 1" /></div>
-          <div class="form-group"><input v-model="formData.cod_pedido2" class="form-input" placeholder="Núm. Pedido 2"/></div>
+        <div class="form-group"><AutoComplete v-model="formData.cod_armador" :options="armadoresOptions" placeholder="Armador" /></div>
+        
+        <!-- CAMBIO: Campo de Armazón con botón para añadir nuevo -->
+        <div class="form-group-with-button">
+          <AutoComplete v-model="formData.cod_armazon" :options="armazonesOptions" placeholder="Armazón"/>
+          <button type="button" @click="abrirModal({
+              tableName: 'armazon_lente',
+              fieldName: 'nombre_armazon',
+              idField: 'cod_armazon',
+              fieldToUpdate: 'cod_armazon',
+              placeholder: 'Nombre del Armazón',
+              title: 'Añadir Nuevo Armazón'
+            })" class="btn-add">+</button>
         </div>
+        <div class="form-group"><input v-model="formData.num_sobre" type="text" class="form-input" placeholder="Núm. Sobre"/></div>
+        <div class="form-group"><input v-model="formData.fecha_entrega" type="date" class="form-input" placeholder="Fecha entrega"/></div>
+        <div class="form-group"><input v-model="formData.cod_pedido1" class="form-input" placeholder="Núm. Pedido 1" /></div>
+        <div class="form-group"><input v-model="formData.cod_pedido2" class="form-input" placeholder="Núm. Pedido 2"/></div>
+      </div>
 
+      <!-- Fila 5: Notas -->
       <div class="form-group">
         <textarea v-model="formData.notas_adicionales" rows="2" class="form-input" placeholder="Observaciones o notas adicionales"></textarea>
       </div>
 
+      <!-- Fila 6: Botones de Acción -->
       <div class="form-footer">
         <button type="button" @click="cancelar" class="btn-cancelar">Cancelar</button>
         <button type="submit" class="btn-guardar">{{ isEditing ? 'Actualizar Prescripción' : 'Guardar Prescripción' }}</button>
       </div>
     </form>
-     <div v-else class="loading">Cargando datos...</div>
+    <div v-else class="loading">Cargando datos...</div>
+
+    <!-- INICIO: MODAL GENÉRICO PARA AÑADIR NUEVOS ÍTEMS -->
+    <BaseModal v-model="showNuevoItemModal" :title="nuevoItemData.title" size="sm">
+        <div class="form-group">
+            <label :for="`input-${nuevoItemData.fieldName}`" class="form-label">{{ nuevoItemData.placeholder }}</label>
+            <input 
+                :id="`input-${nuevoItemData.fieldName}`"
+                v-model="nuevoItemData.value" 
+                :placeholder="nuevoItemData.placeholder" 
+                class="form-input" 
+                @keyup.enter="guardarNuevoItem" 
+                ref="nuevoItemInputRef"
+            />
+        </div>
+        <template #footer>
+            <button @click="showNuevoItemModal = false" class="btn-cancelar">Cancelar</button>
+            <button @click="guardarNuevoItem" class="btn-guardar" :disabled="isSavingNewItem">
+                {{ isSavingNewItem ? 'Guardando...' : 'Guardar' }}
+            </button>
+        </template>
+    </BaseModal>
+    <!-- FIN: MODAL -->
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, computed, nextTick } from 'vue';
+import { ref, onMounted, reactive, computed, nextTick, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { supabase } from '../lib/supabaseClient';
 import AutoComplete from './Autocomplete.vue';
 import TratamientoSelector from './TratamientoSelector.vue';
+// INICIO: Importación del modal
+import BaseModal from './BaseModal.vue'; 
+// FIN: Importación del modal
 
 const props = defineProps({
   clienteId: { type: String, required: true },
@@ -121,6 +195,30 @@ const isEditing = computed(() => !!props.prescripcionId);
 const cargando = ref(true);
 const cliente = ref(null);
 const recetaInputRef = ref(null);
+
+// --- INICIO: ESTADO Y REFERENCIAS PARA EL MODAL ---
+const showNuevoItemModal = ref(false);
+const isSavingNewItem = ref(false);
+const nuevoItemInputRef = ref(null);
+const nuevoItemData = ref({
+  tableName: '',
+  fieldName: '',
+  idField: '',
+  value: '',
+  placeholder: '',
+  title: '',
+  fieldToUpdate: '',
+});
+
+// Watch para enfocar el input cuando el modal se abre
+watch(showNuevoItemModal, (newValue) => {
+  if (newValue) {
+    nextTick(() => {
+      nuevoItemInputRef.value?.focus();
+    });
+  }
+});
+// --- FIN: ESTADO Y REFERENCIAS PARA EL MODAL ---
 
 // --- DATOS PARA SELECTS/AUTOCOMPLETES ---
 const doctores = ref([]);
@@ -162,6 +260,30 @@ const armadoresOptions = computed(() => armadores.value.map(a => ({ value: a.cod
 const armazonesOptions = computed(() => armazones.value.map(a => ({ value: a.cod_armazon, label: a.nombre_armazon })));
 const tipoLenteDistanciaOptions = ref([{ value: 'LEJOS', label: 'LEJOS' }, { value: 'CERCA', label: 'CERCA' }, { value: 'PROGRESIVO', label: 'PROGRESIVO' }, { value: 'BIFOCAL', label: 'BIFOCAL' }, { value: 'INTERMEDIO', label: 'INTERMEDIO' }]);
 
+// --- INICIO: FUNCIONES DE CARGA DE DATOS REFACTORIZADAS ---
+async function cargarDatosSelect() {
+    const cargas = {
+        doctores: supabase.from('doctores').select('*'),
+        materiales: supabase.from('material_cristal').select('*'),
+        colores: supabase.from('color_cristal').select('*'),
+        tratamientos: supabase.from('tratamientos').select('*'),
+        proveedores: supabase.from('proveedores').select('*'),
+        armadores: supabase.from('armador_lente').select('*'),
+        armazones: supabase.from('armazon_lente').select('*'),
+    };
+    const resultados = await Promise.all(Object.values(cargas));
+    const [docRes, matRes, colRes, tratRes, provRes, armadRes, armazRes] = resultados;
+    
+    doctores.value = docRes.data || [];
+    materiales.value = matRes.data || [];
+    colores.value = colRes.data || [];
+    tratamientos.value = tratRes.data || [];
+    proveedores.value = provRes.data || [];
+    armadores.value = armadRes.data || [];
+    armazones.value = armazRes.data || [];
+}
+// --- FIN: FUNCIONES DE CARGA DE DATOS ---
+
 onMounted(async () => {
   await inicializarFormulario();
   nextTick(() => recetaInputRef.value?.focus());
@@ -170,58 +292,26 @@ onMounted(async () => {
 async function inicializarFormulario() {
   cargando.value = true;
   try {
-    const promises = [
-      supabase.from('clientes').select('*').eq('cod_cliente', props.clienteId).single(),
-      supabase.from('doctores').select('*'),
-      supabase.from('material_cristal').select('*'),
-      supabase.from('color_cristal').select('*'),
-      supabase.from('tratamientos').select('*'),
-      supabase.from('proveedores').select('*'),
-      supabase.from('armador_lente').select('*'),
-      supabase.from('armazon_lente').select('*')
-    ];
+    const { data: clienteData } = await supabase.from('clientes').select('*').eq('cod_cliente', props.clienteId).single();
+    cliente.value = clienteData;
+    
+    await cargarDatosSelect();
 
     if (isEditing.value) {
-      promises.push(supabase.from('prescripcion_clienten').select('*').eq('cod_prescripcion', props.prescripcionId).single());
-      promises.push(supabase.from('prescripcion_tratamiento').select('cod_tratamiento, numero_lente').eq('cod_prescripcion', props.prescripcionId));
-    }
-    
-    const [clienteRes, ...formSelectsAndData] = await Promise.all(promises);
-
-    cliente.value = clienteRes.data;
-    [doctores.value, materiales.value, colores.value, tratamientos.value, proveedores.value, armadores.value, armazones.value] = formSelectsAndData.slice(0, 7).map(res => res.data || []);
-    
-    // --- INICIO DE LA MODIFICACIÓN ---
-    // Si NO estamos editando, prellenamos los campos comunes.
-    if (!isEditing.value) {
-      // Buscar el proveedor 'OPTALVISION' y asignar su ID
+      const { data: prescripcionData } = await supabase.from('prescripcion_clienten').select('*').eq('cod_prescripcion', props.prescripcionId).single();
+      const { data: tratamientosData } = await supabase.from('prescripcion_tratamiento').select('cod_tratamiento, numero_lente').eq('cod_prescripcion', props.prescripcionId);
+      const l1_tratamientos = tratamientosData?.filter(t => t.numero_lente === 1).map(t => t.cod_tratamiento) || [];
+      const l2_tratamientos = tratamientosData?.filter(t => t.numero_lente === 2).map(t => t.cod_tratamiento) || [];
+      Object.assign(formData, { ...prescripcionData, l1_tratamientos, l2_tratamientos });
+    } else {
+      // Prellenar campos comunes para nuevas prescripciones
       const proveedorDefault = proveedores.value.find(p => p.nombre_proveedor.toUpperCase() === 'OPTALVISION');
-      if (proveedorDefault) {
-        formData.cod_proveedor = proveedorDefault.cod_proveedor;
-      }
-
-      // Buscar el armador 'JAIME' y asignar su ID
+      if (proveedorDefault) formData.cod_proveedor = proveedorDefault.cod_proveedor;
       const armadorDefault = armadores.value.find(a => a.nombre_armador.toUpperCase() === 'JAIME');
-      if (armadorDefault) {
-        formData.cod_armador = armadorDefault.cod_armador;
-      }
-
-      // Buscar el armazón 'PROPIO' y asignar su ID
+      if (armadorDefault) formData.cod_armador = armadorDefault.cod_armador;
       const armazonDefault = armazones.value.find(a => a.nombre_armazon.toUpperCase() === 'PROPIO');
-      if (armazonDefault) {
-        formData.cod_armazon = armazonDefault.cod_armazon;
-      }
+      if (armazonDefault) formData.cod_armazon = armazonDefault.cod_armazon;
     }
-    // --- FIN DE LA MODIFICACIÓN ---
-
-    if (isEditing.value) {
-      const prescripcionRes = formSelectsAndData[7];
-      const tratamientosRes = formSelectsAndData[8];
-      const l1_tratamientos = tratamientosRes.data?.filter(t => t.numero_lente === 1).map(t => t.cod_tratamiento) || [];
-      const l2_tratamientos = tratamientosRes.data?.filter(t => t.numero_lente === 2).map(t => t.cod_tratamiento) || [];
-      Object.assign(formData, { ...prescripcionRes.data, l1_tratamientos, l2_tratamientos });
-    }
-
   } catch (error) {
     console.error("Error al inicializar el formulario:", error);
     alert("Error al cargar los datos: " + error.message);
@@ -229,6 +319,55 @@ async function inicializarFormulario() {
     cargando.value = false;
   }
 }
+
+
+// --- INICIO: FUNCIONES DEL MODAL ---
+function abrirModal(config) {
+  nuevoItemData.value = { ...config, value: '' }; // Resetea el valor al abrir
+  showNuevoItemModal.value = true;
+}
+
+async function guardarNuevoItem() {
+  const { value, tableName, fieldName, idField, fieldToUpdate, placeholder } = nuevoItemData.value;
+  if (!value || !value.trim()) {
+    alert(`El campo "${placeholder}" no puede estar vacío.`);
+    return;
+  }
+  isSavingNewItem.value = true;
+  try {
+    const dataToInsert = { [fieldName]: value.trim() };
+    if(tableName === 'proveedores') {
+      // Supabase puede requerir campos no nulos, agregamos valores por defecto
+      dataToInsert.telefono_proveedor = '-';
+    }
+
+    const { data: nuevoRegistro, error } = await supabase
+      .from(tableName)
+      .insert(dataToInsert)
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    alert(`'${value}' ha sido añadido con éxito.`);
+    await cargarDatosSelect(); // Recarga todos los selects para mantener consistencia
+
+    // Si es un campo para auto-seleccionar, lo actualizamos
+    if (fieldToUpdate && idField) {
+      formData[fieldToUpdate] = nuevoRegistro[idField];
+    }
+    
+    showNuevoItemModal.value = false;
+
+  } catch (error) {
+    console.error("Error al guardar nuevo ítem:", error);
+    alert(`Error al guardar: ${error.message}`);
+  } finally {
+    isSavingNewItem.value = false;
+  }
+}
+// --- FIN: FUNCIONES DEL MODAL ---
+
 
 async function guardarPrescripcion() {
   if (!formData.cod_receta || !formData.cod_receta.trim()) {
@@ -297,43 +436,62 @@ function cancelar() {
 .form-page-container { padding: 2px 30px; max-width: 1200px; margin: auto; border: solid 1px #d1d1d1; border-radius: 10px;box-shadow: 3px 3px 10px #d4d4d4; padding: 15px 20px;}
 .form-page-header { margin-bottom: 10px; padding-bottom: 1px; border-bottom: 1px solid #dee2e6; }
 .form-page-header h2 { margin-top: 0; }
-.form-page-header p { color: #6c757d; }
 .loading { text-align: center; padding: 2rem; color: #6c757d; font-size: 1.1rem; }
 
 /* Estilos de botones de pie de página del formulario */
 .btn-guardar, .btn-cancelar { color: white; border: none; padding: 0.5rem 5rem; border-radius: 4px; cursor: pointer; font-size: 14px; }
 .btn-guardar { background: #007bff; } .btn-guardar:hover { background: #0056b3; }
+.btn-guardar:disabled { background: #0056b3; cursor: not-allowed;}
 .btn-cancelar { background: #6c757d; } .btn-cancelar:hover { background: #5a6268; }
 .form-footer { display: flex; justify-content: flex-end; gap: 1rem; margin-top: .1rem; padding-top: .5rem; border-top: 1px solid #dee2e6; }
+.modal-footer .btn-guardar, .modal-footer .btn-cancelar { padding: 0.5rem 1.5rem; } /* Padding más pequeño para botones de modal */
 
 /* Estilos del formulario */
-.form-container, .details-view-container { display: flex; flex-direction: column; gap: 1rem; }
+.form-container { display: flex; flex-direction: column; gap: 1rem; }
 .form-group { display: flex; flex-direction: column; gap: 4px; }
-.form-input, .form-group textarea { padding: 5px 12px; border: 1px solid #ced4da; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 14px; }
+.form-label { font-weight: 500; font-size: 0.9rem; color: #495057; }
+.form-input, .form-group textarea { padding: 5px 12px; border: 1px solid #ced4da; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 14px; height: 30px; }
 .form-input:focus-within, .form-group textarea:focus-within { border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); }
 .campo-readonly { background-color: #e9ecef; cursor: not-allowed; }
 
-.form-grid-4-col { display: grid; grid-template-columns: 70px 1fr 1fr .7fr 1.1fr; gap: .5rem; }
-.form-grid-5-col { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr; gap: .5rem; }
+/* INICIO: Estilos para el grupo de campo + botón */
+.form-group-with-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.form-group-with-button > :first-child {
+  flex-grow: 1; /* Hace que el Autocomplete o Selector ocupe el espacio disponible */
+}
+.btn-add {
+  flex-shrink: 0;
+  padding: 0 10px;
+  height: 30px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-add:hover {
+  background-color: #218838;
+}
+/* FIN: Estilos para el grupo de campo + botón */
+
+.form-grid-4-col { display: grid; grid-template-columns: 70px 1fr 1fr .7fr 1.1fr; gap: .5rem; align-items: center; }
+.form-grid-5-col { display: grid; grid-template-columns: repeat(7, 1fr); gap: .5rem; }
 .medidas-grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; background-color: #f8f9fa; padding: .5rem; border-radius: 8px; border: 1px solid #e9ecef; }
 .medida-columna { display: flex; flex-direction: column; gap: 1rem; }
 .medida-header { font-weight: 600; color: #495057; padding-bottom: 0.1rem; margin-bottom: 0.1rem; border-bottom: 1px solid #dee2e6; }
 
-/* --- NUEVO LAYOUT PARA MEDIDAS --- */
-.medidas-layout {
-  display: grid;
-  grid-template-columns: 140px 1fr; /* Columna izquierda para DIP/Distancia, el resto para los ojos */
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-.tipo-dip-grupo {
-  display: flex;
-  flex-direction: column; /* Apila los campos verticalmente */
-  gap: 0.5rem;
-}
-/* ---------------------------------- */
-
+.medidas-layout { display: grid; grid-template-columns: 140px 1fr; gap: 1rem; align-items: flex-start; }
+.tipo-dip-grupo { display: flex; flex-direction: column; gap: 0.5rem; }
 .ojos-fila { display: flex; flex-direction: column; gap: 0.5rem; }
 .ojo-grupo { display: grid; grid-template-columns: 30px 1fr 1fr 1fr; gap: 0.5rem; align-items: center; }
 .ojo-label { font-weight: bold; font-size: 1rem; text-align: center; }
