@@ -177,9 +177,7 @@ import { useRouter } from 'vue-router';
 import { supabase } from '../lib/supabaseClient';
 import AutoComplete from './Autocomplete.vue';
 import TratamientoSelector from './TratamientoSelector.vue';
-// INICIO: Importación del modal
 import BaseModal from './BaseModal.vue'; 
-// FIN: Importación del modal
 
 const props = defineProps({
   clienteId: { type: String, required: true },
@@ -189,14 +187,11 @@ const props = defineProps({
 const router = useRouter();
 const isEditing = computed(() => !!props.prescripcionId);
 
-// --- ESTADO ---
 const cargando = ref(true);
 const cliente = ref(null);
 const recetaInputRef = ref(null);
-// NUEVA REFERENCIA: Contiene solo la parte numérica ingresada por el usuario
 const recetaNumerica = ref(''); 
 
-// --- INICIO: ESTADO Y REFERENCIAS PARA EL MODAL ---
 const showNuevoItemModal = ref(false);
 const isSavingNewItem = ref(false);
 const nuevoItemInputRef = ref(null);
@@ -210,7 +205,6 @@ const nuevoItemData = ref({
   fieldToUpdate: '',
 });
 
-// Watch para enfocar el input cuando el modal se abre
 watch(showNuevoItemModal, (newValue) => {
   if (newValue) {
     nextTick(() => {
@@ -218,9 +212,7 @@ watch(showNuevoItemModal, (newValue) => {
     });
   }
 });
-// --- FIN: ESTADO Y REFERENCIAS PARA EL MODAL ---
 
-// --- DATOS PARA SELECTS/AUTOCOMPLETES ---
 const doctores = ref([]);
 const materiales = ref([]);
 const colores = ref([]);
@@ -232,7 +224,6 @@ const armazones = ref([]);
 const getInitialFormData = () => ({
   cod_prescripcion: null,
   cod_cliente: parseInt(props.clienteId),
-  // Eliminamos cod_receta de aquí, se maneja por computed
   fecha_prescripcion: new Date().toISOString().split('T')[0],
   doctor_prescriptor: null,
   distancia_lente1: 'LEJOS', l1_dip: '', l1_esf_od: '', l1_cil_od: '', l1_eje_od: '', l1_esf_oi: '', l1_cil_oi: '', l1_eje_oi: '',
@@ -247,11 +238,9 @@ const getInitialFormData = () => ({
 
 const formData = reactive(getInitialFormData());
 
-// --- PROPIEDADES COMPUTADAS ---
 const pageTitle = computed(() => isEditing.value ? 'Editar Prescripción' : 'Registrar Nueva Prescripción');
 const clienteNombreCompleto = computed(() => cliente.value ? `${cliente.value.nombre_cliente} ${cliente.value.apellido_paterno_cliente || ''}`.trim() : '');
 
-// NUEVA PROPIEDAD COMPUTADA: Sufijo de la receta
 const sufijoReceta = computed(() => {
   const apellidoPaterno = cliente.value?.apellido_paterno_cliente;
   if (apellidoPaterno) {
@@ -260,16 +249,14 @@ const sufijoReceta = computed(() => {
       return `-${primeraLetra}`;
     }
   }
-  return ''; // Si no hay apellido o no empieza con letra, no hay sufijo
+  return '';
 });
 
-// NUEVA PROPIEDAD COMPUTADA: Código de Receta Completo
 const codigoRecetaCompleto = computed(() => {
-    // Solo si hay parte numérica y es válida, se añade el sufijo
     if (recetaNumerica.value && /^\d{1,4}$/.test(recetaNumerica.value.trim())) {
         return `${recetaNumerica.value.trim()}${sufijoReceta.value}`;
     }
-    return recetaNumerica.value.trim(); // Devuelve solo el número si no aplica el sufijo
+    return recetaNumerica.value.trim();
 });
 
 const doctoresOptions = computed(() => doctores.value.map(d => ({ value: d.cod_doctor, label: d.nombre_doctor })));
@@ -281,7 +268,6 @@ const armadoresOptions = computed(() => armadores.value.map(a => ({ value: a.cod
 const armazonesOptions = computed(() => armazones.value.map(a => ({ value: a.cod_armazon, label: a.nombre_armazon })));
 const tipoLenteDistanciaOptions = ref([{ value: 'LEJOS', label: 'LEJOS' }, { value: 'CERCA', label: 'CERCA' }, { value: 'PROGRESIVO', label: 'PROGRESIVO' }, { value: 'BIFOCAL', label: 'BIFOCAL' }, { value: 'INTERMEDIO', label: 'INTERMEDIO' }]);
 
-// --- INICIO: FUNCIONES DE CARGA DE DATOS REFACTORIZADAS ---
 async function cargarDatosSelect() {
     const cargas = {
         doctores: supabase.from('doctores').select('*'),
@@ -303,7 +289,6 @@ async function cargarDatosSelect() {
     armadores.value = armadRes.data || [];
     armazones.value = armazRes.data || [];
 }
-// --- FIN: FUNCIONES DE CARGA DE DATOS ---
 
 onMounted(async () => {
   await inicializarFormulario();
@@ -324,18 +309,13 @@ async function inicializarFormulario() {
       const l1_tratamientos = tratamientosData?.filter(t => t.numero_lente === 1).map(t => t.cod_tratamiento) || [];
       const l2_tratamientos = tratamientosData?.filter(t => t.numero_lente === 2).map(t => t.cod_tratamiento) || [];
       
-      // CAMBIO CLAVE: Extraemos la parte numérica del cod_receta existente para llenar recetaNumerica
       let codRecetaExistente = prescripcionData.cod_receta || '';
-      // Asume que el código es NUMEROS-LETRA
       const match = codRecetaExistente.match(/^(\d+)/);
       recetaNumerica.value = match ? match[1] : '';
 
       Object.assign(formData, { ...prescripcionData, l1_tratamientos, l2_tratamientos });
-      // Se mantiene formData.cod_receta en el objeto reactivo, pero se sobreescribe al guardar
-      // para asegurar que el formulario muestra los datos de la DB al cargar.
 
     } else {
-      // Prellenar campos comunes para nuevas prescripciones
       const proveedorDefault = proveedores.value.find(p => p.nombre_proveedor.toUpperCase() === 'OPTALVISION');
       if (proveedorDefault) formData.cod_proveedor = proveedorDefault.cod_proveedor;
       const armadorDefault = armadores.value.find(a => a.nombre_armador.toUpperCase() === 'JAIME');
@@ -351,18 +331,13 @@ async function inicializarFormulario() {
   }
 }
 
-/**
- * Función para asegurar que solo se ingresen dígitos en recetaNumerica
- * y limitar la longitud (ej. a 4 dígitos).
- */
 function formateaRecetaInput(event) {
-    let valor = event.target.value.replace(/\D/g, ''); // Elimina todo lo que no sea dígito
-    recetaNumerica.value = valor.substring(0, 4); // Limita a 4 dígitos
+    let valor = event.target.value.replace(/\D/g, '');
+    recetaNumerica.value = valor.substring(0, 4);
 }
 
-// --- INICIO: FUNCIONES DEL MODAL ---
 function abrirModal(config) {
-  nuevoItemData.value = { ...config, value: '' }; // Resetea el valor al abrir
+  nuevoItemData.value = { ...config, value: '' };
   showNuevoItemModal.value = true;
 }
 
@@ -374,9 +349,11 @@ async function guardarNuevoItem() {
   }
   isSavingNewItem.value = true;
   try {
-    const dataToInsert = { [fieldName]: value.trim() };
+    // ---> INICIO: Lógica para convertir a mayúsculas el nuevo item del modal
+    const dataToInsert = { [fieldName]: value.trim().toUpperCase() };
+    // ---> FIN: Lógica para convertir a mayúsculas
+    
     if(tableName === 'proveedores') {
-      // Supabase puede requerir campos no nulos, agregamos valores por defecto
       dataToInsert.telefono_proveedor = '-';
     }
 
@@ -389,9 +366,8 @@ async function guardarNuevoItem() {
     if (error) throw error;
     
     alert(`'${value}' ha sido añadido con éxito.`);
-    await cargarDatosSelect(); // Recarga todos los selects para mantener consistencia
+    await cargarDatosSelect();
 
-    // Si es un campo para auto-seleccionar, lo actualizamos
     if (fieldToUpdate && idField) {
       formData[fieldToUpdate] = nuevoRegistro[idField];
     }
@@ -405,8 +381,6 @@ async function guardarNuevoItem() {
     isSavingNewItem.value = false;
   }
 }
-// --- FIN: FUNCIONES DEL MODAL ---
-
 
 async function guardarPrescripcion() {
   const recetaFinal = codigoRecetaCompleto.value;
@@ -419,8 +393,21 @@ async function guardarPrescripcion() {
   try {
     const { l1_tratamientos, l2_tratamientos, ...prescripcionBaseData } = formData;
     
-    // CAMBIO CLAVE: Incluir el código de receta COMPLETO antes de guardar
     let prescripcionData = { ...prescripcionBaseData, cod_receta: recetaFinal };
+    
+    // ---> INICIO: Lógica para convertir a mayúsculas antes de guardar
+    const fieldsToUppercase = [
+      'l1_dip', 'l1_esf_od', 'l1_cil_od', 'l1_eje_od', 'l1_esf_oi', 'l1_cil_oi', 'l1_eje_oi',
+      'l2_dip', 'l2_esf_od', 'l2_cil_od', 'l2_eje_od', 'l2_esf_oi', 'l2_cil_oi', 'l2_eje_oi',
+      'l1_extra_cristal', 'l2_extra_cristal', 'num_sobre', 'cod_pedido1', 'cod_pedido2', 'notas_adicionales'
+    ];
+
+    for (const key of fieldsToUppercase) {
+      if (prescripcionData[key] && typeof prescripcionData[key] === 'string') {
+        prescripcionData[key] = prescripcionData[key].toUpperCase();
+      }
+    }
+    // ---> FIN: Lógica para convertir a mayúsculas
 
     if (!isEditing.value) {
       delete prescripcionData.cod_prescripcion;
@@ -474,69 +461,62 @@ function cancelar() {
 </script>
 
 <style scoped>
-/* ... Mantener estilos previos ... */
-
-/* Estilos específicos para el nuevo campo de receta */
 .campo-receta-grupo {
   position: relative;
-  display: flex; /* Asegura que el input y el sufijo estén en línea */
+  display: flex;
   align-items: center;
-  /* El input ya tiene height: 30px; */
 }
-
 .receta-sufijo {
   position: absolute;
-  /* Posicionamiento a la derecha del input */
   right: 12px; 
   top: 50%;
   transform: translateY(-50%);
-  
-  /* Estilos para que parezca parte del input pero sea un valor fijo */
   padding: 0 5px;
   background-color: #f1f1f1; 
-  color: #6c757d; /* Color de texto más tenue */
+  color: #6c757d;
   border-radius: 4px;
   font-size: 14px;
   font-weight: bold;
-  pointer-events: none; /* Ignora clics, permite interacción con el input debajo */
-  z-index: 2; /* Sobre el input */
+  pointer-events: none;
+  z-index: 2;
 }
-
-/* Ajuste al input para que el sufijo no lo tape */
 .campo-receta-grupo .form-input {
-    padding-right: 50px; /* Suficiente espacio para el sufijo (-A) */
+    padding-right: 50px;
 }
-
-/* Estilos del contenedor */
 .form-page-container { padding: 2px 30px; max-width: 1200px; margin: auto; border: solid 1px #d1d1d1; border-radius: 10px;box-shadow: 3px 3px 10px #d4d4d4; padding: 15px 20px;}
 .form-page-header { margin-bottom: 10px; padding-bottom: 1px; border-bottom: 1px solid #dee2e6; }
 .form-page-header h2 { margin-top: 0; }
 .loading { text-align: center; padding: 2rem; color: #6c757d; font-size: 1.1rem; }
-
-/* Estilos de botones de pie de página del formulario */
 .btn-guardar, .btn-cancelar { color: white; border: none; padding: 0.5rem 5rem; border-radius: 4px; cursor: pointer; font-size: 14px; }
 .btn-guardar { background: #007bff; } .btn-guardar:hover { background: #0056b3; }
 .btn-guardar:disabled { background: #0056b3; cursor: not-allowed;}
 .btn-cancelar { background: #6c757d; } .btn-cancelar:hover { background: #5a6268; }
 .form-footer { display: flex; justify-content: flex-end; gap: 1rem; margin-top: .1rem; padding-top: .5rem; border-top: 1px solid #dee2e6; }
-.modal-footer .btn-guardar, .modal-footer .btn-cancelar { padding: 0.5rem 1.5rem; } /* Padding más pequeño para botones de modal */
-
-/* Estilos del formulario */
+.modal-footer .btn-guardar, .modal-footer .btn-cancelar { padding: 0.5rem 1.5rem; }
 .form-container { display: flex; flex-direction: column; gap: 1rem; }
 .form-group { display: flex; flex-direction: column; gap: 4px; }
 .form-label { font-weight: 500; font-size: 0.9rem; color: #495057; }
-.form-input, .form-group textarea { padding: 5px 12px; border: 1px solid #ced4da; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 14px; height: 30px; }
+.form-input, .form-group textarea { 
+    padding: 5px 12px; 
+    border: 1px solid #ced4da; 
+    border-radius: 4px; 
+    width: 100%; 
+    box-sizing: border-box; 
+    font-size: 14px; 
+    height: 30px;
+    /* ---> INICIO: Estilo para transformar visualmente a mayúsculas */
+    text-transform: uppercase;
+    /* ---> FIN: Estilo para transformar visualmente a mayúsculas */
+}
 .form-input:focus-within, .form-group textarea:focus-within { border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); }
 .campo-readonly { background-color: #e9ecef; cursor: not-allowed; }
-
-/* INICIO: Estilos para el grupo de campo + botón */
 .form-group-with-button {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 .form-group-with-button > :first-child {
-  flex-grow: 1; /* Hace que el Autocomplete o Selector ocupe el espacio disponible */
+  flex-grow: 1;
 }
 .btn-add {
   flex-shrink: 0;
@@ -557,14 +537,11 @@ function cancelar() {
 .btn-add:hover {
   background-color: #218838;
 }
-/* FIN: Estilos para el grupo de campo + botón */
-
 .form-grid-4-col { display: grid; grid-template-columns: 70px 1fr 1fr .7fr 1.1fr; gap: .5rem; align-items: center; }
 .form-grid-5-col { display: grid; grid-template-columns: .8fr .5fr 2fr .9fr .5fr .7fr .7fr; gap: .5rem; }
 .medidas-grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; background-color: #f8f9fa; padding: .5rem; border-radius: 8px; border: 1px solid #e9ecef; }
 .medida-columna { display: flex; flex-direction: column; gap: 1rem; }
 .medida-header { font-weight: 600; color: #495057; padding-bottom: 0.1rem; margin-bottom: 0.1rem; border-bottom: 1px solid #dee2e6; }
-
 .medidas-layout { display: grid; grid-template-columns: 140px 1fr; gap: 1rem; align-items: flex-start; }
 .tipo-dip-grupo { display: flex; flex-direction: column; gap: 0.5rem; }
 .ojos-fila { display: flex; flex-direction: column; gap: 0.5rem; }

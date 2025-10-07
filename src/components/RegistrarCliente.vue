@@ -84,7 +84,7 @@ import { ref, onMounted, nextTick, computed, watch } from "vue";
 import { useRouter } from 'vue-router';
 import { supabase } from "../lib/supabaseClient.js";
 import BaseModal from "./BaseModal.vue";
-import { debounce } from 'lodash-es'; // Importamos debounce
+import { debounce } from 'lodash-es';
 
 const router = useRouter();
 
@@ -94,9 +94,8 @@ const showModal = ref(false);
 const editId = ref(null);
 const busqueda = ref("");
 
-// --- NUEVO ESTADO PARA PAGINACIÓN ---
 const paginaActual = ref(1);
-const clientesPorPagina = ref(20); // Puedes ajustar este valor
+const clientesPorPagina = ref(20);
 const totalClientes = ref(0);
 
 const nombreCliente = ref("");
@@ -106,19 +105,16 @@ const telefonoCliente = ref("");
 const nameCliente = ref(null);
 const searchInputRef = ref(null);
 
-// --- PROPIEDAD COMPUTADA PARA CALCULAR EL TOTAL DE PÁGINAS ---
 const totalPaginas = computed(() => {
   return Math.ceil(totalClientes.value / clientesPorPagina.value);
 });
 
-// --- FUNCIÓN DE BÚSQUEDA Y CARGA DE DATOS REFACTORIZADA ---
 async function fetchClientes() {
   cargando.value = true;
   try {
     const limite = clientesPorPagina.value;
     const desplazamiento = (paginaActual.value - 1) * limite;
 
-    // Llamamos a la función RPC que creamos en Supabase
     const { data, error } = await supabase.rpc('buscar_clientes_con_prescripcion', {
       termino_busqueda: busqueda.value,
       limite: limite,
@@ -127,9 +123,7 @@ async function fetchClientes() {
     
     if (error) throw error;
 
-    // Procesamos los datos recibidos del servidor
     clientes.value = (data || []).map(cliente => {
-      // Combinamos los códigos de pedido, similar a como lo hacías antes
       const pedidos = [cliente.cod_pedido1, cliente.cod_pedido2].filter(p => {
         const val = (p || '').toString().trim();
         return val !== '' && val !== '0' && val !== '-';
@@ -142,7 +136,6 @@ async function fetchClientes() {
       };
     });
     
-    // El conteo total lo obtenemos del primer registro (es el mismo para todos)
     if (data && data.length > 0) {
       totalClientes.value = data[0].conteo_total;
     } else {
@@ -157,16 +150,11 @@ async function fetchClientes() {
   }
 }
 
-// --- WATCHER CON DEBOUNCE PARA LA BÚSQUEDA ---
-// Esto evita que se haga una llamada a la API con cada tecla presionada.
-// Espera 500ms después de que el usuario deja de escribir para buscar.
 watch(busqueda, debounce(() => {
-  paginaActual.value = 1; // Reseteamos a la página 1 en cada nueva búsqueda
+  paginaActual.value = 1;
   fetchClientes();
 }, 500));
 
-
-// --- FUNCIÓN PARA CAMBIAR DE PÁGINA ---
 function cambiarPagina(nuevaPagina) {
   if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas.value) {
     paginaActual.value = nuevaPagina;
@@ -183,21 +171,26 @@ async function guardarCliente() {
       alert("El nombre y el apellido paterno son obligatorios.");
       return;
   }
+  
+  // ---> INICIO: Lógica para convertir a mayúsculas antes de guardar
   const clienteData = {
-    nombre_cliente: nombreCliente.value.trim(),
-    apellido_paterno_cliente: apellidoPaterno.value.trim(),
-    apellido_materno_cliente: apellidoMaterno.value.trim() || null,
+    nombre_cliente: nombreCliente.value.trim().toUpperCase(),
+    apellido_paterno_cliente: apellidoPaterno.value.trim().toUpperCase(),
+    apellido_materno_cliente: apellidoMaterno.value.trim() ? apellidoMaterno.value.trim().toUpperCase() : null,
     telefono_cliente: telefonoCliente.value.trim() || null
   };
+  // ---> FIN: Lógica para convertir a mayúsculas
+  
   if (editId.value) {
     clienteData.cod_cliente = editId.value;
   }
+  
   try {
     const { error } = await supabase.from("clientes").upsert(clienteData);
     if (error) throw error;
     alert(editId.value ? "Cliente actualizado exitosamente" : "Cliente creado exitosamente");
     cerrarModal();
-    fetchClientes(); // Recargamos los datos para ver el cambio
+    fetchClientes();
   } catch (error) {
     alert("Error al guardar el cliente: " + error.message);
   }
@@ -206,13 +199,11 @@ async function guardarCliente() {
 async function eliminarCliente(id) {
   if (confirm("¿Está seguro de que desea eliminar este cliente? Esta acción no se puede deshacer.")) {
     try {
-      // IMPORTANTE: La función RPC podría fallar si se elimina un cliente que tiene prescripciones
-      // Supabase se encarga de esto con las foreign keys. Primero eliminamos prescripciones.
       await supabase.from("prescripcion_clienten").delete().eq("cod_cliente", id);
       const { error } = await supabase.from("clientes").delete().eq("cod_cliente", id);
       if (error) throw error;
       alert("Cliente eliminado exitosamente");
-      fetchClientes(); // Recargamos los datos
+      fetchClientes();
     } catch (error) {
       alert("Error al eliminar el cliente: " + error.message);
     }
@@ -248,13 +239,8 @@ function limpiarFormulario() {
   telefonoCliente.value = "";
 }
 
-// Ya no necesitamos la suscripción en tiempo real, ya que recargamos
-// los datos después de cada acción CRUD. Si la necesitas, puedes mantenerla,
-// pero ten en cuenta que podría causar recargas inesperadas.
-// La eliminamos por simplicidad y rendimiento.
-
 onMounted(() => {
-  fetchClientes(); // Carga inicial
+  fetchClientes();
   nextTick(()=>{
     searchInputRef.value?.focus();
   });
@@ -419,13 +405,15 @@ td {
   border-radius: 6px;
   box-sizing: border-box;
   transition: border-color 0.2s, box-shadow 0.2s;
+  /* ---> INICIO: Estilo para transformar visualmente a mayúsculas */
+  text-transform: uppercase;
+  /* ---> FIN: Estilo para transformar visualmente a mayúsculas */
 }
 .form-input:focus {
   outline: none;
   border-color: #005A9C;
   box-shadow: 0 0 0 3px rgba(0, 90, 156, 0.2);
 }
-/* --- ESTILOS PARA LA PAGINACIÓN --- */
 .pagination-container {
   display: flex;
   justify-content: space-between;
