@@ -238,7 +238,7 @@ const getInitialFormData = () => ({
 
 const formData = reactive(getInitialFormData());
 
-const pageTitle = computed(() => isEditing.value ? 'Editar Prescripción' : 'Registrar Nueva Prescripción');
+const pageTitle = computed(() => isEditing.value ? 'Editar Prescripción' : 'Registrar Prescripción');
 const clienteNombreCompleto = computed(() => cliente.value ? `${cliente.value.nombre_cliente} ${cliente.value.apellido_paterno_cliente || ''}`.trim() : '');
 
 const sufijoReceta = computed(() => {
@@ -349,9 +349,8 @@ async function guardarNuevoItem() {
   }
   isSavingNewItem.value = true;
   try {
-    // ---> INICIO: Lógica para convertir a mayúsculas el nuevo item del modal
+    // Convertir en mayúsculas el item del modal
     const dataToInsert = { [fieldName]: value.trim().toUpperCase() };
-    // ---> FIN: Lógica para convertir a mayúsculas
     
     if(tableName === 'proveedores') {
       dataToInsert.telefono_proveedor = '-';
@@ -395,7 +394,7 @@ async function guardarPrescripcion() {
     
     let prescripcionData = { ...prescripcionBaseData, cod_receta: recetaFinal };
     
-    // ---> INICIO: Lógica para convertir a mayúsculas antes de guardar
+    // Campos que se convertirán a mayúsculas
     const fieldsToUppercase = [
       'l1_dip', 'l1_esf_od', 'l1_cil_od', 'l1_eje_od', 'l1_esf_oi', 'l1_cil_oi', 'l1_eje_oi',
       'l2_dip', 'l2_esf_od', 'l2_cil_od', 'l2_eje_od', 'l2_esf_oi', 'l2_cil_oi', 'l2_eje_oi',
@@ -407,7 +406,6 @@ async function guardarPrescripcion() {
         prescripcionData[key] = prescripcionData[key].toUpperCase();
       }
     }
-    // ---> FIN: Lógica para convertir a mayúsculas
 
     if (!isEditing.value) {
       delete prescripcionData.cod_prescripcion;
@@ -504,9 +502,7 @@ function cancelar() {
     box-sizing: border-box; 
     font-size: 14px; 
     height: 30px;
-    /* ---> INICIO: Estilo para transformar visualmente a mayúsculas */
     text-transform: uppercase;
-    /* ---> FIN: Estilo para transformar visualmente a mayúsculas */
 }
 .form-input:focus-within, .form-group textarea:focus-within { border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); }
 .campo-readonly { background-color: #e9ecef; cursor: not-allowed; }

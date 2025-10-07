@@ -16,7 +16,7 @@
       <div class="seccion-header">
         <h2>Historial de Prescripciones</h2>
         <div class="header-actions-group">
-          <button @click="irAFormularioNuevaPrescripcion" class="btn btn-primary"> + Nueva Prescripción </button>
+          <button @click="irAFormularioNuevaPrescripcion" class="btn btn-primary"> + Registrar Prescripción </button>
         </div>
       </div>
 
@@ -50,24 +50,13 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { supabase } from '../lib/supabaseClient';
 
-// **** CAMBIO: Ya no se necesitan los componentes de formulario aquí ****
-// import BaseModal from './BaseModal.vue';
-// import AutoComplete from './Autocomplete.vue';
-// import MultiSelect from './MultiSelect.vue';
-
 const route = useRoute();
 const router = useRouter();
 const clienteId = ref(route.params.id);
 
-// --- ESTADO PRINCIPAL ---
 const cliente = ref(null);
 const prescripcionesCliente = ref([]);
 const cargandoPrescripciones = ref(false);
-
-// **** CAMBIO: Se eliminaron todos los estados relacionados con el modal y el formulario ****
-// const editId = ref(null);
-// const mostrarModalFormulario = ref(false);
-// const formData = reactive(...);
 
 onMounted(async () => {
   await inicializarPanel();
@@ -108,8 +97,6 @@ async function recargarPrescripciones() {
     }
 }
 
-// **** CAMBIO: Se eliminó la función guardarPrescripcion ****
-
 async function eliminarPrescripcion(id) {
   if (!confirm('¿Está seguro de eliminar esta prescripción? Esta acción no se puede deshacer.')) return;
   try {
@@ -122,7 +109,6 @@ async function eliminarPrescripcion(id) {
   }
 }
 
-// **** NUEVAS FUNCIONES DE NAVEGACIÓN ****
 function irAFormularioNuevaPrescripcion() {
   router.push({ name: 'CrearPrescripcion', params: { clienteId: clienteId.value } });
 }
@@ -143,8 +129,6 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 </script>
 
 <style scoped>
-/* (Los estilos del componente anterior son compatibles y se pueden mantener aquí) */
-/* ESTILOS GENERALES Y DE PANEL */
 .panel-container { padding: 24px; }
 .panel-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
 .cliente-info { color: #6c757d; font-size: 14px; }
@@ -154,7 +138,6 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .header-actions-group { display: flex; gap: 10px; }
 .sub-header { margin-top: 2rem; margin-bottom: 1rem; color: #495057; font-weight: 500; }
 
-/* ESTILOS DE BOTONES */
 .btn-primary, .btn-secondary, .btn-success, .btn-guardar, .btn-cancelar { color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; }
 .btn-primary { background: #007bff; } .btn-primary:hover { background: #0056b3; }
 .btn-secondary { background: #6c757d; } .btn-secondary:hover { background: #5a6268; }
@@ -162,7 +145,6 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .btn-guardar { background: #007bff; }
 .btn-cancelar { background: #6c757d; }
 
-/* ESTILOS DE TARJETAS */
 .prescripcion-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
 .prescripcion-card { background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); border: 1px solid #e9ecef; display: flex; flex-direction: column; }
 .clickable { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
@@ -178,14 +160,12 @@ function volver() { router.push({ name: 'GestionClientes' }); }
 .btn-action.btn-edit { color: #007bff; } .btn-action.btn-edit:hover { background-color: #e7f3ff; }
 .btn-action.btn-delete { color: #dc3545; } .btn-action.btn-delete:hover { background-color: #f8d7da; }
 
-/* ESTILOS DE FORMULARIOS */
 .form-container, .details-view-container { display: flex; flex-direction: column; gap: 1rem; }
 .form-group { display: flex; flex-direction: column; gap: 4px; }
 .form-input, .form-group textarea { padding: 5px 12px; border: 1px solid #ced4da; border-radius: 4px; width: 100%; box-sizing: border-box; font-size: 14px; }
 .form-input:focus-within, .form-group textarea:focus-within { border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); }
 .campo-readonly { background-color: #e9ecef; cursor: not-allowed; }
 
-/* ESTRUCTURA DE GRID PARA FORMULARIO */
 .form-grid-4-col { display: grid; grid-template-columns: 350px 1fr .7fr 1.1fr; gap: .5rem; }
 .form-grid-5-col { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr; gap: .5rem; }
 .medidas-grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; background-color: #f8f9fa; padding: .5rem; border-radius: 8px; border: 1px solid #e9ecef; }

@@ -4,7 +4,7 @@
       <h1>Gestión de Clientes</h1>
       <div class="header-actions">
         <button @click="abrirModalCrear" class="btn btn-primary">
-          &#10010; Nuevo Cliente
+          &#10010; Registrar Cliente
         </button>
       </div>
     </header>
@@ -64,7 +64,7 @@
         Siguiente &raquo;
       </button>
     </div>
-    <BaseModal v-model="showModal" :title="editId ? 'Editar Cliente' : 'Registrar Nuevo Cliente'">
+    <BaseModal v-model="showModal" :title="editId ? 'Editar Cliente' : 'Registrar Cliente'">
       <div class="form-container">
         <input v-model="nombreCliente" placeholder="Nombre del cliente *" ref="nameCliente" class="form-input" />
         <input v-model="apellidoPaterno" placeholder="Apellido paterno *" class="form-input" />
@@ -172,15 +172,14 @@ async function guardarCliente() {
       return;
   }
   
-  // ---> INICIO: Lógica para convertir a mayúsculas antes de guardar
   const clienteData = {
+  // Convierte los datos a mayúsculas
     nombre_cliente: nombreCliente.value.trim().toUpperCase(),
     apellido_paterno_cliente: apellidoPaterno.value.trim().toUpperCase(),
     apellido_materno_cliente: apellidoMaterno.value.trim() ? apellidoMaterno.value.trim().toUpperCase() : null,
     telefono_cliente: telefonoCliente.value.trim() || null
   };
-  // ---> FIN: Lógica para convertir a mayúsculas
-  
+    
   if (editId.value) {
     clienteData.cod_cliente = editId.value;
   }
@@ -188,7 +187,7 @@ async function guardarCliente() {
   try {
     const { error } = await supabase.from("clientes").upsert(clienteData);
     if (error) throw error;
-    alert(editId.value ? "Cliente actualizado exitosamente" : "Cliente creado exitosamente");
+    alert(editId.value ? "Cliente actualizado exitosamente" : "Cliente registrado exitosamente");
     cerrarModal();
     fetchClientes();
   } catch (error) {
@@ -197,7 +196,7 @@ async function guardarCliente() {
 }
 
 async function eliminarCliente(id) {
-  if (confirm("¿Está seguro de que desea eliminar este cliente? Esta acción no se puede deshacer.")) {
+  if (confirm("¿Quiere eliminar este cliente? Esta acción no se puede deshacer.")) {
     try {
       await supabase.from("prescripcion_clienten").delete().eq("cod_cliente", id);
       const { error } = await supabase.from("clientes").delete().eq("cod_cliente", id);
@@ -405,9 +404,7 @@ td {
   border-radius: 6px;
   box-sizing: border-box;
   transition: border-color 0.2s, box-shadow 0.2s;
-  /* ---> INICIO: Estilo para transformar visualmente a mayúsculas */
   text-transform: uppercase;
-  /* ---> FIN: Estilo para transformar visualmente a mayúsculas */
 }
 .form-input:focus {
   outline: none;
