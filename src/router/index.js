@@ -24,10 +24,10 @@ import ConsultaStock from "../components/ConsultaStock.vue";
 // Importar componente de Ejercicios básicos
 import EjerciciosComputed from "../components/EjerciciosComputed.vue";
 
-// Importar el nuevo componente de la Landing Page
+// Importar el componente para la Landing Page
 import LandingPage from "../components/LandingPage.vue";
 
-// **** IMPORTAR EL NUEVO COMPONENTE DE REPORTE ****
+// Importar el componente para reporte de prescripciones.
 import ReportePrescripciones from "../components/ReportePrescripciones.vue";
 
 const routes = [

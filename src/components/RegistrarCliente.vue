@@ -113,7 +113,7 @@ import { debounce } from 'lodash-es';
 
 const router = useRouter();
 
-// State for Vuetify Table
+// Estados para la tabla 
 const cargando = ref(true);
 const clientes = ref([]);
 const totalClientes = ref(0);
@@ -128,23 +128,23 @@ const headers = [
   { title: 'Acciones', key: 'actions', sortable: false, align: 'center' },
 ];
 
-// State for Dialog
+// Estados para el cuadro de dialogo
 const dialog = ref(false);
 const editId = ref(null);
 const nombreCliente = ref("");
 const apellidoPaterno = ref("");
 const apellidoMaterno = ref("");
 const telefonoCliente = ref("");
-const nameCliente = ref(null); // For focusing the input
+const nameCliente = ref(null); // Para hacer focus al nombre cliente
 
-// This function is called by the v-data-table-server on page load and when page or itemsPerPage changes.
+// Esta función es llamada por el v-data-table-server al cargar la pagina y cuando la pagina o el item cambia.
 async function fetchClientes({ page, itemsPerPage }) {
   cargando.value = true;
   try {
     const limite = itemsPerPage;
     const desplazamiento = (page - 1) * limite;
 
-    // The 'busqueda' ref is used here, so it's always searching on the server.
+    // Esto asegura que la busqueda se realice directamente en el servidor de Supabase
     const { data, error } = await supabase.rpc('buscar_clientes_con_prescripcion', {
       termino_busqueda: busqueda.value,
       limite: limite,
@@ -180,8 +180,8 @@ async function fetchClientes({ page, itemsPerPage }) {
   }
 }
 
-// Debounce the search input
-// This watcher ensures that we call Supabase to search when the user types.
+// Debounce para el campo de búsqueda
+// Este watcher asegura que llamamos a Supabase para la busqueda cuando el usaurio escribe.
 watch(busqueda, debounce(() => {
     fetchClientes({ page: 1, itemsPerPage: itemsPerPage.value });
 }, 500));
@@ -197,7 +197,7 @@ async function guardarCliente() {
       return;
   }
   
-  // The logic to save as uppercase is still here and correct.
+  // Lógica para convertir a mayúsculas los campos del cliente.
   const clienteData = {
     nombre_cliente: nombreCliente.value.trim().toUpperCase(),
     apellido_paterno_cliente: apellidoPaterno.value.trim().toUpperCase(),
@@ -214,7 +214,7 @@ async function guardarCliente() {
     if (error) throw error;
     alert(editId.value ? "Cliente actualizado exitosamente" : "Cliente registrado exitosamente");
     cerrarModal();
-    // Refresh the table
+    // Vuelve a cargar la tabla con los datos actualizados.
     fetchClientes({ page: 1, itemsPerPage: itemsPerPage.value });
   } catch (error) {
     alert("Error al guardar el cliente: " + error.message);
@@ -228,7 +228,7 @@ async function eliminarCliente(id) {
       const { error } = await supabase.from("clientes").delete().eq("cod_cliente", id);
       if (error) throw error;
       alert("Cliente eliminado exitosamente");
-      // Refresh the table
+      // Vuelve a cargar la tabla con los datos actualizados.
       fetchClientes({ page: 1, itemsPerPage: itemsPerPage.value });
     } catch (error) {
       alert("Error al eliminar el cliente: " + error.message);

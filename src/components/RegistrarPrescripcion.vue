@@ -1,183 +1,235 @@
 <template>
-  <div class="form-page-container">
-    <header class="form-page-header">
-      <h2>{{ pageTitle }}</h2>
-    </header>
-
-    <form @submit.prevent="guardarPrescripcion" class="form-container" v-if="!cargando">
-      <div class="form-grid-4-col">
-        <div><strong>Cliente:</strong></div>
-        <div class="form-group"><input :value="clienteNombreCompleto" readonly class="form-input campo-readonly" /></div>
-        
-        <div class="form-group campo-receta-grupo">
-          <input 
-            ref="recetaInputRef" 
-            v-model="recetaNumerica" 
-            placeholder="Cód. Receta Ej. 1234" 
-            class="form-input" 
-            @input="formateaRecetaInput"
-          />
-          <span class="receta-sufijo">{{ sufijoReceta }}</span>
-        </div>
-        
-        <div class="form-group"><input v-model="formData.fecha_prescripcion" type="date" class="form-input" /></div>
-        
-        <div class="form-group-with-button">
-          <AutoComplete v-model="formData.doctor_prescriptor" :options="doctoresOptions" placeholder="Doctor Prescriptor" />
-          <button type="button" @click="abrirModal({
-              tableName: 'doctores',
-              fieldName: 'nombre_doctor',
-              idField: 'cod_doctor',
-              fieldToUpdate: 'doctor_prescriptor',
-              placeholder: 'Nombre del Doctor',
-              title: 'Añadir Nuevo Doctor'
-            })" class="btn-add">+</button>
-        </div>
-      </div>
-<div class="medidas-grid-container">
-          <div class="medida-columna">
-            <div class="medida-header">Lente 1</div>
-            <div class="medidas-layout">
-              <div class="tipo-dip-grupo">
-                <div class="form-group"><AutoComplete v-model="formData.distancia_lente1" :options="tipoLenteDistanciaOptions" placeholder="DISTANCIA" /></div>
-                <div class="form-group"><input v-model="formData.l1_dip" class="form-input" placeholder="DIP" /></div>
-              </div>
-              <div class="ojos-fila">
-                <div class="ojo-grupo">
-                  <label class="ojo-label">OD</label>
-                  <input v-model="formData.l1_esf_od" placeholder="ESF" class="form-input" />
-                  <input v-model="formData.l1_cil_od" placeholder="CIL" class="form-input" />
-                  <input v-model="formData.l1_eje_od" placeholder="EJE" class="form-input" />
-                </div>
-                <div class="ojo-grupo">
-                  <label class="ojo-label">OI</label>
-                  <input v-model="formData.l1_esf_oi" placeholder="ESF" class="form-input" />
-                  <input v-model="formData.l1_cil_oi" placeholder="CIL" class="form-input" />
-                  <input v-model="formData.l1_eje_oi" placeholder="EJE" class="form-input" />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="medida-columna">
-            <div class="medida-header">Lente 2</div>
-             <div class="medidas-layout">
-              <div class="tipo-dip-grupo">
-                <div class="form-group"><AutoComplete v-model="formData.distancia_lente2" :options="tipoLenteDistanciaOptions" placeholder="DISTANCIA" /></div>
-                <div class="form-group"><input v-model="formData.l2_dip" class="form-input" placeholder="DIP" /></div>
-              </div>
-              <div class="ojos-fila">
-                <div class="ojo-grupo">
-                  <label class="ojo-label">OD</label>
-                  <input v-model="formData.l2_esf_od" placeholder="ESF" class="form-input" />
-                  <input v-model="formData.l2_cil_od" placeholder="CIL" class="form-input" />
-                  <input v-model="formData.l2_eje_od" placeholder="EJE" class="form-input" />
-                </div>
-                <div class="ojo-grupo">
-                  <label class="ojo-label">OI</label>
-                  <input v-model="formData.l2_esf_oi" placeholder="ESF" class="form-input" />
-                  <input v-model="formData.l2_cil_oi" placeholder="CIL" class="form-input" />
-                  <input v-model="formData.l2_eje_oi" placeholder="EJE" class="form-input" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      
-      <div class="cristales-grid-container">
-          <label class="cristal-row-label">Cristal 1:</label>
-          <div class="form-group"><input v-model.number="formData.l1_cantidad_cristal" type="number" min="0" class="form-input" /></div>
-          <div class="form-group"><AutoComplete v-model="formData.l1_material_cristal" :options="materialesOptions" placeholder="Material" /></div>
-          <div class="form-group-with-button">
-            <TratamientoSelector v-model="formData.l1_tratamientos" :options="tratamientosOptions" placeholder="Tratamientos" />
-             <button type="button" @click="abrirModal({
-                tableName: 'tratamientos',
-                fieldName: 'nombre_tratamiento',
-                placeholder: 'Nombre del Tratamiento',
-                title: 'Añadir Nuevo Tratamiento'
-              })" class="btn-add">+</button>
-          </div>
-          <div class="form-group"><AutoComplete v-model="formData.l1_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
-          <div class="form-group"><input v-model="formData.l1_extra_cristal" class="form-input" placeholder="Extras"/></div>
-          
-          <label class="cristal-row-label">Cristal 2:</label>
-          <div class="form-group"><input v-model.number="formData.l2_cantidad_cristal" type="number" min="0" class="form-input" /></div>
-          <div class="form-group"><AutoComplete v-model="formData.l2_material_cristal" :options="materialesOptions" placeholder="Material"/></div>
-          <div class="form-group"><TratamientoSelector v-model="formData.l2_tratamientos" :options="tratamientosOptions" placeholder="Tratamientos"/></div>
-          <div class="form-group"><AutoComplete v-model="formData.l2_color_cristal" :options="coloresOptions" placeholder="Color"/></div>
-          <div class="form-group"><input v-model="formData.l2_extra_cristal" class="form-input" placeholder="Extras"/></div>
-      </div>
-      
-      <div class="form-grid-5-col">
-        <div class="form-group-with-button">
-          <AutoComplete v-model="formData.cod_proveedor" :options="proveedoresOptions" placeholder="Proveedor" />
-          <button type="button" @click="abrirModal({
-              tableName: 'proveedores',
-              fieldName: 'nombre_proveedor',
-              idField: 'cod_proveedor',
-              fieldToUpdate: 'cod_proveedor',
-              placeholder: 'Nombre del Proveedor',
-              title: 'Añadir Nuevo Proveedor'
-            })" class="btn-add">+</button>
-        </div>
-        <div class="form-group"><AutoComplete v-model="formData.cod_armador" :options="armadoresOptions" placeholder="Armador" /></div>
-        
-        <div class="form-group-with-button">
-          <AutoComplete v-model="formData.cod_armazon" :options="armazonesOptions" placeholder="Armazón"/>
-          <button type="button" @click="abrirModal({
-              tableName: 'armazon_lente',
-              fieldName: 'nombre_armazon',
-              idField: 'cod_armazon',
-              fieldToUpdate: 'cod_armazon',
-              placeholder: 'Nombre del Armazón',
-              title: 'Añadir Nuevo Armazón'
-            })" class="btn-add">+</button>
-        </div>
-        <div class="form-group"><input v-model="formData.num_sobre" type="text" class="form-input" placeholder="Núm. Sobre"/></div>
-        <div class="form-group"><input v-model="formData.fecha_entrega" type="date" class="form-input" placeholder="Fecha entrega"/></div>
-        <div class="form-group"><input v-model="formData.cod_pedido1" class="form-input" placeholder="Núm. Pedido 1" /></div>
-        <div class="form-group"><input v-model="formData.cod_pedido2" class="form-input" placeholder="Núm. Pedido 2"/></div>
-      </div>
-
-      <div class="form-group">
-        <textarea v-model="formData.notas_adicionales" rows="2" class="form-input" placeholder="Observaciones o notas adicionales"></textarea>
-      </div>
-
-      <div class="form-footer">
-        <button type="button" @click="cancelar" class="btn-cancelar">Cancelar</button>
-        <button type="submit" class="btn-guardar">{{ isEditing ? 'Actualizar Prescripción' : 'Guardar Prescripción' }}</button>
-      </div>
-    </form>
-    <div v-else class="loading">Cargando datos...</div>
-
-    <BaseModal v-model="showNuevoItemModal" :title="nuevoItemData.title" size="sm">
-        <div class="form-group">
-            <label :for="`input-${nuevoItemData.fieldName}`" class="form-label">{{ nuevoItemData.placeholder }}</label>
-            <input 
-                :id="`input-${nuevoItemData.fieldName}`"
-                v-model="nuevoItemData.value" 
-                :placeholder="nuevoItemData.placeholder" 
-                class="form-input" 
-                @keyup.enter="guardarNuevoItem" 
-                ref="nuevoItemInputRef"
-            />
-        </div>
-        <template #footer>
-            <button @click="showNuevoItemModal = false" class="btn-cancelar">Cancelar</button>
-            <button @click="guardarNuevoItem" class="btn-guardar" :disabled="isSavingNewItem">
-                {{ isSavingNewItem ? 'Guardando...' : 'Guardar' }}
-            </button>
-        </template>
-    </BaseModal>
+  <v-container>
+    <div v-if="cargando" class="d-flex justify-center align-center" style="height: 60vh;">
+      <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+      <div class="ml-4 text-h6">Cargando datos...</div>
     </div>
+
+    <v-form @submit.prevent="guardarPrescripcion" v-else>
+      <v-card>
+        <v-card-title class="text-h5 border-b">
+          {{ pageTitle }}
+        </v-card-title>
+
+        <v-card-text class="py-4">
+          <v-row dense>
+            <v-col cols="12" md="3">
+              <v-text-field
+                label="Cliente"
+                :model-value="clienteNombreCompleto"
+                readonly
+                variant="outlined"
+                density="compact"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="6" md="3">
+              <v-text-field
+                ref="recetaInputRef"
+                v-model="recetaNumerica"
+                label="Cód. Receta"
+                placeholder="Ej. 1234"
+                :suffix="sufijoReceta"
+                @input="formateaRecetaInput"
+                variant="outlined"
+                density="compact"
+                counter="4"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="6" md="2">
+              <v-text-field
+                v-model="formData.fecha_prescripcion"
+                label="Fecha Prescripción"
+                type="date"
+                variant="outlined"
+                density="compact"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-autocomplete
+                v-model="formData.doctor_prescriptor"
+                :items="doctoresOptions"
+                item-title="label"
+                item-value="value"
+                label="Doctor Prescriptor"
+                variant="outlined"
+                density="compact"
+              >
+                 <template #append-inner>
+                   <v-btn icon="mdi-plus-box" variant="text" size="small" @click.stop="abrirModal({ tableName: 'doctores', fieldName: 'nombre_doctor', idField: 'cod_doctor', fieldToUpdate: 'doctor_prescriptor', placeholder: 'Nombre del Doctor', title: 'Añadir Nuevo Doctor' })"></v-btn>
+                </template>
+              </v-autocomplete>
+            </v-col>
+          </v-row>
+          
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-card variant="outlined">
+                <v-card-title class="text-subtitle-1 font-weight-bold pt-2 pb-1">Lente 1</v-card-title>
+                <v-divider></v-divider>
+                <v-card-text>
+                  <v-row>
+                    <v-col cols="4">
+                      <v-autocomplete label="DISTANCIA" v-model="formData.distancia_lente1" :items="tipoLenteDistanciaOptions" item-title="label" item-value="value" variant="outlined" density="compact" class="mb-2"></v-autocomplete>
+                      <v-text-field label="DIP" v-model="formData.l1_dip" variant="outlined" density="compact"></v-text-field>
+                    </v-col>
+                    <v-col cols="8">
+                      <div class="d-flex align-center">
+                        <span class="font-weight-bold mr-3">OD</span>
+                        <v-text-field label="ESF" v-model="formData.l1_esf_od" variant="outlined" density="compact" class="mr-2"></v-text-field>
+                        <v-text-field label="CIL" v-model="formData.l1_cil_od" variant="outlined" density="compact" class="mr-2"></v-text-field>
+                        <v-text-field label="EJE" v-model="formData.l1_eje_od" variant="outlined" density="compact"></v-text-field>
+                      </div>
+                      <div class="d-flex align-center mt-2">
+                        <span class="font-weight-bold mr-4">OI</span>
+                        <v-text-field label="ESF" v-model="formData.l1_esf_oi" variant="outlined" density="compact" class="mr-2"></v-text-field>
+                        <v-text-field label="CIL" v-model="formData.l1_cil_oi" variant="outlined" density="compact" class="mr-2"></v-text-field>
+                        <v-text-field label="EJE" v-model="formData.l1_eje_oi" variant="outlined" density="compact"></v-text-field>
+                      </div>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
+            </v-col>
+
+            <v-col cols="12" md="6">
+              <v-card variant="outlined">
+                <v-card-title class="text-subtitle-1 font-weight-bold pt-2 pb-1">Lente 2</v-card-title>
+                <v-divider></v-divider>
+                <v-card-text>
+                  <v-row>
+                    <v-col cols="4">
+                      <v-autocomplete label="DISTANCIA" v-model="formData.distancia_lente2" :items="tipoLenteDistanciaOptions" item-title="label" item-value="value" variant="outlined" density="compact" class="mb-2"></v-autocomplete>
+                      <v-text-field label="DIP" v-model="formData.l2_dip" variant="outlined" density="compact"></v-text-field>
+                    </v-col>
+                    <v-col cols="8">
+                      <div class="d-flex align-center">
+                        <span class="font-weight-bold mr-3">OD</span>
+                        <v-text-field label="ESF" v-model="formData.l2_esf_od" variant="outlined" density="compact" class="mr-2"></v-text-field>
+                        <v-text-field label="CIL" v-model="formData.l2_cil_od" variant="outlined" density="compact" class="mr-2"></v-text-field>
+                        <v-text-field label="EJE" v-model="formData.l2_eje_od" variant="outlined" density="compact"></v-text-field>
+                      </div>
+                      <div class="d-flex align-center mt-2">
+                        <span class="font-weight-bold mr-4">OI</span>
+                        <v-text-field label="ESF" v-model="formData.l2_esf_oi" variant="outlined" density="compact" class="mr-2"></v-text-field>
+                        <v-text-field label="CIL" v-model="formData.l2_cil_oi" variant="outlined" density="compact" class="mr-2"></v-text-field>
+                        <v-text-field label="EJE" v-model="formData.l2_eje_oi" variant="outlined" density="compact"></v-text-field>
+                      </div>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+          
+          <v-divider class="my-4"></v-divider>
+          <v-row dense align="center">
+            <v-col cols="12" sm="auto"><strong class="text-subtitle-1">Cristal 1:</strong></v-col>
+            <v-col cols="3" sm="1"><v-text-field type="number" min="0" v-model.number="formData.l1_cantidad_cristal" variant="outlined" density="compact"></v-text-field></v-col>
+            <v-col cols="9" sm="2"><v-autocomplete label="Material" v-model="formData.l1_material_cristal" :items="materialesOptions" item-title="label" item-value="value" variant="outlined" density="compact"></v-autocomplete></v-col>
+            <v-col cols="12" sm="4">
+              <v-select
+                v-model="formData.l1_tratamientos"
+                :items="tratamientosOptions"
+                item-title="label"
+                item-value="value"
+                label="Tratamientos"
+                multiple
+                chips
+                closable-chips
+                variant="outlined"
+                density="compact"
+              >
+                <template #append-inner>
+                   <v-btn icon="mdi-plus-box" variant="text" size="small" @click.stop="abrirModal({ tableName: 'tratamientos', fieldName: 'nombre_tratamiento', placeholder: 'Nombre del Tratamiento', title: 'Añadir Nuevo Tratamiento' })"></v-btn>
+                </template>
+              </v-select>
+            </v-col>
+            <v-col cols="6" sm="2"><v-autocomplete label="Color" v-model="formData.l1_color_cristal" :items="coloresOptions" item-title="label" item-value="value" variant="outlined" density="compact"></v-autocomplete></v-col>
+            <v-col cols="6" sm="2"><v-text-field label="Extras" v-model="formData.l1_extra_cristal" variant="outlined" density="compact"></v-text-field></v-col>
+          </v-row>
+          <v-row dense align="center">
+            <v-col cols="12" sm="auto"><strong class="text-subtitle-1">Cristal 2:</strong></v-col>
+            <v-col cols="3" sm="1"><v-text-field type="number" min="0" v-model.number="formData.l2_cantidad_cristal" variant="outlined" density="compact"></v-text-field></v-col>
+            <v-col cols="9" sm="2"><v-autocomplete label="Material" v-model="formData.l2_material_cristal" :items="materialesOptions" item-title="label" item-value="value" variant="outlined" density="compact"></v-autocomplete></v-col>
+            <v-col cols="12" sm="4"><v-select v-model="formData.l2_tratamientos" :items="tratamientosOptions" item-title="label" item-value="value" label="Tratamientos" multiple chips closable-chips variant="outlined" density="compact"></v-select></v-col>
+            <v-col cols="6" sm="2"><v-autocomplete label="Color" v-model="formData.l2_color_cristal" :items="coloresOptions" item-title="label" item-value="value" variant="outlined" density="compact"></v-autocomplete></v-col>
+            <v-col cols="6" sm="2"><v-text-field label="Extras" v-model="formData.l2_extra_cristal" variant="outlined" density="compact"></v-text-field></v-col>
+          </v-row>
+          
+          <v-divider class="my-4"></v-divider>
+          <v-row dense>
+            <v-col cols="12" md="4">
+              <v-autocomplete v-model="formData.cod_proveedor" :items="proveedoresOptions" item-title="label" item-value="value" label="Proveedor" variant="outlined" density="compact">
+                 <template #append-inner>
+                   <v-btn icon="mdi-plus-box" variant="text" size="small" @click.stop="abrirModal({ tableName: 'proveedores', fieldName: 'nombre_proveedor', idField: 'cod_proveedor', fieldToUpdate: 'cod_proveedor', placeholder: 'Nombre del Proveedor', title: 'Añadir Nuevo Proveedor' })"></v-btn>
+                </template>
+              </v-autocomplete>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-autocomplete v-model="formData.cod_armador" :items="armadoresOptions" item-title="label" item-value="value" label="Armador" variant="outlined" density="compact"></v-autocomplete>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-autocomplete v-model="formData.cod_armazon" :items="armazonesOptions" item-title="label" item-value="value" label="Armazón" variant="outlined" density="compact">
+                <template #append-inner>
+                   <v-btn icon="mdi-plus-box" variant="text" size="small" @click.stop="abrirModal({ tableName: 'armazon_lente', fieldName: 'nombre_armazon', idField: 'cod_armazon', fieldToUpdate: 'cod_armazon', placeholder: 'Nombre del Armazón', title: 'Añadir Nuevo Armazón' })"></v-btn>
+                </template>
+              </v-autocomplete>
+            </v-col>
+          </v-row>
+          <v-row dense>
+            <v-col cols="6" md="3"><v-text-field v-model="formData.num_sobre" label="Núm. Sobre" variant="outlined" density="compact"></v-text-field></v-col>
+            <v-col cols="6" md="3"><v-text-field v-model="formData.fecha_entrega" label="Fecha Entrega" type="date" variant="outlined" density="compact"></v-text-field></v-col>
+            <v-col cols="6" md="3"><v-text-field v-model="formData.cod_pedido1" label="Núm. Pedido 1" variant="outlined" density="compact"></v-text-field></v-col>
+            <v-col cols="6" md="3"><v-text-field v-model="formData.cod_pedido2" label="Núm. Pedido 2" variant="outlined" density="compact"></v-text-field></v-col>
+          </v-row>
+          
+          <v-row dense>
+            <v-col cols="12">
+              <v-textarea v-model="formData.notas_adicionales" label="Observaciones o notas adicionales" rows="2" variant="outlined" density="compact"></v-textarea>
+            </v-col>
+          </v-row>
+        </v-card-text>
+
+        <v-card-actions class="pa-4 border-t">
+          <v-spacer></v-spacer>
+          <v-btn @click="cancelar" variant="text">Cancelar</v-btn>
+          <v-btn type="submit" color="primary" variant="flat" :disabled="cargando">
+            {{ isEditing ? 'Actualizar Prescripción' : 'Guardar Prescripción' }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-form>
+
+    <v-dialog v-model="showNuevoItemModal" max-width="500px">
+      <v-card>
+        <v-card-title>{{ nuevoItemData.title }}</v-card-title>
+        <v-card-text>
+          <v-text-field
+            ref="nuevoItemInputRef"
+            v-model="nuevoItemData.value"
+            :label="nuevoItemData.placeholder"
+            variant="outlined"
+            @keyup.enter="guardarNuevoItem"
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn @click="showNuevoItemModal = false" variant="text">Cancelar</v-btn>
+          <v-btn @click="guardarNuevoItem" color="primary" variant="flat" :loading="isSavingNewItem">
+            Guardar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-container>
 </template>
 
 <script setup>
 import { ref, onMounted, reactive, computed, nextTick, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { supabase } from '../lib/supabaseClient';
-import AutoComplete from './Autocomplete.vue';
-import TratamientoSelector from './TratamientoSelector.vue';
-import BaseModal from './BaseModal.vue'; 
+
+// --- El script no necesita cambios, la lógica de negocio es la misma ---
 
 const props = defineProps({
   clienteId: { type: String, required: true },
@@ -349,7 +401,6 @@ async function guardarNuevoItem() {
   }
   isSavingNewItem.value = true;
   try {
-    // Convertir en mayúsculas el item del modal
     const dataToInsert = { [fieldName]: value.trim().toUpperCase() };
     
     if(tableName === 'proveedores') {
@@ -394,7 +445,6 @@ async function guardarPrescripcion() {
     
     let prescripcionData = { ...prescripcionBaseData, cod_receta: recetaFinal };
     
-    // Campos que se convertirán a mayúsculas
     const fieldsToUppercase = [
       'l1_dip', 'l1_esf_od', 'l1_cil_od', 'l1_eje_od', 'l1_esf_oi', 'l1_cil_oi', 'l1_eje_oi',
       'l2_dip', 'l2_esf_od', 'l2_cil_od', 'l2_eje_od', 'l2_esf_oi', 'l2_cil_oi', 'l2_eje_oi',
@@ -459,90 +509,10 @@ function cancelar() {
 </script>
 
 <style scoped>
-.campo-receta-grupo {
-  position: relative;
-  display: flex;
-  align-items: center;
+.border-b {
+  border-bottom: 1px solid rgba(0,0,0,0.12);
 }
-.receta-sufijo {
-  position: absolute;
-  right: 12px; 
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 0 5px;
-  background-color: #f1f1f1; 
-  color: #6c757d;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: bold;
-  pointer-events: none;
-  z-index: 2;
+.border-t {
+  border-top: 1px solid rgba(0,0,0,0.12);
 }
-.campo-receta-grupo .form-input {
-    padding-right: 50px;
-}
-.form-page-container { padding: 2px 30px; max-width: 1200px; margin: auto; border: solid 1px #d1d1d1; border-radius: 10px;box-shadow: 3px 3px 10px #d4d4d4; padding: 15px 20px;}
-.form-page-header { margin-bottom: 10px; padding-bottom: 1px; border-bottom: 1px solid #dee2e6; }
-.form-page-header h2 { margin-top: 0; }
-.loading { text-align: center; padding: 2rem; color: #6c757d; font-size: 1.1rem; }
-.btn-guardar, .btn-cancelar { color: white; border: none; padding: 0.5rem 5rem; border-radius: 4px; cursor: pointer; font-size: 14px; }
-.btn-guardar { background: #007bff; } .btn-guardar:hover { background: #0056b3; }
-.btn-guardar:disabled { background: #0056b3; cursor: not-allowed;}
-.btn-cancelar { background: #6c757d; } .btn-cancelar:hover { background: #5a6268; }
-.form-footer { display: flex; justify-content: flex-end; gap: 1rem; margin-top: .1rem; padding-top: .5rem; border-top: 1px solid #dee2e6; }
-.modal-footer .btn-guardar, .modal-footer .btn-cancelar { padding: 0.5rem 1.5rem; }
-.form-container { display: flex; flex-direction: column; gap: 1rem; }
-.form-group { display: flex; flex-direction: column; gap: 4px; }
-.form-label { font-weight: 500; font-size: 0.9rem; color: #495057; }
-.form-input, .form-group textarea { 
-    padding: 5px 12px; 
-    border: 1px solid #ced4da; 
-    border-radius: 4px; 
-    width: 100%; 
-    box-sizing: border-box; 
-    font-size: 14px; 
-    height: 30px;
-    text-transform: uppercase;
-}
-.form-input:focus-within, .form-group textarea:focus-within { border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); }
-.campo-readonly { background-color: #e9ecef; cursor: not-allowed; }
-.form-group-with-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.form-group-with-button > :first-child {
-  flex-grow: 1;
-}
-.btn-add {
-  flex-shrink: 0;
-  padding: 0 10px;
-  height: 30px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.btn-add:hover {
-  background-color: #218838;
-}
-.form-grid-4-col { display: grid; grid-template-columns: 70px 1fr 1fr .7fr 1.1fr; gap: .5rem; align-items: center; }
-.form-grid-5-col { display: grid; grid-template-columns: .8fr .5fr 2fr .9fr .5fr .7fr .7fr; gap: .5rem; }
-.medidas-grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; background-color: #f8f9fa; padding: .5rem; border-radius: 8px; border: 1px solid #e9ecef; }
-.medida-columna { display: flex; flex-direction: column; gap: 1rem; }
-.medida-header { font-weight: 600; color: #495057; padding-bottom: 0.1rem; margin-bottom: 0.1rem; border-bottom: 1px solid #dee2e6; }
-.medidas-layout { display: grid; grid-template-columns: 140px 1fr; gap: 1rem; align-items: flex-start; }
-.tipo-dip-grupo { display: flex; flex-direction: column; gap: 0.5rem; }
-.ojos-fila { display: flex; flex-direction: column; gap: 0.5rem; }
-.ojo-grupo { display: grid; grid-template-columns: 30px 1fr 1fr 1fr; gap: 0.5rem; align-items: center; }
-.ojo-label { font-weight: bold; font-size: 1rem; text-align: center; }
-.cristales-grid-container { display: grid; grid-template-columns: 60px 70px .5fr 2fr .6fr 1fr; gap: 0.5rem .5rem; align-items: center; }
-.cristal-row-label { font-size: 0.9rem; font-weight: 600; text-align: left; }
 </style>
