@@ -20,6 +20,7 @@
          <router-view />
       </template>
     </div>
+    <CronometroFlotante />
   </v-app>
 </template>
 
@@ -29,6 +30,7 @@ import { useRouter } from 'vue-router';
 import NavbarPrincipal from './components/NavbarPrincipal.vue';
 import CalculatorModal from './components/CalculatorModal.vue';
 import { useAuth } from './composables/useAuth';
+import CronometroFlotante from './components/CronometroFlotante.vue';
 
 // Estado para el modal de la calculadora
 const showModal = ref(false);
