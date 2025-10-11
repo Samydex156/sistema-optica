@@ -10,7 +10,7 @@ import RegistrarCliente from "../components/RegistrarCliente.vue";
 import PanelCliente from "../components/PanelCliente.vue";
 
 // Importar componente de RegistrarPrescripción
-import RegistrarPrescripcion from "../components/RegistrarPrescripcion.vue"; 
+import RegistrarPrescripcion from "../components/RegistrarPrescripcion.vue";
 
 // Importar componente de Registrar orden de trabajo
 import RegistrarOrdenTrabajo from "../components/RegistrarOrdenTrabajo.vue";
@@ -32,25 +32,21 @@ import ReportePrescripciones from "../components/ReportePrescripciones.vue";
 
 const routes = [
   {
-    // Redirije al panel principal por defecto
     path: "/",
     redirect: "/panel",
   },
   {
-    // Redirije al panel principal
     path: "/panel",
     name: "PanelPrincipal",
     component: PanelPrincipal,
     meta: { requiresAuth: true },
   },
   {
-    // redirige al login para iniciar sesion
     path: "/login",
     name: "Login",
     component: RegistrarUsuario,
     meta: { requiresAuth: false },
   },
-  // Nueva ruta para la Landing Page
   {
     path: "/landing",
     name: "LandingPage",
@@ -69,22 +65,20 @@ const routes = [
     component: PanelCliente,
     props: true,
   },
-  // **** NUEVAS RUTAS PARA CREAR Y EDITAR PRESCRIPCIONES ****
   {
     path: '/cliente/:clienteId/prescripcion/nueva',
     name: 'CrearPrescripcion',
     component: RegistrarPrescripcion,
-    props: true, // Pasa los params de la ruta como props al componente
+    props: true,
     meta: { requiresAuth: true },
   },
   {
     path: '/cliente/:clienteId/prescripcion/:prescripcionId/editar',
     name: 'EditarPrescripcion',
     component: RegistrarPrescripcion,
-    props: true, // Pasa los params de la ruta como props
+    props: true,
     meta: { requiresAuth: true },
   },
-  // **** NUEVA RUTA PARA EL REPORTE DE PRESCRIPCIONES ****
   {
     path: '/reportes/prescripciones',
     name: 'ReportePrescripciones',
@@ -102,17 +96,8 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: "/productos/caracteristicas",
-    component: GestionCaracteristicas,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: "/practicas",
-    component: EjerciciosComputed,
-    meta: { requiresAuth: true },
-  },
-    {
-    path: "/productos/caracteristicas",
+    path: "/productos/caracteristicas", // <-- Esta es la ruta clave
+    name: "GestionCaracteristicas",
     component: GestionCaracteristicas,
     meta: { requiresAuth: true },
   },
@@ -128,6 +113,11 @@ const routes = [
     component: ConsultaStock,
     meta: { requiresAuth: true },
   },
+  {
+    path: "/practicas",
+    component: EjerciciosComputed,
+    meta: { requiresAuth: true },
+  },
 ];
 
 const router = createRouter({
@@ -135,23 +125,16 @@ const router = createRouter({
   routes,
 });
 
-// Validar si el usuario se encuentra logueado o no
+// Guardia de navegación (sin cambios)
 router.beforeEach((to, from, next) => {
   const { isAuthenticated } = useAuth();
   const requiresAuth = to.meta.requiresAuth;
 
-  // Si la ruta requiere autenticación y el usuario NO está logueado,
-  // lo redirigimos a la página de login.
   if (requiresAuth && !isAuthenticated.value) {
     next("/login");
-  }
-  // Si el usuario está logueado e intenta acceder a /login, lo redirigimos
-  // al panel principal
-  else if (!requiresAuth && isAuthenticated.value && to.path === "/login") {
+  } else if (!requiresAuth && isAuthenticated.value && to.path === "/login") {
     next("/panel");
-  }
-  // En cualquier otro caso, permitimos la navegación.
-  else {
+  } else {
     next();
   }
 });

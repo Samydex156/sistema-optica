@@ -1,135 +1,117 @@
 <template>
-  <div class="dashboard-container">
-    <header class="dashboard-header">
-      <h1>Panel Principal</h1>
-      <p>Seleccione un módulo para iniciar operaciones.</p>
-    </header>
-    <div class="modules-grid">
-      <div class="module-card" @click="navegarA('/productos/registrar')">
-        <div class="icon-container">
-          📦
-        </div>
-        <h2>Productos</h2>
-        <p>Creación de nuevos productos.</p>
-      </div>
-      <div class="module-card" @click="navegarA('/inventario')">
-        <div class="icon-container">
-          📊
-        </div>
-        <h2>Inventario</h2>
-        <p>Gestión de entradas, salidas o traspasos.</p>
-      </div>
-      <div class="module-card" @click="navegarA('/stock')">
-        <div class="icon-container">
-          👀
-        </div>
-        <h2>Consultar Stock</h2>
-        <p>Visualiza cantidades actuales del inventario.</p>
-      </div>      
-      <div class="module-card" @click="navegarA('/clientes')">
-        <div class="icon-container">
-          👥
-        </div>
-        <h2>Clientes</h2>
-        <p>Gestión y registro de Clientes y Recetas médicas.</p>
-      </div>
-      <div class="module-card" @click="navegarA('/ordenes')">
-        <div class="icon-container">
-          🛒
-        </div>
-        <h2>Caja</h2>
-        <p>Registro de órdenes de trabajo y pagos.</p>
-      </div>
-      <div class="module-card" @click="navegarA('/reportes/prescripciones')">
-        <div class="icon-container">
-          📈
-        </div>
-        <h2>Reportes</h2>
-        <p>Análisis y reportes de prescripciones.</p>
-      </div>
-    </div>
-  </div>
+  <v-container>
+    <v-row justify="center" class="text-center my-4">
+      <v-col cols="12">
+        <h1 class="text-h3 font-weight-bold text-grey-darken-3">Panel Principal</h1>
+        <p class="text-subtitle-1 text-grey-darken-1 mt-2">
+          Seleccione un módulo para iniciar operaciones.
+        </p>
+      </v-col>
+    </v-row>
+
+    <v-row>
+      <v-col
+        v-for="modulo in modulos"
+        :key="modulo.titulo"
+        cols="12"
+        sm="6"
+        md="4"
+        lg="4"
+      >
+        <v-card
+          @click="navegarA(modulo.ruta)"
+          hover
+          class="text-center pa-4 fill-height d-flex flex-column"
+          elevation="4"
+          rounded="lg"
+        >
+          <v-card-item class="d-flex flex-column justify-center align-center">
+            <v-icon :icon="modulo.icono" color="primary" size="64"></v-icon>
+
+            <v-card-title class="font-weight-bold mt-4">
+              {{ modulo.titulo }}
+            </v-card-title>
+
+            <v-card-text class="text-medium-emphasis">
+              {{ modulo.descripcion }}
+            </v-card-text>
+          </v-card-item>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router';
+import { ref } from 'vue';
+
 const router = useRouter();
+
+// Se define un array con la información de los módulos para hacer el template más limpio
+const modulos = ref([
+  {
+    titulo: 'Productos',
+    descripcion: 'Creación de nuevos productos en el sistema.',
+    icono: 'mdi-package-variant-closed-plus',
+    ruta: '/productos/registrar',
+  },
+  {
+    titulo: 'Características',
+    descripcion: 'Gestiona categorías, proveedores, materiales y más.',
+    icono: 'mdi-format-list-bulleted-type',
+    ruta: '/productos/caracteristicas', // <-- Se cambió 'accion' por 'ruta'
+  },
+  {
+    titulo: 'Inventario',
+    descripcion: 'Gestión de entradas, salidas o traspasos de stock.',
+    icono: 'mdi-store-cog',
+    ruta: '/inventario',
+  },
+  {
+    titulo: 'Consultar Stock',
+    descripcion: 'Visualiza las cantidades actuales del inventario.',
+    icono: 'mdi-magnify-scan',
+    ruta: '/stock',
+  },
+  {
+    titulo: 'Clientes',
+    descripcion: 'Gestión de clientes y registro de prescripciones.',
+    icono: 'mdi-account-group-outline',
+    ruta: '/clientes',
+  },
+  {
+    titulo: 'Caja',
+    descripcion: 'Registro de órdenes de trabajo y gestión de pagos.',
+    icono: 'mdi-cash-register',
+    ruta: '/ordenes',
+  },
+  {
+    titulo: 'Reportes',
+    descripcion: 'Análisis y reportes de prescripciones médicas.',
+    icono: 'mdi-chart-line',
+    ruta: '/reportes/prescripciones',
+  },
+]);
+
 /**
  * Navega a la ruta especificada.
  * @param {string} ruta - La ruta a la que se desea navegar.
  */
 const navegarA = (ruta) => {
-  router.push(ruta);
+  if (ruta) {
+    router.push(ruta);
+  }
 };
 </script>
 
 <style scoped>
-.dashboard-container {
-  padding: 1rem 2rem;
-  background-color: #f9fafb;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.dashboard-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.dashboard-header h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.dashboard-header p {
-  font-size: 1.1rem;
-  color: #6b7280;
-  margin-top: 0.5rem;
-}
-
-.modules-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  max-width: 1300px;
-  margin: 1rem 1rem;
-  width: 100%;
-}
-
-.module-card {
-  background-color: rgb(233, 233, 233);
-  border-radius: 12px;
-  padding: 1rem 2rem;
-  text-align: center;
-  border: 1px solid #979797;
-  box-shadow: 0 8px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
-  cursor: pointer;
+.v-card {
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
-.module-card:hover {
+.v-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-}
-
-.icon-container {
-  font-size: 3.5rem;
-  margin-bottom: 1.5rem;
-  line-height: 1;
-}
-
-.module-card h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 0.5rem;
-}
-
-.module-card p {
-  font-size: 1rem;
-  color: #4b5563;
-  line-height: 1.5;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
 }
 </style>
