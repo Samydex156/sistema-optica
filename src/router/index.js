@@ -13,7 +13,8 @@ import PanelCliente from "../components/PanelCliente.vue";
 import RegistrarPrescripcion from "../components/RegistrarPrescripcion.vue";
 
 // Importar componente de Registrar orden de trabajo
-import RegistrarOrdenTrabajo from "../components/RegistrarOrdenTrabajo.vue";
+// Cambiamos el nombre para reflejar que es una página de gestión completa
+import GestionOrdenesTrabajo from "../components/GestionOrdenesTrabajo.vue";
 
 // Importar componentes para inventarios
 import GestionCaracteristicas from "../components/GestionCaracteristicas.vue";
@@ -87,7 +88,8 @@ const routes = [
   },
   {
     path: "/ordenes",
-    component: RegistrarOrdenTrabajo,
+    name: "GestionOrdenesTrabajo", // Añadimos un nombre a la ruta
+    component: GestionOrdenesTrabajo, // Apuntamos al nuevo componente
     meta: { requiresAuth: true },
   },
   {
@@ -96,7 +98,7 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: "/productos/caracteristicas", // <-- Esta es la ruta clave
+    path: "/productos/caracteristicas",
     name: "GestionCaracteristicas",
     component: GestionCaracteristicas,
     meta: { requiresAuth: true },

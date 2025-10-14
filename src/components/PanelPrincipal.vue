@@ -60,7 +60,7 @@ const modulos = ref([
     titulo: 'Características',
     descripcion: 'Gestiona categorías, proveedores, materiales y más.',
     icono: 'mdi-format-list-bulleted-type',
-    ruta: '/productos/caracteristicas', // <-- Se cambió 'accion' por 'ruta'
+    ruta: '/productos/caracteristicas',
   },
   {
     titulo: 'Inventario',

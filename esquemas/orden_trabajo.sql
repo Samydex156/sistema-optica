@@ -1,0 +1,20 @@
+create table public.orden_trabajo (
+  nro_boleta_sobre integer not null,
+  cliente integer not null,
+  tienda integer not null,
+  creado_por integer null,
+  fecha_pedido date not null default CURRENT_TIMESTAMP,
+  fecha_entrega date null,
+  fecha_pago_total date null,
+  hora_entrega time with time zone null,
+  monto_total numeric(10, 2) not null default 0.00,
+  monto_acuenta numeric(10, 2) not null default 0.00,
+  monto_saldo numeric(10, 2) not null default 0.00,
+  observaciones_orden text null,
+  estado_orden character varying(20) not null default 'PENDIENTE'::character varying,
+  creado_en timestamp with time zone not null default CURRENT_TIMESTAMP,
+  constraint orden_trabajo_pkey primary key (nro_boleta_sobre),
+  constraint orden_trabajo_cliente_fkey foreign KEY (cliente) references clientes (cod_cliente),
+  constraint orden_trabajo_creado_por_fkey foreign KEY (creado_por) references usuarios (cod_usuario),
+  constraint orden_trabajo_tienda_fkey foreign KEY (tienda) references tiendas (cod_tienda)
+) TABLESPACE pg_default;
