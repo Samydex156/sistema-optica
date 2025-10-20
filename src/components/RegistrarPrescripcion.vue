@@ -242,8 +242,6 @@ import { ref, onMounted, reactive, computed, nextTick, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { supabase } from '../lib/supabaseClient';
 
-// --- El script no necesita cambios, la lógica de negocio es la misma ---
-
 const props = defineProps({
   clienteId: { type: String, required: true },
   prescripcionId: { type: String, default: null }

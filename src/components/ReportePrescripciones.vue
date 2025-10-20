@@ -1,104 +1,311 @@
 <template>
-  <div class="report-container">
-    <header class="report-header">
-      <h1>Reporte de Prescripciones</h1>
-      <p>Filtra y analiza los registros de prescripciones por fecha de entrega y doctor.</p>
-    </header>
+  <v-container fluid>
+    <v-card class="mb-4">
+      <v-card-title class="text-h5">Reporte de Prescripciones</v-card-title>
+      <v-card-subtitle>Filtra y analiza los registros de prescripciones por fecha, doctor, proveedor y armazón.</v-card-subtitle>
+    </v-card>
 
-    <div class="filters-card">
-      <div class="form-group">
-        <label for="fecha-inicio">Fecha Inicial</label>
-        <input v-model="filtros.fechaInicio" type="date" id="fecha-inicio" class="form-input" />
-      </div>
-      <div class="form-group">
-        <label for="fecha-fin">Fecha Final</label>
-        <input v-model="filtros.fechaFin" type="date" id="fecha-fin" class="form-input" />
-      </div>
-      <div class="form-group doctor-filter">
-        <label for="doctor">Doctor</label>
-        <select v-model="filtros.doctor" id="doctor" class="form-input">
-          <option :value="null">Todos los Doctores</option>
-          <option v-for="doc in doctores" :key="doc.cod_doctor" :value="doc.cod_doctor">
-            {{ doc.nombre_doctor }}
-          </option>
-        </select>
-      </div>
-      <div class="filter-actions">
-        <button @click="aplicarFiltros" class="btn btn-primary">🔍 Filtrar</button>
-        <button @click="limpiarFiltros" class="btn btn-secondary">✨ Limpiar</button>
-      </div>
-    </div>
+    <v-card class="mb-4">
+      <v-card-title class="text-subtitle-1 font-weight-bold"> Filtros de Búsqueda</v-card-title>
+      <v-card-text>
+        <v-row dense>
+          <v-col cols="12" md="3">
+            <v-text-field
+              v-model="filtros.fechaInicio"
+              label="Fecha Inicial (Entrega)"
+              type="date"
+              variant="outlined"
+              density="compact"
+              clearable
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" md="3">
+            <v-text-field
+              v-model="filtros.fechaFin"
+              label="Fecha Final (Entrega)"
+              type="date"
+              variant="outlined"
+              density="compact"
+              clearable
+            ></v-text-field>
+          </v-col>
 
-    <div v-if="!cargando && resultadosBusqueda.length > 0" class="results-container">
-      <div class="summary-section">
-        <h3>Resumen por Doctor</h3>
-        <p><strong>Total de prescripciones encontradas:</strong> {{ totalResultados }}</p>
-        <ul class="summary-list">
-          <li v-for="(count, doctor) in resumenPorDoctor" :key="doctor">
-            <strong>{{ doctor }}:</strong> {{ count }} prescripci(ón/ones)
-          </li>
-        </ul>
-      </div>
+          <v-col cols="12" md="2">
+            <v-autocomplete
+              v-model="filtros.doctor"
+              :items="doctoresOptions"
+              item-title="label"
+              item-value="value"
+              label="Doctor"
+              variant="outlined"
+              density="compact"
+              clearable
+            ></v-autocomplete>
+          </v-col>
+          <v-col cols="12" md="2">
+            <v-autocomplete
+              v-model="filtros.proveedor"
+              :items="proveedoresOptions"
+              item-title="label"
+              item-value="value"
+              label="Proveedor"
+              variant="outlined"
+              density="compact"
+              clearable
+            ></v-autocomplete>
+          </v-col>
+          <v-col cols="12" md="2">
+            <v-autocomplete
+              v-model="filtros.armazon"
+              :items="armazonesOptions"
+              item-title="label"
+              item-value="value"
+              label="Armazón"
+              variant="outlined"
+              density="compact"
+              clearable
+            ></v-autocomplete>
+          </v-col>
+        </v-row>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn @click="limpiarFiltros" variant="text" prepend-icon="mdi-broom">
+          Limpiar
+        </v-btn>
+        <v-btn @click="aplicarFiltros" color="primary" variant="flat" prepend-icon="mdi-magnify" :loading="cargando">
+          Filtrar
+        </v-btn>
+      </v-card-actions>
+    </v-card>
 
-      <div class="table-container">
-        <h3>Detalle de Prescripciones</h3>
-        <table class="results-table">
-          <thead>
-            <tr>
-              <th>Cód. Receta</th>
-              <th>Cliente</th>
-              <th>Doctor</th>
-              <th>Fecha Prescripción</th>
-              <th>Fecha Entrega</th>
-              <th>Proveedor</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="prescripcion in resultadosBusqueda" :key="prescripcion.cod_prescripcion">
-              <td>{{ prescripcion.cod_receta }}</td>
-              <td>{{ prescripcion.clientes.nombre_cliente }} {{ prescripcion.clientes.apellido_paterno_cliente }}</td>
-              <td>{{ prescripcion.doctores.nombre_doctor }}</td>
-              <td>{{ prescripcion.fecha_prescripcion }}</td>
-              <td>{{ prescripcion.fecha_entrega }}</td>
-              <td>{{ prescripcion.proveedores ? prescripcion.proveedores.nombre_proveedor : 'N/A' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    
-    <div v-else-if="cargando" class="loading-message">
-      <p>Cargando datos...</p>
-    </div>
+    <v-progress-linear v-if="cargando" indeterminate color="primary" class="my-4"></v-progress-linear>
 
-    <div v-else-if="busquedaRealizada && resultadosBusqueda.length === 0" class="no-results-message">
-      <p>😕 No se encontraron resultados para los filtros seleccionados.</p>
-    </div>
-  </div>
+    <v-alert
+      v-if="busquedaRealizada && !cargando && resultadosBusqueda.length === 0"
+      type="info"
+      variant="outlined"
+      icon="mdi-information-outline"
+      class="mt-4"
+    >
+      No se encontraron resultados para los filtros seleccionados.
+    </v-alert>
+
+    <v-row v-if="!cargando && resultadosBusqueda.length > 0">
+      
+      <v-col cols="12" md="3">
+        <v-card class="mb-4" style="position: sticky; top: 80px;">
+          <v-card-text class="text-center">
+            <div class="text-h4 font-weight-bold">{{ totalResultados }}</div>
+            <div class="text-subtitle-1">Prescripciones Encontradas</div>
+          </v-card-text>
+        </v-card>
+
+        <v-card class="mb-4">
+          <v-card-title>Resumen por Doctor</v-card-title>
+          <v-list density="compact">
+            <v-list-item
+              v-for="(count, doctor) in resumenPorDoctor"
+              :key="doctor"
+              :title="doctor"
+              :subtitle="`${count} prescripciones`"
+            ></v-list-item>
+          </v-list>
+        </v-card>
+
+        <v-card class="mb-4">
+          <v-card-title>Resumen por Proveedor</v-card-title>
+          <v-list density="compact">
+            <v-list-item
+              v-for="(count, proveedor) in resumenPorProveedor"
+              :key="proveedor"
+              :title="proveedor"
+              :subtitle="`${count} prescripci(ón/ones)`"
+            ></v-list-item>
+          </v-list>
+        </v-card>
+
+        <v-card>
+          <v-card-title>Resumen por Armazón</v-card-title>
+          <v-list density="compact">
+            <v-list-item
+              v-for="(count, armazon) in resumenPorArmazon"
+              :key="armazon"
+              :title="armazon"
+              :subtitle="`${count} prescripci(ón/ones)`"
+            ></v-list-item>
+          </v-list>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" md="9">
+        <v-card>
+          <v-tabs v-model="tab" bg-color="primary" fixed-tabs>
+            <v-tab value="detalle" prepend-icon="mdi-table">Detalle (Tabla)</v-tab>
+            <v-tab value="graficas" prepend-icon="mdi-chart-bar">Resumen (Gráficas)</v-tab>
+          </v-tabs>
+
+          <v-card-text class="pt-4">
+            <v-window v-model="tab">
+              
+              <v-window-item value="detalle">
+                <v-data-table
+                  :headers="tableHeaders"
+                  :items="resultadosBusqueda"
+                  :items-per-page="15"
+                  class="elevation-0"
+                  density="compact"
+                >
+                  <template v-slot:item.cliente="{ item }">
+                    {{ item.clientes.nombre_cliente }} {{ item.clientes.apellido_paterno_cliente }}
+                  </template>
+                  <template v-slot:item.doctor="{ item }">
+                    {{ item.doctores.nombre_doctor }}
+                  </template>
+                  <template v-slot:item.proveedor="{ item }">
+                    {{ item.proveedores ? item.proveedores.nombre_proveedor : 'N/A' }}
+                  </template>
+                  <template v-slot:item.armazon="{ item }">
+                    {{ item.armazon_lente ? item.armazon_lente.nombre_armazon : 'N/A' }}
+                  </template>
+                  <template v-slot:item.fecha_prescripcion="{ item }">
+                    {{ new Date(item.fecha_prescripcion + 'T00:00:00').toLocaleDateString() }}
+                  </template>
+                  <template v-slot:item.fecha_entrega="{ item }">
+                    {{ new Date(item.fecha_entrega + 'T00:00:00').toLocaleDateString() }}
+                  </template>
+                </v-data-table>
+              </v-window-item>
+
+              <v-window-item value="graficas">
+                <v-row>
+                  <v-col cols="12">
+                    <v-card variant="outlined">
+                      <v-card-title>Prescripciones por Doctor (Top 5 + Otros)</v-card-title>
+                      <v-card-text>
+                        <VueApexCharts
+                          type="bar"
+                          height="350"
+                          :options="chartDoctorOptions"
+                          :series="chartDoctorSeries"
+                        ></VueApexCharts>
+                      </v-card-text>
+                    </v-card>
+                  </v-col>
+                  
+                  <v-col cols="12" md="6">
+                    <v-card variant="outlined">
+                      <v-card-title>Distribución por Proveedor</v-card-title>
+                      <v-card-text>
+                        <VueApexCharts
+                          type="pie"
+                          height="350"
+                          :options="chartProveedorOptions"
+                          :series="chartProveedorSeries"
+                        ></VueApexCharts>
+                      </v-card-text>
+                    </v-card>
+                  </v-col>
+
+                  <v-col cols="12" md="6">
+                     <v-card variant="outlined">
+                       <v-card-title>Distribución por Armazón</v-card-title>
+                       <v-card-text>
+                         <VueApexCharts
+                          type="donut"
+                          height="350"
+                          :options="chartArmazonOptions"
+                          :series="chartArmazonSeries"
+                        ></VueApexCharts>
+                       </v-card-text>
+                     </v-card>
+                  </v-col>
+                </v-row>
+              </v-window-item>
+
+            </v-window>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+
+  </v-container>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { supabase } from '../lib/supabaseClient';
+import VueApexCharts from 'vue3-apexcharts';
 
-const cargando = ref(false);
+const cargando = ref(true); 
 const busquedaRealizada = ref(false);
 const doctores = ref([]);
+const proveedores = ref([]);
+const armazones = ref([]);
 const resultadosBusqueda = ref([]);
+
+const tab = ref('detalle');
 
 const filtros = ref({
   fechaInicio: '',
   fechaFin: '',
   doctor: null,
+  proveedor: null,
+  armazon: null,
 });
 
-// Carga los doctores al montar el componente
+const tableHeaders = ref([
+  { title: 'Cód. Receta', key: 'cod_receta', sortable: true },
+  { title: 'Cliente', key: 'cliente', sortable: true },
+  { title: 'Doctor', key: 'doctor', sortable: true },
+  { title: 'Fecha Prescripción', key: 'fecha_prescripcion', sortable: true },
+  { title: 'Fecha Entrega', key: 'fecha_entrega', sortable: true },
+  { title: 'Proveedor', key: 'proveedor', sortable: true },
+  { title: 'Armazón', key: 'armazon', sortable: true },
+]);
+
+
+const todosOption = { value: null, label: 'Todos' };
+
+const doctoresOptions = computed(() => [
+  todosOption,
+  ...doctores.value.map(d => ({ value: d.cod_doctor, label: d.nombre_doctor }))
+]);
+
+const proveedoresOptions = computed(() => [
+  todosOption,
+  ...proveedores.value.map(p => ({ value: p.cod_proveedor, label: p.nombre_proveedor }))
+]);
+
+const armazonesOptions = computed(() => [
+  todosOption,
+  ...armazones.value.map(a => ({ value: a.cod_armazon, label: a.nombre_armazon }))
+]);
+
 onMounted(async () => {
-  const { data } = await supabase.from('doctores').select('*').order('nombre_doctor');
-  if (data) {
-    doctores.value = data;
-  }
+  await cargarDatosFiltros();
 });
+
+const cargarDatosFiltros = async () => {
+  cargando.value = true;
+  try {
+    const [doctoresRes, proveedoresRes, armazonesRes] = await Promise.all([
+      supabase.from('doctores').select('*').order('nombre_doctor'),
+      supabase.from('proveedores').select('*').order('nombre_proveedor'),
+      supabase.from('armazon_lente').select('*').order('nombre_armazon')
+    ]);
+
+    if (doctoresRes.data) doctores.value = doctoresRes.data;
+    if (proveedoresRes.data) proveedores.value = proveedoresRes.data;
+    if (armazonesRes.data) armazones.value = armazonesRes.data;
+
+  } catch (error) {
+    console.error("Error cargando datos para filtros:", error);
+    alert('No se pudieron cargar los datos de los filtros: ' + error.message);
+  } finally {
+    cargando.value = false;
+  }
+};
 
 const aplicarFiltros = async () => {
   cargando.value = true;
@@ -106,7 +313,7 @@ const aplicarFiltros = async () => {
   
   try {
     let query = supabase
-      .from('prescripcion_clienten')
+      .from('prescripcion_clienten') 
       .select(`
         cod_prescripcion,
         cod_receta,
@@ -114,7 +321,8 @@ const aplicarFiltros = async () => {
         fecha_entrega,
         clientes (nombre_cliente, apellido_paterno_cliente),
         doctores (nombre_doctor),
-        proveedores (nombre_proveedor)
+        proveedores (nombre_proveedor),
+        armazon_lente (nombre_armazon)
       `);
 
     if (filtros.value.fechaInicio) {
@@ -123,8 +331,15 @@ const aplicarFiltros = async () => {
     if (filtros.value.fechaFin) {
       query = query.lte('fecha_entrega', filtros.value.fechaFin);
     }
+
     if (filtros.value.doctor) {
       query = query.eq('doctor_prescriptor', filtros.value.doctor);
+    }
+    if (filtros.value.proveedor) {
+      query = query.eq('cod_proveedor', filtros.value.proveedor);
+    }
+    if (filtros.value.armazon) {
+      query = query.eq('cod_armazon', filtros.value.armazon);
     }
 
     const { data, error } = await query.order('fecha_entrega', { ascending: false });
@@ -132,6 +347,8 @@ const aplicarFiltros = async () => {
     if (error) throw error;
     
     resultadosBusqueda.value = data;
+    tab.value = 'detalle'; // Regresar a la pestaña de detalle en cada nueva búsqueda
+
   } catch (error) {
     console.error("Error al buscar prescripciones:", error);
     alert('No se pudieron obtener los datos: ' + error.message);
@@ -141,128 +358,104 @@ const aplicarFiltros = async () => {
 };
 
 const limpiarFiltros = () => {
-  filtros.value = { fechaInicio: '', fechaFin: '', doctor: null };
+  filtros.value = {
+    fechaInicio: '',
+    fechaFin: '',
+    doctor: null,
+    proveedor: null,
+    armazon: null,
+  };
   resultadosBusqueda.value = [];
   busquedaRealizada.value = false;
 };
 
 const totalResultados = computed(() => resultadosBusqueda.value.length);
 
-const resumenPorDoctor = computed(() => {
+const crearResumen = (campo, nombreSubcampo, defaultNombre) => {
   if (!resultadosBusqueda.value.length) return {};
   
   return resultadosBusqueda.value.reduce((acc, prescripcion) => {
-    const doctorName = prescripcion.doctores?.nombre_doctor || 'Desconocido';
-    acc[doctorName] = (acc[doctorName] || 0) + 1;
+    const nombre = prescripcion[campo]?.[nombreSubcampo] || defaultNombre;
+    acc[nombre] = (acc[nombre] || 0) + 1;
     return acc;
   }, {});
+};
+
+const resumenPorDoctor = computed(() => crearResumen('doctores', 'nombre_doctor', 'Desconocido'));
+const resumenPorProveedor = computed(() => crearResumen('proveedores', 'nombre_proveedor', 'N/A'));
+const resumenPorArmazon = computed(() => crearResumen('armazon_lente', 'nombre_armazon', 'N/A'));
+
+// 1. Lógica para agrupar Doctores (Top 5 + Otros)
+const resumenDoctorAgrupado = computed(() => {
+  const resumen = resumenPorDoctor.value;
+  // Convertir el objeto a un array [nombre, total] y ordenarlo
+  const entries = Object.entries(resumen).sort(([, countA], [, countB]) => countB - countA);
+  
+  // Si hay 5 o menos, devolver el resumen tal cual
+  if (entries.length <= 5) {
+    return resumen;
+  }
+
+  // Tomar el Top 5
+  const top5 = entries.slice(0, 5);
+  // Agrupar el resto
+  const otros = entries.slice(5);
+  
+  // Crear el nuevo objeto agrupado
+  const grouped = Object.fromEntries(top5);
+  // Sumar el resto en la categoría "OTROS"
+  grouped['OTROS'] = otros.reduce((acc, [, count]) => acc + count, 0);
+  
+  return grouped;
 });
+
+// 2. Datos para el Gráfico de Doctores (Barras)
+const chartDoctorOptions = computed(() => ({
+  chart: { id: 'bar-doctores' },
+  xaxis: {
+    categories: Object.keys(resumenDoctorAgrupado.value)
+  },
+  tooltip: {
+    y: { formatter: (val) => `${val} prescripciones` }
+  }
+}));
+
+const chartDoctorSeries = computed(() => [{
+  name: 'Prescripciones',
+  data: Object.values(resumenDoctorAgrupado.value)
+}]);
+
+// 3. Datos para el Gráfico de Proveedores (Torta/Pie)
+const chartProveedorOptions = computed(() => ({
+  chart: { id: 'pie-proveedores' },
+  labels: Object.keys(resumenPorProveedor.value),
+  responsive: [{ 
+    breakpoint: 480, 
+    options: { legend: { position: 'bottom' } } 
+  }],
+  tooltip: {
+    y: { formatter: (val) => `${val} prescripciones` }
+  }
+}));
+
+const chartProveedorSeries = computed(() => Object.values(resumenPorProveedor.value));
+
+// 4. Datos para el Gráfico de Armazones (Dona/Donut)
+const chartArmazonOptions = computed(() => ({
+  chart: { id: 'donut-armazones' },
+  labels: Object.keys(resumenPorArmazon.value),
+  responsive: [{ 
+    breakpoint: 480, 
+    options: { legend: { position: 'bottom' } } 
+  }],
+  tooltip: {
+    y: { formatter: (val) => `${val} prescripciones` }
+  }
+}));
+
+const chartArmazonSeries = computed(() => Object.values(resumenPorArmazon.value));
 
 </script>
 
 <style scoped>
-.report-container {
-  padding: 1rem 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-.report-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-.report-header h1 {
-  font-size: 2.2rem;
-}
-.filters-card {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  background-color: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-  align-items: flex-end;
-}
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-.form-group label {
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  font-size: .9rem;
-}
-.form-input {
-  padding: 0.5rem;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  width: 100%;
-}
-.filter-actions {
-  display: flex;
-  gap: 0.5rem;
-  align-items: flex-end;
-}
-.btn {
-  padding: 0.6rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  color: white;
-}
-.btn-primary { background-color: #007bff; }
-.btn-primary:hover { background-color: #0056b3; }
-.btn-secondary { background-color: #6c757d; }
-.btn-secondary:hover { background-color: #5a6268; }
-
-.results-container {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 2rem;
-  align-items: flex-start;
-}
-.summary-section {
-  background-color: #fff;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  position: sticky;
-  top: 20px;
-}
-.summary-list {
-  list-style-type: none;
-  padding: 0;
-  margin-top: 1rem;
-}
-.summary-list li {
-  padding: 0.5rem;
-  border-bottom: 1px solid #eee;
-}
-.table-container {
-  overflow-x: auto;
-}
-.results-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-.results-table th, .results-table td {
-  padding: 0.8rem 1rem;
-  border: 1px solid #dee2e6;
-  text-align: left;
-}
-.results-table th {
-  background-color: #e9ecef;
-  font-weight: 600;
-}
-.loading-message, .no-results-message {
-  text-align: center;
-  padding: 2rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  font-size: 1.2rem;
-  color: #6c757d;
-}
 </style>
