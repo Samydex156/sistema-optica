@@ -304,16 +304,29 @@ const formData = reactive(getInitialFormData());
 const pageTitle = computed(() => isEditing.value ? 'Editar Prescripción' : 'Registrar Prescripción');
 const clienteNombreCompleto = computed(() => cliente.value ? `${cliente.value.nombre_cliente} ${cliente.value.apellido_paterno_cliente || ''}`.trim() : '');
 
+// --- INICIO DE LA MODIFICACIÓN ---
 const sufijoReceta = computed(() => {
   const apellidoPaterno = cliente.value?.apellido_paterno_cliente;
   if (apellidoPaterno) {
-    const primeraLetra = apellidoPaterno.trim().charAt(0).toUpperCase();
+    const apellidoLimpio = apellidoPaterno.trim().toUpperCase();
+
+    if (apellidoLimpio.startsWith('CH')) {
+      return '-CH';
+    }
+    
+    if (apellidoLimpio.startsWith('LL')) {
+      return '-LL';
+    }
+
+    // Lógica original para una sola letra
+    const primeraLetra = apellidoLimpio.charAt(0);
     if (primeraLetra && /^[A-Z]$/.test(primeraLetra)) {
       return `-${primeraLetra}`;
     }
   }
   return '';
 });
+// --- FIN DE LA MODIFICACIÓN ---
 
 const codigoRecetaCompleto = computed(() => {
     if (recetaNumerica.value && /^\d{1,4}$/.test(recetaNumerica.value.trim())) {
