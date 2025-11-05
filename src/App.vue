@@ -1,12 +1,12 @@
 <template>
   <v-app>
-    <div id="app">
+    <div>
       <!-- 1. Renderizado condicional basado en la autenticación -->
       <template v-if="isAuthenticated">
         <NavbarPrincipal @open-calculator-modal="showModal = true" @logout="handleLogout" />
 
         <v-main>
-          <main class="main-content">
+          <main>
             <router-view />
           </main>
         </v-main>
@@ -43,27 +43,3 @@ const handleLogout = () => {
   router.push('/login');
 };
 </script>
-
-<style>
-/* Tus estilos globales se mantienen igual */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f9fafb;
-}
-
-#app {
-  min-height: 100vh;
-}
-
-.main-content {
-  padding: 1rem;
-  margin: 0 auto;
-  width: 100%;
-}
-</style>
