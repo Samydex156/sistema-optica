@@ -1,74 +1,139 @@
 <template>
-  <div class="inventario-container">
-    <h3>Gestión de Inventario</h3>
-    <p class="subtitle">Realiza entradas, salidas y traspasos de productos entre tiendas.</p>
+  <v-container fluid>
+    
+    <v-card max-width="1000" class="mx-auto" variant="flat" border>
+      <v-toolbar color="grey-lighten-4">
+        <v-card-title class="text-h6 font-weight-regular">
+          <v-icon icon="mdi-swap-horizontal-bold" start></v-icon>
+          Gestión de Inventario
+        </v-card-title>
+      </v-toolbar>
 
-    <div class="form-inventario">
-      <div class="form-section">
-        <div class="form-group">
-          <label>Producto:</label>
-          <AutoComplete
-            v-model="form.producto_id"
-            :options="productoOptions"
-            placeholder="Buscar producto por descripción..."
-            @change="verificarStock"
-          />
-        </div>
+      <v-card-text>
+        <p class="text-subtitle-1 text-grey-darken-1 mb-6">
+          Realiza entradas, salidas y traspasos de productos entre tiendas.
+        </p>
 
-        <div class="form-group">
-          <label>Tipo de Movimiento:</label>
-          <div class="radio-group">
-            <label><input type="radio" v-model="form.tipo_movimiento" value="ENTRADA"> Entrada</label>
-            <label><input type="radio" v-model="form.tipo_movimiento" value="SALIDA"> Salida</label>
-            <label><input type="radio" v-model="form.tipo_movimiento" value="TRASPASO"> Traspaso</label>
-          </div>
-        </div>
-      </div>
+        <v-container>
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-autocomplete
+                v-model="form.producto_id"
+                :items="productoOptions"
+                item-title="label"
+                item-value="value"
+                label="Producto"
+                placeholder="Buscar producto por descripción..."
+                variant="outlined"
+                @update:modelValue="verificarStock"
+              ></v-autocomplete>
+            </v-col>
 
-      <div class="form-section tiendas-section">
-        <div v-if="form.tipo_movimiento === 'SALIDA' || form.tipo_movimiento === 'TRASPASO'" class="form-group">
-          <label>Tienda de Origen:</label>
-          <select v-model="form.tienda_origen_id" @change="verificarStock">
-            <option disabled value="">Seleccione una tienda</option>
-            <option v-for="tienda in tiendas" :key="tienda.cod_tienda" :value="tienda.cod_tienda">{{ tienda.nombre_tienda }}</option>
-          </select>
-          <div v-if="stockActual !== null" class="stock-info">
-            Stock disponible: <strong>{{ stockActual }}</strong>
-          </div>
-        </div>
+            <v-col cols="12" md="6">
+              <v-radio-group 
+                v-model="form.tipo_movimiento" 
+                inline 
+                label="Tipo de Movimiento"
+              >
+                <v-radio label="Entrada" value="ENTRADA"></v-radio>
+                <v-radio label="Salida" value="SALIDA"></v-radio>
+                <v-radio label="Traspaso" value="TRASPASO"></v-radio>
+              </v-radio-group>
+            </v-col>
+          </v-row>
+          
+          <v-divider class="my-4"></v-divider>
 
-        <div v-if="form.tipo_movimiento === 'ENTRADA' || form.tipo_movimiento === 'TRASPASO'" class="form-group">
-          <label>Tienda de Destino:</label>
-          <select v-model="form.tienda_destino_id">
-            <option disabled value="">Seleccione una tienda</option>
-            <option v-for="tienda in tiendas" :key="tienda.cod_tienda" :value="tienda.cod_tienda">{{ tienda.nombre_tienda }}</option>
-          </select>
-        </div>
+          <v-row>
+            <v-col
+              v-if="form.tipo_movimiento === 'SALIDA' || form.tipo_movimiento === 'TRASPASO'"
+              cols="12"
+              md="6"
+            >
+              <v-select
+                v-model="form.tienda_origen_id"
+                :items="tiendas"
+                item-title="nombre_tienda"
+                item-value="cod_tienda"
+                label="Tienda de Origen"
+                variant="outlined"
+                @update:modelValue="verificarStock"
+              >
+                <template v-slot:append-inner>
+                  <v-chip
+                    v-if="stockActual !== null"
+                    :color="stockActual > 0 ? 'blue' : 'red'"
+                    size="small"
+                    label
+                    variant="tonal"
+                  >
+                    Stock: {{ stockActual }}
+                  </v-chip>
+                </template>
+              </v-select>
+            </v-col>
+            
+            <v-col
+              v-if="form.tipo_movimiento === 'ENTRADA' || form.tipo_movimiento === 'TRASPASO'"
+              cols="12"
+              md="6"
+            >
+              <v-select
+                v-model="form.tienda_destino_id"
+                :items="tiendas"
+                item-title="nombre_tienda"
+                item-value="cod_tienda"
+                label="Tienda de Destino"
+                variant="outlined"
+              ></v-select>
+            </v-col>
 
-        <div class="form-group">
-          <label>Cantidad:</label>
-          <input v-model.number="form.cantidad" type="number" placeholder="0" min="1" />
-        </div>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model.number="form.cantidad"
+                label="Cantidad"
+                type="number"
+                min="1"
+                variant="outlined"
+              ></v-text-field>
+            </v-col>
+          </v-row>
 
-        <div class="form-group">
-          <label>Motivo:</label>
-          <input v-model.trim="form.motivo" type="text" placeholder="Ej: Compra a proveedor, Venta, Ajuste..." />
-        </div>
-      </div>
+          <v-row>
+            <v-col cols="12">
+              <v-text-field
+                v-model.trim="form.motivo"
+                label="Motivo del Movimiento"
+                placeholder="Ej: Compra a proveedor, Venta, Ajuste..."
+                variant="outlined"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-card-text>
 
-      <div class="form-actions">
-        <button @click="ejecutarMovimiento" :disabled="!isFormValid" class="btn-principal">
+      <v-card-actions class="pa-4 bg-grey-lighten-3">
+        <v-spacer></v-spacer>
+        <v-btn
+          @click="ejecutarMovimiento"
+          :disabled="!isFormValid"
+          :loading="cargandoMovimiento"
+          color="primary"
+          variant="flat"
+          size="large"
+          prepend-icon="mdi-check-circle-outline"
+        >
           Registrar Movimiento
-        </button>
-      </div>
-    </div>
-  </div>
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-container>
 </template>
 
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { supabase } from "../lib/supabaseClient.js";
-import AutoComplete from "./Autocomplete.vue"; // Reutilizamos tu componente!
+// Ya no se importa AutoComplete
 
 // --- ESTADO ---
 const form = ref({
@@ -84,6 +149,7 @@ const productos = ref([]);
 const tiendas = ref([]);
 const stockActual = ref(null);
 const usuarioId = ref(1); // TODO: Reemplazar con el ID del usuario autenticado de useAuth()
+const cargandoMovimiento = ref(false); // Estado de carga para el botón
 
 // --- COMPUTED PROPERTIES ---
 const productoOptions = computed(() =>
@@ -100,14 +166,20 @@ const isFormValid = computed(() => {
   if (form.value.tipo_movimiento === 'ENTRADA' && !form.value.tienda_destino_id) return false;
   if (form.value.tipo_movimiento === 'SALIDA' && !form.value.tienda_origen_id) return false;
   if (form.value.tipo_movimiento === 'TRASPASO' && (!form.value.tienda_origen_id || !form.value.tienda_destino_id)) return false;
+  
+  // Evitar traspasos a la misma tienda
   if (form.value.tipo_movimiento === 'TRASPASO' && form.value.tienda_origen_id === form.value.tienda_destino_id) {
-    // Evitar traspasos a la misma tienda
     return false;
   }
+  
+  // Evitar estado de carga
+  if (cargandoMovimiento.value) return false;
+  
   return true;
 });
 
 // --- MÉTODOS ---
+// (Lógica sin cambios)
 async function fetchData() {
   const { data: productosData } = await supabase.from("productos").select("cod_producto, descripcion_producto").order("descripcion_producto");
   productos.value = productosData || [];
@@ -149,6 +221,8 @@ async function ejecutarMovimiento() {
       return;
   }
 
+  cargandoMovimiento.value = true;
+
   const params = {
     p_producto_id: form.value.producto_id,
     p_tienda_origen_id: form.value.tipo_movimiento === 'ENTRADA' ? null : form.value.tienda_origen_id,
@@ -167,7 +241,10 @@ async function ejecutarMovimiento() {
   } else {
     alert("¡Movimiento registrado exitosamente!");
     resetForm();
+    await verificarStock(); // Actualizar el stock
   }
+  
+  cargandoMovimiento.value = false;
 }
 
 function resetForm() {
@@ -195,95 +272,5 @@ onMounted(fetchData);
 </script>
 
 <style scoped>
-.inventario-container {
-  padding: 2rem;
-  background-color: #f9fafb;
-}
-h3 {
-  font-size: 24px;
-  font-weight: 600;
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 15px;
-  margin-bottom: 5px;
-}
-.subtitle {
-  color: #6b7280;
-  margin-bottom: 2rem;
-}
-.form-inventario {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e5e7eb;
-}
-.form-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-.tiendas-section {
-  border-top: 1px dashed #ccc;
-  padding-top: 1.5rem;
-}
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-.form-group label {
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-  font-size: 14px;
-}
-.form-group input[type="text"],
-.form-group input[type="number"],
-.form-group select {
-  padding: 8px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 14px;
-  width: 100%;
-}
-.radio-group {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  padding: 8px 0;
-}
-.radio-group label {
-  font-weight: normal;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  margin: 0;
-}
-.stock-info {
-  margin-top: 8px;
-  font-size: 13px;
-  color: #007bff;
-}
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  border-top: 1px solid #e0e0e0;
-  padding-top: 1.5rem;
-}
-.btn-principal {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.2s;
-}
-.btn-principal:hover {
-  background-color: #0056b3;
-}
-.btn-principal:disabled {
-  background-color: #a0c7f0;
-  cursor: not-allowed;
-}
+
 </style>

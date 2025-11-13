@@ -1,26 +1,28 @@
 <template>
   <v-app>
-    <div>
-      <!-- 1. Renderizado condicional basado en la autenticación -->
+    <v-layout>
       <template v-if="isAuthenticated">
-        <NavbarPrincipal @open-calculator-modal="showModal = true" @logout="handleLogout" />
+        <NavbarPrincipal 
+          @open-calculator-modal="showCalculatorDialog = true" 
+          @logout="handleLogout" 
+        />
 
         <v-main>
-          <main>
+          <v-container fluid class="pa-4">
             <router-view />
-          </main>
+          </v-container>
         </v-main>
         
-        <!-- Este modal debería ser migrado a v-dialog también si es posible -->
-        <CalculatorModal v-if="showModal" @close="showModal = false" />
+        <CalculatorDialog v-model="showCalculatorDialog" />
+
       </template>
 
-      <!-- 2. Si no está autenticado, solo se muestra la vista del router (página de login) -->
       <template v-else>
          <router-view />
       </template>
-    </div>
-    <CronometroFlotante />
+      
+      <CronometroFlotante />
+    </v-layout>
   </v-app>
 </template>
 
@@ -28,12 +30,13 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import NavbarPrincipal from './components/NavbarPrincipal.vue';
-import CalculatorModal from './components/CalculatorModal.vue';
+// Renombrado de CalculatorModal a CalculatorDialog para claridad
+import CalculatorDialog from './components/CalculatorDialog.vue'; 
 import { useAuth } from './composables/useAuth';
 import CronometroFlotante from './components/CronometroFlotante.vue';
 
-// Estado para el modal de la calculadora
-const showModal = ref(false);
+// Estado para el modal de la calculadora, ahora llamado 'showCalculatorDialog'
+const showCalculatorDialog = ref(false);
 
 const { isAuthenticated, logout } = useAuth();
 const router = useRouter();
@@ -43,3 +46,12 @@ const handleLogout = () => {
   router.push('/login');
 };
 </script>
+
+<style scoped>
+/* Opcional: Asegura que v-main tenga un fondo de color 
+  consistente con el tema de Vuetify.
+*/
+.v-main {
+  background-color: rgb(var(--v-theme-background));
+}
+</style>

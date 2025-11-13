@@ -25,8 +25,6 @@ import ConsultaStock from "../components/ConsultaStock.vue";
 // Importar componente de Ejercicios básicos
 import EjerciciosComputed from "../components/EjerciciosComputed.vue";
 
-// Importar el componente para la Landing Page
-import LandingPage from "../components/LandingPage.vue";
 
 // Importar el componente para reporte de prescripciones.
 import ReportePrescripciones from "../components/ReportePrescripciones.vue";
@@ -46,12 +44,6 @@ const routes = [
     path: "/login",
     name: "Login",
     component: RegistrarUsuario,
-    meta: { requiresAuth: false },
-  },
-  {
-    path: "/landing",
-    name: "LandingPage",
-    component: LandingPage,
     meta: { requiresAuth: false },
   },
   {

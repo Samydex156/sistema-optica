@@ -1,294 +1,472 @@
 <template>
-  <div>
-    <h3>Órdenes de Trabajo</h3>
-    <div class="filtros">
-      <select v-model="filtroEstado" @change="aplicarFiltros">
-        <option value="">Todos los estados</option>
-        <option value="PENDIENTE">Pendiente</option>
-        <option value="EN_PROCESO">En Proceso</option>
-        <option value="TERMINADO">Terminado</option>
-        <option value="ENTREGADO">Entregado</option>
-        <option value="CANCELADO">Cancelado</option>
-      </select>
+  <v-container fluid>
+    
+    <v-card variant="flat" border>
+      <v-toolbar color="grey-lighten-4">
+        <v-card-title class="text-h6 font-weight-regular">
+          <v-icon icon="mdi-file-document-multiple-outline" start></v-icon>
+          Órdenes de Trabajo
+        </v-card-title>
+        <v-spacer></v-spacer>
+        <v-btn 
+          color="primary" 
+          @click="abrirModalCrear" 
+          prepend-icon="mdi-plus"
+          class="mr-2"
+        >
+          Nueva Orden
+        </v-btn>
+      </v-toolbar>
 
-      <select v-model="filtroTienda" @change="aplicarFiltros">
-        <option value="">Todas las tiendas</option>
-        <option v-for="tienda in tiendas" :key="tienda.cod_tienda" :value="tienda.cod_tienda">
-          {{ tienda.nombre_tienda }}
-        </option>
-      </select>
+      <v-card-text>
+        <v-row>
+          <v-col cols="12" md="3">
+            <v-select
+              v-model="filtroEstado"
+              :items="estadosOrden"
+              label="Filtrar por estado"
+              item-title="texto"
+              item-value="valor"
+              variant="outlined"
+              density="compact"
+              hide-details
+              clearable
+            ></v-select>
+          </v-col>
+          <v-col cols="12" md="3">
+            <v-select
+              v-model="filtroTienda"
+              :items="tiendas"
+              label="Filtrar por tienda"
+              item-title="nombre_tienda"
+              item-value="cod_tienda"
+              variant="outlined"
+              density="compact"
+              hide-details
+              clearable
+            ></v-select>
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="buscarCliente"
+              label="Buscar por cliente..."
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+              density="compact"
+              hide-details
+            ></v-text-field>
+          </v-col>
+        </v-row>
+      </v-card-text>
 
-      <input v-model="buscarCliente" @input="aplicarFiltros" placeholder="Buscar por cliente..." type="text" />
-    </div>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Nro. Boleta</th>
-          <th>Cliente</th>
-          <th>Tienda</th>
-          <th>Fecha Pedido</th>
-          <th>Fecha Entrega</th>
-          <th>Monto Total</th>
-          <th>Pagado</th>
-          <th>Saldo</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="orden in ordenesFiltradas" :key="orden.nro_boleta_sobre">
-          <td>{{ orden.nro_boleta_sobre }}</td>
-          <td>{{ getClienteNombre(orden.cliente) }}</td>
-          <td>{{ getTiendaNombre(orden.tienda) }}</td>
-          <td>{{ formatearFecha(orden.fecha_pedido) }}</td>
-          <td>{{ orden.fecha_entrega ? formatearFecha(orden.fecha_entrega) : '-' }}</td>
-          <td>Bs. {{ orden.monto_total }}</td>
-          <td>Bs. {{ orden.monto_pagado || 0 }}</td>
-          <td :class="{ 'saldo-pendiente': orden.monto_saldo > 0 }">
-            Bs. {{ orden.monto_saldo }}
-          </td>
-          <td>
-            <span :class="'estado-' + orden.estado_orden.toLowerCase()">
-              {{ orden.estado_orden }}
-            </span>
-          </td>
-          <td class="acciones-cell">
-            <div class="dropdown-container">
-              <button @click.stop="toggleDropdown(orden.nro_boleta_sobre)" class="btn-acciones">
-                Acciones &#9662;
-              </button>
-              <div v-if="dropdownAbierto === orden.nro_boleta_sobre" class="dropdown-menu">
-                <a @click="verDetalleOrden(orden)">Ver Detalles</a>
-                <a @click="editarOrden(orden)">Editar Orden</a>
-                <a @click="abrirModalPagos(orden)">Gestionar Pagos</a>
-                <a @click="cambiarEstado(orden)">Cambiar Estado</a>
-                <a @click="eliminarOrden(orden.nro_boleta_sobre)" class="dropdown-danger">Eliminar</a>
-              </div>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <BaseModal v-model="showModal" :title="editId ? 'Editar Orden de Trabajo' : 'Nueva Orden de Trabajo'" size="lg">
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Nro. Boleta/Sobre:</label>
-          <input ref="nroSobreInput" v-model="formOrden.nro_boleta_sobre" type="number"
-            placeholder="Número Boleta / Sobre" :disabled="editId" />
-        </div>
-
-        <div class="form-group">
-            <label>Cliente:</label>
-            <AutoComplete
-              v-model="formOrden.cliente"
-              :options="clientesOptions"
-              placeholder="Buscar cliente..."
-            />
-        </div>
-
-        <div class="form-group">
-          <label>Tienda:</label>
-          <select v-model="formOrden.tienda">
-            <option value="">Seleccionar tienda</option>
-            <option v-for="tienda in tiendas" :key="tienda.cod_tienda" :value="tienda.cod_tienda">
-              {{ tienda.nombre_tienda }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Fecha Pedido:</label>
-          <input v-model="formOrden.fecha_pedido" type="date" />
-        </div>
-
-        <div class="form-group">
-          <label>Fecha Entrega:</label>
-          <input v-model="formOrden.fecha_entrega" type="date" />
-        </div>
-
-        <div class="form-group">
-          <label>Hora Entrega:</label>
-          <input v-model="formOrden.hora_entrega" type="time" />
-        </div>
-
-        <div class="form-group">
-          <label>Monto Total:</label>
-          <input v-model="formOrden.monto_total" type="number" step="0.01" @input="calcularSaldo" />
-        </div>
-
-        <div class="form-group">
-          <label>Monto a Cuenta:</label>
-          <input v-model="formOrden.monto_acuenta" type="number" step="0.01" @input="calcularSaldo" />
-        </div>
-
-        <div class="form-group">
-          <label>Saldo:</label>
-          <input v-model="formOrden.monto_saldo" type="number" step="0.01" readonly />
-        </div>
-
-        <div class="form-group">
-          <label>Estado:</label>
-          <select v-model="formOrden.estado_orden">
-            <option value="PENDIENTE">Pendiente</option>
-            <option value="EN_PROCESO">En Proceso</option>
-            <option value="TERMINADO">Terminado</option>
-            <option value="ENTREGADO">Entregado</option>
-            <option value="CANCELADO">Cancelado</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-group full-width">
-        <label>Observaciones:</label>
-        <textarea v-model="formOrden.observaciones_orden" rows="3"
-          placeholder="Observaciones de la orden..."></textarea>
-      </div>
-      
-      <template #footer>
-        <button @click="cerrarModal" class="btn btn-secondary">Cancelar</button>
-        <button @click="guardarOrden" class="btn btn-primary">Guardar</button>
-      </template>
-    </BaseModal>
-
-    <BaseModal v-model="showModalEstado" title="Cambiar Estado de Orden" size="md">
-        <p><strong>Orden:</strong> {{ ordenSeleccionada?.nro_boleta_sobre }}</p>
-        <p><strong>Cliente:</strong> {{ getClienteNombre(ordenSeleccionada?.cliente) }}</p>
-        <p><strong>Estado actual:</strong> {{ ordenSeleccionada?.estado_orden }}</p>
-
-        <div class="form-group">
-          <label>Nuevo estado:</label>
-          <select v-model="nuevoEstado">
-            <option value="PENDIENTE">Pendiente</option>
-            <option value="EN_PROCESO">En Proceso</option>
-            <option value="TERMINADO">Terminado</option>
-            <option value="ENTREGADO">Entregado</option>
-            <option value="CANCELADO">Cancelado</option>
-          </select>
-        </div>
-      <template #footer>
-          <button @click="cerrarModalEstado" class="btn btn-secondary">Cancelar</button>
-          <button @click="actualizarEstado" class="btn btn-primary">Cambiar Estado</button>
-      </template>
-    </BaseModal>
-
-    <BaseModal v-model="showModalDetalle" :title="`Detalle de Orden - ${ordenSeleccionada?.nro_boleta_sobre}`" size="lg">
-      <div class="detalle-grid">
-        <div><strong>Cliente:</strong> {{ getClienteNombre(ordenSeleccionada?.cliente) }}</div>
-        <div><strong>Tienda:</strong> {{ getTiendaNombre(ordenSeleccionada?.tienda) }}</div>
-        <div><strong>Creado por:</strong> {{ getUsuarioNombre(ordenSeleccionada?.creado_por) }}</div>
-        <div><strong>Fecha Pedido:</strong> {{ formatearFecha(ordenSeleccionada?.fecha_pedido) }}</div>
-        <div><strong>Fecha Entrega:</strong> {{ ordenSeleccionada?.fecha_entrega ? formatearFecha(ordenSeleccionada.fecha_entrega) : 'No definida' }}</div>
-        <div><strong>Hora Entrega:</strong> {{ ordenSeleccionada?.hora_entrega || 'No definida' }}</div>
-        <div><strong>Monto Total:</strong> Bs. {{ ordenSeleccionada?.monto_total }}</div>
-        <div><strong>Monto a Cuenta:</strong> Bs. {{ ordenSeleccionada?.monto_acuenta }}</div>
-        <div><strong>Total Pagado:</strong> Bs. {{ ordenSeleccionada?.monto_pagado || 0 }}</div>
-        <div><strong>Saldo:</strong> Bs. {{ ordenSeleccionada?.monto_saldo }}</div>
-        <div><strong>Estado:</strong> {{ ordenSeleccionada?.estado_orden }}</div>
-        <div><strong>Creado:</strong> {{ formatearFechaHora(ordenSeleccionada?.creado_en) }}</div>
-      </div>
-
-      <div v-if="ordenSeleccionada?.observaciones_orden" class="observaciones">
-        <strong>Observaciones:</strong>
-        <p>{{ ordenSeleccionada.observaciones_orden }}</p>
-      </div>
-
-      <template #footer>
-          <button @click="cerrarModalDetalle" class="btn btn-secondary">Cerrar</button>
-      </template>
-    </BaseModal>
-
-    <BaseModal v-model="showModalPagos" :title="`Gestión de Pagos - Orden ${ordenSeleccionada?.nro_boleta_sobre}`" size="lg">
-        <div class="resumen-orden">
-          <div class="resumen-grid">
-            <div><strong>Cliente:</strong> {{ getClienteNombre(ordenSeleccionada?.cliente) }}</div>
-            <div><strong>Monto Total:</strong> Bs. {{ ordenSeleccionada?.monto_total }}</div>
-            <div><strong>Monto a Cuenta:</strong> Bs. {{ ordenSeleccionada?.monto_acuenta }}</div>
-            <div class="highlight"><strong>Total Pagado:</strong> Bs. {{ ordenSeleccionada?.monto_pagado || 0 }}</div>
-            <div class="highlight-saldo"><strong>Saldo Pendiente:</strong> Bs. {{ ordenSeleccionada?.monto_saldo }}</div>
-          </div>
-        </div>
-
-        <div class="nuevo-pago">
-          <h4>Registrar Nuevo Pago</h4>
-          <div class="form-grid-pago">
-            <div class="form-group">
-              <label>Tipo de Pago:</label>
-              <select v-model="formPago.tipo_pago">
-                <option value="EFECTIVO">Efectivo</option>
-                <option value="TARJETA">Tarjeta</option>
-                <option value="TRANSFERENCIA">Transferencia</option>
-                <option value="CHEQUE">Cheque</option>
-                <option value="OTRO">Otro</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Monto:</label>
-              <input v-model="formPago.monto_pago" type="number" step="0.01" :max="ordenSeleccionada?.monto_saldo" placeholder="0.00" />
-            </div>
-            <div class="form-group">
-              <label>Fecha de Pago:</label>
-              <input v-model="formPago.fecha_pago" type="date" />
-            </div>
-            <div class="form-group">
-              <button @click="registrarPago" class="btn btn-success" :disabled="!formPago.monto_pago || formPago.monto_pago <= 0">
-                Registrar Pago
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="pagos-existentes">
-          <h4>Historial de Pagos</h4>
-          <table v-if="pagosOrden.length > 0" class="tabla-pagos">
-            <thead>
-              <tr>
-                <th>Código</th>
-                <th>Tipo</th>
-                <th>Monto</th>
-                <th>Fecha</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="pago in pagosOrden" :key="pago.cod_pago">
-                <td>{{ pago.cod_pago }}</td>
-                <td>{{ pago.tipo_pago }}</td>
-                <td>Bs. {{ pago.monto_pago }}</td>
-                <td>{{ formatearFecha(pago.fecha_pago) }}</td>
-                <td>
-                  <button @click="eliminarPago(pago.cod_pago)" class="btn-eliminar">Eliminar</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <p v-else class="no-pagos">No hay pagos registrados para esta orden.</p>
-        </div>
-
-        <template #footer>
-            <button @click="cerrarModalPagos" class="btn btn-secondary">Cerrar</button>
+      <v-data-table
+        :headers="headers"
+        :items="ordenesFiltradas"
+        :loading="cargandoOrdenes"
+        density="compact"
+        hover
+        class="elevation-0"
+        no-data-text="No hay órdenes que coincidan con los filtros"
+      >
+        <template v-slot:item.nro_boleta_sobre="{ item }">
+          <strong>#{{ item.nro_boleta_sobre }}</strong>
         </template>
-    </BaseModal>
+        
+        <template v-slot:item.cliente="{ item }">
+          {{ getClienteNombre(item.cliente) }}
+        </template>
+        
+        <template v-slot:item.tienda="{ item }">
+          {{ getTiendaNombre(item.tienda) }}
+        </template>
 
-  </div>
+        <template v-slot:item.fecha_pedido="{ item }">
+          {{ formatearFecha(item.fecha_pedido) }}
+        </template>
+        <template v-slot:item.fecha_entrega="{ item }">
+          {{ item.fecha_entrega ? formatearFecha(item.fecha_entrega) : '-' }}
+        </template>
+        
+        <template v-slot:item.monto_saldo="{ item }">
+          <span :class="item.monto_saldo > 0 ? 'text-red font-weight-bold' : ''">
+            Bs. {{ item.monto_saldo.toFixed(2) }}
+          </span>
+        </template>
+
+        <template v-slot:item.estado_orden="{ item }">
+          <v-chip
+            :color="getEstadoColor(item.estado_orden)"
+            size="small"
+            label
+            variant="tonal"
+          >
+            {{ item.estado_orden }}
+          </v-chip>
+        </template>
+        
+        <template v-slot:item.acciones="{ item }">
+          <v-menu>
+            <template v-slot:activator="{ props }">
+              <v-btn icon="mdi-dots-vertical" variant="text" size="small" v-bind="props"></v-btn>
+            </template>
+            <v-list density="compact">
+              <v-list-item @click="verDetalleOrden(item)" prepend-icon="mdi-eye-outline" title="Ver Detalles"></v-list-item>
+              <v-list-item @click="editarOrden(item)" prepend-icon="mdi-pencil-outline" title="Editar Orden"></v-list-item>
+              <v-list-item @click="abrirModalPagos(item)" prepend-icon="mdi-cash-multiple" title="Gestionar Pagos"></v-list-item>
+              <v-list-item @click="cambiarEstado(item)" prepend-icon="mdi-swap-horizontal" title="Cambiar Estado"></v-list-item>
+              <v-divider></v-divider>
+              <v-list-item @click="eliminarOrden(item.nro_boleta_sobre)" prepend-icon="mdi-delete-outline" title="Eliminar" base-color="red-darken-1"></v-list-item>
+            </v-list>
+          </v-menu>
+        </template>
+      </v-data-table>
+    </v-card>
+
+    <v-dialog v-model="showModal" persistent max-width="1200px">
+      <v-card>
+        <v-card-title class="text-h5 pa-4 bg-grey-lighten-3">
+          {{ editId ? 'Editar Orden de Trabajo' : 'Nueva Orden de Trabajo' }}
+        </v-card-title>
+        <v-card-text class="pt-4">
+          <v-container>
+            <v-row>
+              <v-col cols="12" md="4">
+                <v-text-field
+                  ref="nroSobreInput"
+                  v-model="formOrden.nro_boleta_sobre"
+                  label="Nro. Boleta/Sobre"
+                  type="number"
+                  variant="outlined"
+                  density="compact"
+                  :disabled="!!editId"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="8">
+                <v-autocomplete
+                  v-model="formOrden.cliente"
+                  :items="clientesOptions"
+                  item-title="label"
+                  item-value="value"
+                  label="Cliente"
+                  placeholder="Buscar cliente..."
+                  variant="outlined"
+                  density="compact"
+                ></v-autocomplete>
+              </v-col>
+              
+              <v-col cols="12" md="4">
+                <v-select
+                  v-model="formOrden.tienda"
+                  :items="tiendas"
+                  item-title="nombre_tienda"
+                  item-value="cod_tienda"
+                  label="Tienda"
+                  variant="outlined"
+                  density="compact"
+                ></v-select>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="formOrden.fecha_pedido"
+                  label="Fecha Pedido"
+                  type="date"
+                  variant="outlined"
+                  density="compact"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-select
+                  v-model="formOrden.estado_orden"
+                  :items="estadosOrden"
+                  item-title="texto"
+                  item-value="valor"
+                  label="Estado"
+                  variant="outlined"
+                  density="compact"
+                ></v-select>
+              </v-col>
+              
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="formOrden.fecha_entrega"
+                  label="Fecha Entrega (Opcional)"
+                  type="date"
+                  variant="outlined"
+                  density="compact"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="formOrden.hora_entrega"
+                  label="Hora Entrega (Opcional)"
+                  type="time"
+                  variant="outlined"
+                  density="compact"
+                ></v-text-field>
+              </v-col>
+              
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="formOrden.monto_total"
+                  label="Monto Total"
+                  type="number"
+                  step="0.01"
+                  prefix="Bs."
+                  variant="outlined"
+                  density="compact"
+                  @input="calcularSaldo"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="formOrden.monto_acuenta"
+                  label="Monto a Cuenta"
+                  type="number"
+                  step="0.01"
+                  prefix="Bs."
+                  variant="outlined"
+                  density="compact"
+                  @input="calcularSaldo"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-text-field
+                  v-model="formOrden.monto_saldo"
+                  label="Saldo"
+                  type="number"
+                  step="0.01"
+                  prefix="Bs."
+                  variant="outlined"
+                  density="compact"
+                  readonly
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12">
+                <v-textarea
+                  v-model="formOrden.observaciones_orden"
+                  label="Observaciones"
+                  rows="3"
+                  variant="outlined"
+                ></v-textarea>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-card-actions class="pa-4 bg-grey-lighten-3">
+          <v-spacer></v-spacer>
+          <v-btn color="grey-darken-1" variant="text" @click="cerrarModal">Cancelar</v-btn>
+          <v-btn color="blue-darken-1" variant="flat" @click="guardarOrden">Guardar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="showModalEstado" persistent max-width="500px">
+      <v-card v-if="ordenSeleccionada">
+        <v-card-title class="text-h5 pa-4 bg-grey-lighten-3">
+          Cambiar Estado de Orden
+        </v-card-title>
+        <v-card-text class="pt-4">
+          <p><strong>Orden:</strong> {{ ordenSeleccionada.nro_boleta_sobre }}</p>
+          <p><strong>Cliente:</strong> {{ getClienteNombre(ordenSeleccionada.cliente) }}</p>
+          <p class="mb-4"><strong>Estado actual:</strong> 
+            <v-chip :color="getEstadoColor(ordenSeleccionada.estado_orden)" size="small" label>
+              {{ ordenSeleccionada.estado_orden }}
+            </v-chip>
+          </p>
+
+          <v-select
+            v-model="nuevoEstado"
+            :items="estadosOrden"
+            item-title="texto"
+            item-value="valor"
+            label="Nuevo estado"
+            variant="outlined"
+          ></v-select>
+        </v-card-text>
+        <v-card-actions class="pa-4 bg-grey-lighten-3">
+          <v-spacer></v-spacer>
+          <v-btn color="grey-darken-1" variant="text" @click="cerrarModalEstado">Cancelar</v-btn>
+          <v-btn color="blue-darken-1" variant="flat" @click="actualizarEstado">Cambiar Estado</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="showModalDetalle" max-width="900px">
+      <v-card v-if="ordenSeleccionada">
+        <v-card-title class="text-h5 pa-4 bg-grey-lighten-3">
+          Detalle de Orden - {{ ordenSeleccionada.nro_boleta_sobre }}
+        </v-card-title>
+        <v-card-text class="pt-4">
+          <v-row dense>
+            <v-col cols="12" md="6"><strong>Cliente:</strong> {{ getClienteNombre(ordenSeleccionada.cliente) }}</v-col>
+            <v-col cols="12" md="6"><strong>Tienda:</strong> {{ getTiendaNombre(ordenSeleccionada.tienda) }}</v-col>
+            <v-col cols="12" md="6"><strong>Creado por:</strong> {{ getUsuarioNombre(ordenSeleccionada.creado_por) }}</v-col>
+            <v-col cols="12" md="6"><strong>Creado:</strong> {{ formatearFechaHora(ordenSeleccionada.creado_en) }}</v-col>
+            <v-col cols="12" md="6"><strong>Fecha Pedido:</strong> {{ formatearFecha(ordenSeleccionada.fecha_pedido) }}</v-col>
+            <v-col cols="12" md="6"><strong>Fecha Entrega:</strong> {{ ordenSeleccionada.fecha_entrega ? formatearFecha(ordenSeleccionada.fecha_entrega) : 'No definida' }}</v-col>
+            <v-col cols="12" md="6"><strong>Hora Entrega:</strong> {{ ordenSeleccionada.hora_entrega || 'No definida' }}</v-col>
+            <v-col cols="12" md="6"><strong>Estado:</strong> 
+              <v-chip :color="getEstadoColor(ordenSeleccionada.estado_orden)" size="small" label>
+                {{ ordenSeleccionada.estado_orden }}
+              </v-chip>
+            </v-col>
+            <v-col cols="12"><v-divider class="my-2"></v-divider></v-col>
+            <v-col cols="12" md="4"><strong>Monto Total:</strong> Bs. {{ ordenSeleccionada.monto_total }}</v-col>
+            <v-col cols="12" md="4"><strong>Monto a Cuenta:</strong> Bs. {{ ordenSeleccionada.monto_acuenta }}</v-col>
+            <v-col cols="12" md="4"><strong>Total Pagado:</strong> Bs. {{ ordenSeleccionada.monto_pagado || 0 }}</v-col>
+            <v-col cols="12" class="font-weight-bold text-h6">
+              Saldo: 
+              <span :class="ordenSeleccionada.monto_saldo > 0 ? 'text-red' : 'text-green'">
+                Bs. {{ ordenSeleccionada.monto_saldo }}
+              </span>
+            </v-col>
+          </v-row>
+
+          <v-sheet v-if="ordenSeleccionada.observaciones_orden" border rounded="lg" class="pa-4 mt-4">
+            <strong>Observaciones:</strong>
+            <p>{{ ordenSeleccionada.observaciones_orden }}</p>
+          </v-sheet>
+        </v-card-text>
+        <v-card-actions class="pa-4 bg-grey-lighten-3">
+          <v-spacer></v-spacer>
+          <v-btn color="grey-darken-1" variant="text" @click="cerrarModalDetalle">Cerrar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="showModalPagos" persistent max-width="1000px">
+      <v-card v-if="ordenSeleccionada">
+        <v-card-title class="text-h5 pa-4 bg-grey-lighten-3">
+          Gestión de Pagos - Orden {{ ordenSeleccionada.nro_boleta_sobre }}
+        </v-card-title>
+        <v-card-text class="pt-4">
+          
+          <v-sheet border rounded="lg" class="pa-4 mb-4">
+            <v-row>
+              <v-col cols="12" md="6"><strong>Cliente:</strong> {{ getClienteNombre(ordenSeleccionada.cliente) }}</v-col>
+              <v-col cols="12" md="6"><strong>Monto Total:</strong> Bs. {{ ordenSeleccionada.monto_total }}</v-col>
+              <v-col cols="12" md="6" class="text-h6"><strong>Total Pagado:</strong> <span class="text-green-darken-1">Bs. {{ ordenSeleccionada.monto_pagado || 0 }}</span></v-col>
+              <v-col cols="12" md="6" class="text-h6"><strong>Saldo Pendiente:</strong> <span class="text-red-darken-1">Bs. {{ ordenSeleccionada.monto_saldo }}</span></v-col>
+            </v-row>
+          </v-sheet>
+
+          <v-card variant="outlined" class="mb-4">
+            <v-card-title>Registrar Nuevo Pago</v-card-title>
+            <v-card-text>
+              <v-row align="end">
+                <v-col cols="12" md="3">
+                  <v-select
+                    v-model="formPago.tipo_pago"
+                    :items="['EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'CHEQUE', 'OTRO']"
+                    label="Tipo de Pago"
+                    variant="outlined"
+                    density="compact"
+                  ></v-select>
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="formPago.monto_pago"
+                    label="Monto"
+                    type="number"
+                    step="0.01"
+                    :max="ordenSeleccionada.monto_saldo"
+                    prefix="Bs."
+                    variant="outlined"
+                    density="compact"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-text-field
+                    v-model="formPago.fecha_pago"
+                    label="Fecha de Pago"
+                    type="date"
+                    variant="outlined"
+                    density="compact"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-btn
+                    color="success"
+                    @click="registrarPago"
+                    :disabled="!formPago.monto_pago || formPago.monto_pago <= 0 || cargandoPago"
+                    :loading="cargandoPago"
+                    prepend-icon="mdi-plus-circle-outline"
+                    block
+                  >
+                    Registrar Pago
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+          
+          <v-card variant="outlined">
+            <v-card-title>Historial de Pagos</v-card-title>
+            <v-table density="compact">
+              <thead>
+                <tr>
+                  <th class="text-left">Código</th>
+                  <th class="text-left">Tipo</th>
+                  <th class="text-left">Monto</th>
+                  <th class="text-left">Fecha</th>
+                  <th class="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="pagosOrden.length === 0">
+                  <td colspan="5" class="text-center text-grey pa-4">No hay pagos registrados para esta orden.</td>
+                </tr>
+                <tr v-for="pago in pagosOrden" :key="pago.cod_pago">
+                  <td>{{ pago.cod_pago }}</td>
+                  <td><v-chip size="small" label variant="tonal">{{ pago.tipo_pago }}</v-chip></td>
+                  <td>Bs. {{ pago.monto_pago }}</td>
+                  <td>{{ formatearFecha(pago.fecha_pago) }}</td>
+                  <td class="text-center">
+                    <v-tooltip text="Eliminar Pago">
+                      <template v-slot:activator="{ props }">
+                        <v-btn 
+                          v-bind="props"
+                          icon="mdi-delete-outline" 
+                          color="red" 
+                          variant="text" 
+                          size="small" 
+                          @click="eliminarPago(pago.cod_pago)"
+                        ></v-btn>
+                      </template>
+                    </v-tooltip>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+          </v-card>
+
+        </v-card-text>
+        <v-card-actions class="pa-4 bg-grey-lighten-3">
+          <v-spacer></v-spacer>
+          <v-btn color="grey-darken-1" variant="text" @click="cerrarModalPagos">Cerrar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+  </v-container>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick } from "vue";
+import { ref, onMounted, computed, nextTick, onUnmounted } from "vue";
 import { supabase } from "../lib/supabaseClient.js";
-import BaseModal from "./BaseModal.vue";
-import AutoComplete from "./Autocomplete.vue";
+// Ya no se importan BaseModal ni AutoComplete
 
-// Estados principales
+// --- ESTADO PRINCIPAL ---
 const ordenes = ref([]);
 const clientes = ref([]);
 const tiendas = ref([]);
 const usuarios = ref([]);
 const pagosOrden = ref([]);
-const dropdownAbierto = ref(null);
+const cargandoOrdenes = ref(false); // Estado de carga para la tabla
+const cargandoPago = ref(false); // Estado de carga para registrar pago
 
-// Estados de modales
+// --- ESTADOS DE MODALES ---
 const showModal = ref(false);
 const showModalEstado = ref(false);
 const showModalDetalle = ref(false);
@@ -296,14 +474,23 @@ const showModalPagos = ref(false);
 const editId = ref(null);
 const ordenSeleccionada = ref(null);
 
-// Estados de filtros
+// --- ESTADOS DE FILTROS ---
 const filtroEstado = ref("");
 const filtroTienda = ref("");
 const buscarCliente = ref("");
 
-const nroSobreInput = ref(null);
+const nroSobreInput = ref(null); // Ref para el v-text-field
 
-// Estados de formulario
+// Constante para los estados (más limpio para v-select)
+const estadosOrden = [
+  { valor: "PENDIENTE", texto: "Pendiente" },
+  { valor: "EN_PROCESO", texto: "En Proceso" },
+  { valor: "TERMINADO", texto: "Terminado" },
+  { valor: "ENTREGADO", texto: "Entregado" },
+  { valor: "CANCELADO", texto: "Cancelado" }
+];
+
+// --- ESTADOS DE FORMULARIOS ---
 const formOrden = ref({
   nro_boleta_sobre: "",
   cliente: "",
@@ -326,20 +513,23 @@ const formPago = ref({
 
 const nuevoEstado = ref("");
 
-// --- Manejo del Dropdown ---
-const toggleDropdown = (id) => {
-  if (dropdownAbierto.value === id) {
-    dropdownAbierto.value = null;
-  } else {
-    dropdownAbierto.value = id;
-  }
-};
+// --- HEADERS PARA V-DATA-TABLE ---
+const headers = [
+  { title: 'Nro. Boleta', key: 'nro_boleta_sobre', sortable: true },
+  { title: 'Cliente', key: 'cliente', sortable: true },
+  { title: 'Tienda', key: 'tienda', sortable: true },
+  { title: 'Fecha Pedido', key: 'fecha_pedido', sortable: true },
+  { title: 'Fecha Entrega', key: 'fecha_entrega', sortable: true },
+  { title: 'Monto Total', key: 'monto_total', sortable: true, align: 'end' },
+  { title: 'Pagado', key: 'monto_pagado', sortable: true, align: 'end' },
+  { title: 'Saldo', key: 'monto_saldo', sortable: true, align: 'end' },
+  { title: 'Estado', key: 'estado_orden', sortable: true },
+  { title: 'Acciones', key: 'acciones', sortable: false, align: 'center' }
+];
 
-const closeDropdowns = () => {
-  dropdownAbierto.value = null;
-};
-
-// Computed para filtros
+// --- COMPUTED: FILTROS Y OPCIONES ---
+// Tu lógica de filtrado es perfecta y v-data-table la consume
+// sin problemas a través de :items
 const ordenesFiltradas = computed(() => {
   let resultado = ordenes.value;
 
@@ -355,22 +545,23 @@ const ordenesFiltradas = computed(() => {
     const busqueda = buscarCliente.value.toLowerCase();
     resultado = resultado.filter(o => {
       const cliente = getClienteNombre(o.cliente).toLowerCase();
-      return cliente.includes(busqueda);
+      return cliente.includes(busqueda) || o.nro_boleta_sobre.toString().includes(busqueda);
     });
   }
 
   return resultado;
 });
 
-// Computed para opciones de Autocomplete de clientes
+// Tu computed para v-autocomplete es perfecto
 const clientesOptions = computed(() => {
     return clientes.value.map(cliente => ({
         value: cliente.cod_cliente,
-        label: `${cliente.nombre_cliente} ${cliente.apellido_paterno_cliente} ${cliente.apellido_materno_cliente || ''}`.trim()
+        label: `${cliente.nombre_cliente} ${cliente.apellido_paterno_cliente} ${cliente.apellido_paterno_cliente || ''}`.trim()
     }));
 });
 
-// Funciones principales
+// --- LÓGICA DE DATOS (SUPABASE) ---
+// (Toda tu lógica de carga y guardado se mantiene. Solo se añade 'cargandoOrdenes')
 async function cargarDatos() {
   await Promise.all([
     cargarOrdenes(),
@@ -378,10 +569,10 @@ async function cargarDatos() {
     cargarTiendas(),
     cargarUsuarios()
   ]);
-   window.addEventListener('click', closeDropdowns);
 }
 
 async function cargarOrdenes() {
+  cargandoOrdenes.value = true;
   const { data } = await supabase
     .from("orden_trabajo")
     .select("*")
@@ -390,11 +581,12 @@ async function cargarOrdenes() {
   if (data) {
     for (let orden of data) {
       const montoPagado = await calcularMontoPagado(orden.nro_boleta_sobre);
-      orden.monto_pagado = montoPagado + orden.monto_acuenta;
-      orden.monto_saldo = orden.monto_total - orden.monto_pagado;
+      orden.monto_pagado = (montoPagado + (orden.monto_acuenta || 0)).toFixed(2);
+      orden.monto_saldo = (orden.monto_total - orden.monto_pagado).toFixed(2);
     }
   }
   ordenes.value = data || [];
+  cargandoOrdenes.value = false;
 }
 
 async function calcularMontoPagado(nroBoleta) {
@@ -481,13 +673,16 @@ async function actualizarEstado() {
 }
 
 async function registrarPago() {
+  cargandoPago.value = true;
   const montoPago = parseFloat(formPago.value.monto_pago);
   if (montoPago <= 0) {
     alert("El monto del pago debe ser mayor a 0");
+    cargandoPago.value = false;
     return;
   }
   if (montoPago > ordenSeleccionada.value.monto_saldo) {
     alert("El monto del pago no puede ser mayor al saldo pendiente");
+    cargandoPago.value = false;
     return;
   }
   const pagoData = {
@@ -499,10 +694,9 @@ async function registrarPago() {
   const { error } = await supabase.from("pagos_orden").insert(pagoData);
 
   if (!error) {
-    await cargarOrdenes(); // Recargamos toda la data para asegurar consistencia
+    await cargarOrdenes();
     await cargarPagosOrden(ordenSeleccionada.value.nro_boleta_sobre);
     
-    // Actualizamos la orden seleccionada en la UI
     const ordenActualizada = ordenes.value.find(o => o.nro_boleta_sobre === ordenSeleccionada.value.nro_boleta_sobre);
     if (ordenActualizada) {
         ordenSeleccionada.value = ordenActualizada;
@@ -519,6 +713,7 @@ async function registrarPago() {
   } else {
     alert("Error al registrar el pago: " + error.message);
   }
+  cargandoPago.value = false;
 }
 
 async function eliminarPago(codPago) {
@@ -526,8 +721,8 @@ async function eliminarPago(codPago) {
     const { data: pagoData } = await supabase.from("pagos_orden").select("monto_pago, nro_boleta_sobre").eq("cod_pago", codPago).single();
     if (pagoData) {
       await supabase.from("pagos_orden").delete().eq("cod_pago", codPago);
-      await cargarOrdenes(); // Recargar todas las órdenes para recalcular saldos
-      await cargarPagosOrden(pagoData.nro_boleta_sobre); // Recargar pagos de la orden afectada
+      await cargarOrdenes();
+      await cargarPagosOrden(pagoData.nro_boleta_sobre);
       
       const ordenActualizada = ordenes.value.find(o => o.nro_boleta_sobre === pagoData.nro_boleta_sobre);
       if (ordenActualizada) {
@@ -537,62 +732,59 @@ async function eliminarPago(codPago) {
   }
 }
 
+// --- LÓGICA DE MODALES ---
+// (Tu lógica de apertura y cierre es perfecta)
 function abrirModalCrear() {
   editId.value = null;
   limpiarFormulario();
-  cargarDatos();
   showModal.value = true;
-  nextTick(() => nroSobreInput.value?.focus());
+  // nextTick para enfocar el v-text-field
+  nextTick(() => nroSobreInput.value?.focus()); 
 }
 
 function editarOrden(orden) {
   editId.value = orden.nro_boleta_sobre;
-  formOrden.value = { ...orden };
+  // Hacemos una copia para no mutar el estado original
+  formOrden.value = { ...orden }; 
   showModal.value = true;
-  dropdownAbierto.value = null; // Cerrar dropdown
 }
 
 function verDetalleOrden(orden) {
   ordenSeleccionada.value = orden;
   showModalDetalle.value = true;
-  dropdownAbierto.value = null; // Cerrar dropdown
 }
 
 function cambiarEstado(orden) {
   ordenSeleccionada.value = orden;
   nuevoEstado.value = orden.estado_orden;
   showModalEstado.value = true;
-  dropdownAbierto.value = null; // Cerrar dropdown
 }
 
 async function abrirModalPagos(orden) {
   ordenSeleccionada.value = orden;
   await cargarPagosOrden(orden.nro_boleta_sobre);
   showModalPagos.value = true;
-  dropdownAbierto.value = null; // Cerrar dropdown
 }
 
 function cerrarModal() {
   showModal.value = false;
   editId.value = null;
 }
-
 function cerrarModalEstado() {
   showModalEstado.value = false;
   ordenSeleccionada.value = null;
 }
-
 function cerrarModalDetalle() {
   showModalDetalle.value = false;
   ordenSeleccionada.value = null;
 }
-
 function cerrarModalPagos() {
   showModalPagos.value = false;
   ordenSeleccionada.value = null;
   pagosOrden.value = [];
 }
 
+// --- FUNCIONES HELPER ---
 function limpiarFormulario() {
   formOrden.value = {
     nro_boleta_sobre: "", cliente: "", tienda: "",
@@ -607,8 +799,6 @@ function calcularSaldo() {
   const acuenta = parseFloat(formOrden.value.monto_acuenta) || 0;
   formOrden.value.monto_saldo = total - acuenta;
 }
-
-function aplicarFiltros() { /* El computed lo hace automáticamente */ }
 
 function getClienteNombre(clienteId) {
   const cliente = clientes.value.find(c => c.cod_cliente === clienteId);
@@ -626,275 +816,49 @@ function getUsuarioNombre(usuarioId) {
   return usuario ? usuario.nombre_usuario : 'N/A';
 }
 
-function formatearFecha(fecha) { return new Date(fecha).toLocaleDateString('es-ES'); }
-function formatearFechaHora(fecha) { return new Date(fecha).toLocaleString('es-ES'); }
+function formatearFecha(fecha) { 
+  if (!fecha) return '-';
+  // Corregir problema de zona horaria al formatear
+  const [year, month, day] = fecha.split('T')[0].split('-');
+  return `${day}/${month}/${year}`;
+}
+function formatearFechaHora(fecha) { 
+  if (!fecha) return '-';
+  return new Date(fecha).toLocaleString('es-ES'); 
+}
 
+/**
+ * Nueva función helper para dar color a los v-chip de estado
+ */
+function getEstadoColor(estado) {
+  switch (estado) {
+    case 'PENDIENTE': return 'orange';
+    case 'EN_PROCESO': return 'blue';
+    case 'TERMINADO': return 'green';
+    case 'ENTREGADO': return 'grey';
+    case 'CANCELADO': return 'red';
+    default: return 'default';
+  }
+}
+
+// --- CICLO DE VIDA ---
 onMounted(cargarDatos);
-
+onUnmounted(() => {
+  // Limpiar listeners si los hubiera (ej. el de dropdowns)
+  // window.removeEventListener('click', closeDropdowns); // Ya no se necesita
+});
 </script>
 
 <style scoped>
-/* ESTILOS ESPECÍFICOS DEL COMPONENTE, LOS ESTILOS DEL MODAL FUERON REMOVIDOS */
-
-.orden-trabajo-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #e0e0e0;
-}
-.filtros {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 4px;
-  flex-wrap: wrap;
-}
-.filtros select,
-.filtros input {
-  padding: 8px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 14px;
-  flex: 1;
-  min-width: 200px;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-th {
-  background: #343a40;
-  color: white;
-  padding: 12px 8px;
-  text-align: left;
-  font-size: 13px;
-  font-weight: 500;
-}
-td {
-  padding: 10px 8px;
-  border-bottom: 1px solid #dee2e6;
-  font-size: 13px;
-  vertical-align: middle;
-}
-tr:hover {
-  background: #f8f9fa;
-}
-.saldo-pendiente {
-  color: #dc3545;
-  font-weight: bold;
-}
-.estado-pendiente, .estado-en_proceso, .estado-terminado, .estado-entregado, .estado-cancelado {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-.estado-pendiente { background: #fff3cd; color: #856404; }
-.estado-en_proceso { background: #cce5ff; color: #004085; }
-.estado-terminado { background: #d4edda; color: #155724; }
-.estado-entregado { background: #e2e3e5; color: #383d41; }
-.estado-cancelado { background: #f8d7da; color: #721c24; }
-
-.acciones-cell {
-  position: relative;
-  text-align: center;
-}
-.dropdown-container {
-  display: inline-block;
-  position: relative;
-}
-.btn-acciones {
-  padding: 6px 12px;
-  border: 1px solid #6c757d;
-  background-color: #f8f9fa;
-  color: #343a40;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.dropdown-menu {
-  position: absolute;
-  right: 0;
-  top: 100%;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  z-index: 100;
-  min-width: 160px;
-  display: flex;
-  flex-direction: column;
-}
-.dropdown-menu a {
-  padding: 10px 15px;
-  text-decoration: none;
-  color: #333;
-  display: block;
-  cursor: pointer;
-  font-size: 14px;
-}
-.dropdown-menu a:hover {
-  background-color: #f2f2f2;
-}
-.dropdown-danger {
-    color: #dc3545 !important;
-}
-.dropdown-danger:hover {
-    background-color: #f8d7da !important;
-}
-
-.btn-eliminar {
-  background-color: transparent;
-  border: 1px solid #dc3545;
-  color: #dc3545;
-  padding: 4px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-}
-.btn-eliminar:hover {
-    background-color: #dc3545;
-    color: white;
-}
-
-/* ESTILOS PARA BOTONES GENERALES */
-.btn {
-  padding: 10px 20px;
-  margin: 0 5px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-}
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-}
-.btn-primary:hover {
-  background-color: #0056b3;
-}
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-.btn-secondary:hover {
-  background-color: #5a6268;
-}
-.btn-success {
-    background-color: #28a745;
-    color: white;
-}
-.btn-success:hover {
-    background-color: #218838;
-}
-.btn-success:disabled {
-    background-color: #a3d9b1;
-    cursor: not-allowed;
-}
-
-/* ESTILOS PARA EL CONTENIDO DENTRO DE LOS MODALES */
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-  margin-bottom: 15px;
-}
-.form-grid-pago {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
-  gap: 15px;
-  align-items: end;
-}
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.full-width {
-  grid-column: 1 / -1;
-}
-.form-group label {
-  font-weight: 500;
-  color: #333;
-  font-size: 14px;
-}
-.form-group input, .form-group select, .form-group textarea {
-  padding: 8px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 14px;
-  width: 100%;
-  box-sizing: border-box;
-}
-.detalle-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-}
-.observaciones {
-  margin-top: 20px;
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 4px;
-  border-left: 4px solid #007bff;
-}
-.resumen-orden {
-  background: #f8f9fa;
-  padding: 15px;
-  border-radius: 4px;
-  margin-bottom: 20px;
-  border: 1px solid #e9ecef;
-}
-.resumen-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.highlight {
-  font-weight: bold;
-  color: #155724;
-}
-.highlight-saldo {
-    font-weight: bold;
-    color: #dc3545;
-}
-.nuevo-pago, .pagos-existentes {
-  border: 1px solid #dee2e6;
-  padding: 15px;
-  border-radius: 4px;
-  margin-bottom: 20px;
-}
-.nuevo-pago h4, .pagos-existentes h4 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  color: #495057;
-  font-size: 16px;
-}
-.tabla-pagos {
-  width: 100%;
-  border-collapse: collapse;
-}
-.tabla-pagos th { background: #e9ecef; color: #495057; padding: 10px 8px; text-align: left; }
-.tabla-pagos td { padding: 10px 8px; border-bottom: 1px solid #dee2e6; }
-.no-pagos { text-align: center; color: #6c757d; font-style: italic; margin: 20px 0; }
-
-@media (max-width: 768px) {
-  .table-container { overflow-x: auto; }
-  table { min-width: 800px; }
-  .form-grid, .detalle-grid, .resumen-grid, .form-grid-pago {
-    grid-template-columns: 1fr;
-  }
-}
+/* ¡TODO EL CSS PERSONALIZADO HA SIDO ELIMINADO!
+  Vuetify se encarga del 100% del estilo:
+  - La grilla (v-row, v-col)
+  - La tabla (v-data-table)
+  - Los modales (v-dialog)
+  - Los formularios (v-text-field, v-select, v-autocomplete)
+  - Los botones (v-btn)
+  - Los menús (v-menu)
+  - Los estados (v-chip)
+  - Las clases de texto (text-red, font-weight-bold)
+*/
 </style>

@@ -1,147 +1,237 @@
 <template>
-  <div class="consulta-stock-container">
-    <h3>Consulta de Stock de Productos</h3>
-    <p class="subtitle">Visualiza las cantidades disponibles. Clic en una tarjeta para ver su historial.</p>
+  <v-container fluid>
+    
+    <v-card variant="flat" border>
+      <v-toolbar color="grey-lighten-4">
+        <v-card-title class="text-h6 font-weight-regular">
+          <v-icon icon="mdi-clipboard-list-outline" start></v-icon>
+          Consulta de Stock de Productos
+        </v-card-title>
+      </v-toolbar>
+      <v-card-text>
+        <p class="text-subtitle-1 text-grey-darken-1 mb-4">
+          Visualiza las cantidades disponibles. Clic en una tarjeta para ver su historial.
+        </p>
 
-    <div class="toolbar">
-      <div class="search-container">
-        <input type="text" v-model="filtroBusqueda" placeholder="🔍 Buscar por nombre de producto..." class="search-input"/>
-      </div>
-      <div class="view-toggle">
-        <button @click="vista = 'resumida'" :class="{ active: vista === 'resumida' }">Vista Resumida</button>
-        <button @click="vista = 'detallada'" :class="{ active: vista === 'detallada' }">Vista Detallada</button>
-      </div>
-    </div>
+        <v-row dense>
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="filtroBusqueda"
+              label="Buscar por nombre de producto..."
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+              density="compact"
+              hide-details
+            ></v-text-field>
+          </v-col>
 
-    <div v-if="cargando" class="loading-indicator">
-      Cargando datos de inventario...
-    </div>
+          <v-col cols="12" md="6">
+            <v-btn-toggle
+              v-model="vista"
+              variant="outlined"
+              color="primary"
+              mandatory
+              divided
+            >
+              <v-btn value="resumida" prepend-icon="mdi-view-grid">
+                Vista Resumida
+              </v-btn>
+              <v-btn value="detallada" prepend-icon="mdi-view-list">
+                Vista Detallada
+              </v-btn>
+            </v-btn-toggle>
+          </v-col>
+        </v-row>
+      </v-card-text>
 
-    <div v-else>
-      <div v-if="vista === 'resumida'" class="stock-grid">
-        <div 
-          v-for="producto in productosFiltradosResumen" 
-          :key="producto.cod_producto" 
-          class="stock-card clickable" 
-          :class="getCardColor(producto.total_stock, producto.stock_minimo_producto)"
-          @click="mostrarHistorial(producto)"
-          title="Ver historial de movimientos"
-        >
-          <h4>{{ producto.descripcion_producto }}</h4>
-          <p class="total-stock">{{ producto.total_stock }}</p>
-          <span class="stock-label">Stock Total</span>
-          <small v-if="producto.stock_minimo_producto > 0" class="stock-minimo">
-            Mínimo: {{ producto.stock_minimo_producto }}
-          </small>
-        </div>
-        <p v-if="productosFiltradosResumen.length === 0" class="no-results">No se encontraron productos con ese nombre.</p>
-      </div>
+      <v-progress-linear
+        v-if="cargando"
+        indeterminate
+        color="primary"
+      ></v-progress-linear>
 
-      <div v-if="vista === 'detallada'" class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Producto</th>
-              <th>Tienda</th>
-              <th>Cantidad Disponible</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in productosFiltradosDetalle" :key="`${item.productos.cod_producto}-${item.tiendas.cod_tienda}`">
-              <td>{{ item.productos.descripcion_producto }}</td>
-              <td>{{ item.tiendas.nombre_tienda }}</td>
-              <td class="cantidad">{{ item.cantidad_disponible }}</td>
-            </tr>
-             <tr v-if="productosFiltradosDetalle.length === 0">
-                <td colspan="3" class="no-results-table">No se encontraron registros.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <BaseModal 
-      v-model="showHistoryModal" 
-      :title="`Historial de: ${productoSeleccionado?.descripcion_producto}`" 
-      size="lg"
-    >
-      <div v-if="cargandoHistorial" class="loading-indicator">Cargando historial...</div>
-      <div v-else class="historial-content">
-        <div class="historial-filtro">
-          <label for="tienda-filtro">Filtrar por tienda:</label>
-          <select id="tienda-filtro" v-model="tiendaFiltro">
-            <option value="todas">Todas las tiendas</option>
-            <option v-for="tienda in tiendas" :key="tienda.cod_tienda" :value="tienda.cod_tienda">
-              {{ tienda.nombre_tienda }}
-            </option>
-          </select>
-        </div>
-
-        <div class="table-container-modal">
-          <table>
+      <v-window v-model="vista" v-else>
+        
+        <v-window-item value="resumida">
+          <v-container fluid class="pa-2">
+            <v-row v-if="productosFiltradosResumen.length > 0">
+              <v-col
+                v-for="producto in productosFiltradosResumen"
+                :key="producto.cod_producto"
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+              >
+                <v-card
+                  variant="outlined"
+                  class="stock-card"
+                  @click="mostrarHistorial(producto)"
+                  title="Ver historial de movimientos"
+                  :style="{ borderLeft: `5px solid ${getCardColor(producto.total_stock, producto.stock_minimo_producto)}` }"
+                >
+                  <v-card-title class="text-subtitle-1 pb-0">
+                    {{ producto.descripcion_producto }}
+                  </v-card-title>
+                  <v-card-text class="text-center">
+                    <div 
+                      class="text-h3 font-weight-bold"
+                      :class="`text-${getCardColor(producto.total_stock, producto.stock_minimo_producto)}`"
+                    >
+                      {{ producto.total_stock }}
+                    </div>
+                    <span class="text-caption text-grey">Stock Total</span>
+                    <v-chip v-if="producto.stock_minimo_producto > 0" size="small" class="mt-2">
+                      Mínimo: {{ producto.stock_minimo_producto }}
+                    </v-chip>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+            <v-alert v-else type="info" variant="tonal" class="ma-2">
+              No se encontraron productos con ese nombre.
+            </v-alert>
+          </v-container>
+        </v-window-item>
+        
+        <v-window-item value="detallada">
+          <v-table fixed-header hover density="compact">
             <thead>
               <tr>
-                <th>Fecha y Hora</th>
-                <th>Tipo</th>
-                <th>Cantidad</th>
-                <th>Tienda Origen</th>
-                <th>Tienda Destino</th>
-                <th>Motivo</th>
-                <th>Usuario</th>
+                <th class="text-left">Producto</th>
+                <th class="text-left">Tienda</th>
+                <th class="text-right">Cantidad Disponible</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="mov in historialFiltrado" :key="mov.cod_movimiento">
-                <td>{{ new Date(mov.fecha_movimiento).toLocaleString() }}</td>
-                <td><span class="badge" :class="`badge-${mov.tipo_movimiento.toLowerCase()}`">{{ mov.tipo_movimiento }}</span></td>
-                <td class="cantidad-movimiento">{{ mov.cantidad }}</td>
-                <td>{{ mov.tienda_origen?.nombre_tienda || 'N/A' }}</td>
-                <td>{{ mov.tienda_destino?.nombre_tienda || 'N/A' }}</td>
-                <td class="motivo">{{ mov.motivo }}</td>
-                <td>{{ mov.usuarios?.nombre_usuario || 'N/A' }}</td>
+              <tr v-for="item in productosFiltradosDetalle" :key="`${item.productos.cod_producto}-${item.tiendas.cod_tienda}`">
+                <td>{{ item.productos.descripcion_producto }}</td>
+                <td>{{ item.tiendas.nombre_tienda }}</td>
+                <td class="text-right font-weight-bold">{{ item.cantidad_disponible }}</td>
               </tr>
-              <tr v-if="historialFiltrado.length === 0">
-                <td colspan="7" class="no-results-table">No hay movimientos para esta selección.</td>
+              <tr v-if="productosFiltradosDetalle.length === 0">
+                <td colspan="3" class="text-center pa-4 text-grey">
+                  No se encontraron registros.
+                </td>
               </tr>
             </tbody>
-          </table>
-        </div>
-      </div>
-      <template #footer>
-        <button @click="showHistoryModal = false" class="btn-secondary">Cerrar</button>
-      </template>
-    </BaseModal>
+          </v-table>
+        </v-window-item>
+      </v-window>
+    </v-card>
 
-  </div>
+    <v-dialog
+      v-model="showHistoryModal"
+      max-width="1200px"
+      persistent
+    >
+      <v-card>
+        <v-card-title class="text-h5 pa-4 bg-grey-lighten-3">
+          Historial de: {{ productoSeleccionado?.descripcion_producto }}
+        </v-card-title>
+
+        <v-card-text>
+          <v-progress-linear
+            v-if="cargandoHistorial"
+            indeterminate
+            color="primary"
+            class="my-4"
+          ></v-progress-linear>
+
+          <div v-else class="historial-content">
+            <v-select
+              v-model="tiendaFiltro"
+              label="Filtrar por tienda"
+              :items="[{cod_tienda: 'todas', nombre_tienda: 'Todas las tiendas'}, ...tiendas]"
+              item-title="nombre_tienda"
+              item-value="cod_tienda"
+              variant="outlined"
+              density="compact"
+              hide-details
+              class="mb-4"
+              style="max-width: 300px;"
+            ></v-select>
+
+            <v-table fixed-header hover density="compact">
+              <thead>
+                <tr>
+                  <th class="text-left">Fecha y Hora</th>
+                  <th class="text-left">Tipo</th>
+                  <th class="text-left">Cantidad</th>
+                  <th class="text-left">Tienda Origen</th>
+                  <th class="text-left">Tienda Destino</th>
+                  <th class="text-left">Motivo</th>
+                  <th class="text-left">Usuario</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="mov in historialFiltrado" :key="mov.cod_movimiento">
+                  <td>{{ new Date(mov.fecha_movimiento).toLocaleString() }}</td>
+                  <td>
+                    <v-chip
+                      :color="getMovimientoColor(mov.tipo_movimiento)"
+                      size="small"
+                      label
+                      variant="flat"
+                    >
+                      {{ mov.tipo_movimiento }}
+                    </v-chip>
+                  </td>
+                  <td class="font-weight-bold">{{ mov.cantidad }}</td>
+                  <td>{{ mov.tienda_origen?.nombre_tienda || 'N/A' }}</td>
+                  <td>{{ mov.tienda_destino?.nombre_tienda || 'N/A' }}</td>
+                  <td>{{ mov.motivo }}</td>
+                  <td>{{ mov.usuarios?.nombre_usuario || 'N/A' }}</td>
+                </tr>
+                <tr v-if="historialFiltrado.length === 0">
+                  <td colspan="7" class="text-center pa-4 text-grey">
+                    No hay movimientos para esta selección.
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="pa-4 bg-grey-lighten-3">
+          <v-spacer></v-spacer>
+          <v-btn color="grey-darken-1" variant="text" @click="showHistoryModal = false">
+            Cerrar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+  </v-container>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { supabase } from "../lib/supabaseClient.js";
-import BaseModal from "./BaseModal.vue"; // Importamos el modal
 
 // --- ESTADO GENERAL ---
-const vista = ref('resumida');
+const vista = ref('resumida'); // v-btn-toggle usará esto
 const inventarioDetallado = ref([]);
 const inventarioResumido = ref([]);
 const tiendas = ref([]);
 const filtroBusqueda = ref('');
 const cargando = ref(true);
 
-// --- NUEVO: ESTADO PARA EL MODAL DE HISTORIAL ---
-const showHistoryModal = ref(false);
+// --- ESTADO PARA EL MODAL DE HISTORIAL ---
+const showHistoryModal = ref(false); // v-dialog usará esto
 const productoSeleccionado = ref(null);
 const movimientosProducto = ref([]);
 const cargandoHistorial = ref(false);
-const tiendaFiltro = ref('todas');
+const tiendaFiltro = ref('todas'); // v-select usará esto
 
 // --- OBTENCIÓN DE DATOS ---
+// (Lógica sin cambios)
 async function getStock() {
   cargando.value = true;
   await Promise.all([
     getInventarioDetallado(),
     getInventarioResumido(),
-    getTiendas() // Necesitamos la lista de tiendas para el filtro
+    getTiendas()
   ]);
   cargando.value = false;
 }
@@ -174,12 +264,13 @@ async function getTiendas() {
   tiendas.value = data || [];
 }
 
-// --- NUEVO: LÓGICA PARA MOSTRAR Y OBTENER HISTORIAL ---
+// --- LÓGICA PARA MOSTRAR Y OBTENER HISTORIAL ---
+// (Lógica sin cambios)
 async function mostrarHistorial(producto) {
   productoSeleccionado.value = producto;
   showHistoryModal.value = true;
   cargandoHistorial.value = true;
-  tiendaFiltro.value = 'todas'; // Reseteamos el filtro
+  tiendaFiltro.value = 'todas';
   
   const { data, error } = await supabase
     .from('movimientos_inventario')
@@ -201,7 +292,7 @@ async function mostrarHistorial(producto) {
   cargandoHistorial.value = false;
 }
 
-// --- COMPUTED PROPERTIES (Añadimos el filtro de historial) ---
+// --- COMPUTED PROPERTIES ---
 const productosFiltradosResumen = computed(() => {
   if (!filtroBusqueda.value) return inventarioResumido.value;
   return inventarioResumido.value.filter(p =>
@@ -226,11 +317,31 @@ const historialFiltrado = computed(() => {
   );
 });
 
-// --- LÓGICA ADICIONAL (sin cambios) ---
+// --- FUNCIONES HELPER (Adaptadas para Vuetify) ---
+
+/**
+ * Devuelve un color de Vuetify basado en el estado del stock.
+ * Se usa para el borde de la tarjeta y el color del texto.
+ */
 function getCardColor(cantidad, minimo) {
-  if (cantidad <= 0) return 'stock-cero';
-  if (cantidad <= minimo) return 'stock-bajo';
-  return 'stock-ok';
+  if (cantidad <= 0) return 'red';
+  if (cantidad > 0 && cantidad <= minimo) return 'orange';
+  return 'green';
+}
+
+/**
+ * Devuelve un color de Vuetify para los v-chip
+ * basado en el tipo de movimiento.
+ */
+function getMovimientoColor(tipoMovimiento) {
+  switch (tipoMovimiento.toLowerCase()) {
+    case 'entrada': return 'green';
+    case 'salida': return 'red';
+    case 'traspaso': return 'blue';
+    case 'ajuste': return 'grey';
+    case 'devolucion': return 'cyan';
+    default: return 'black';
+  }
 }
 
 // --- CICLO DE VIDA ---
@@ -238,53 +349,13 @@ onMounted(getStock);
 </script>
 
 <style scoped>
-/* --- ESTILOS EXISTENTES (Añadimos .clickable) --- */
-.consulta-stock-container { padding: 2rem; background-color: #f9fafb; }
-h3 { font-size: 24px; font-weight: 600; border-bottom: 1px solid #e0e0e0; padding-bottom: 15px; margin-bottom: 5px; }
-.subtitle { color: #6b7280; margin-bottom: 2rem; }
-.toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
-.search-input { padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; min-width: 300px; font-size: 14px; }
-.view-toggle button { padding: 10px 20px; border: 1px solid #007bff; background-color: white; color: #007bff; cursor: pointer; }
-.view-toggle button:first-child { border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
-.view-toggle button:last-child { border-top-right-radius: 6px; border-bottom-right-radius: 6px; border-left: none; }
-.view-toggle button.active { background-color: #007bff; color: white; }
-.stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
-.stock-card { background-color: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid; text-align: center; }
-.stock-card h4 { margin: 0 0 0.5rem 0; font-size: 1rem; color: #333; }
-.total-stock { font-size: 2.5rem; font-weight: 700; margin: 0; }
-.stock-label { color: #6c757d; font-size: 0.9rem; }
-.stock-minimo { display: block; margin-top: 10px; font-size: 0.8rem; color: #4b5563; background-color: #f3f4f6; padding: 3px 6px; border-radius: 4px; }
-.stock-ok { border-color: #28a745; }
-.stock-ok .total-stock { color: #28a745; }
-.stock-bajo { border-color: #ffc107; }
-.stock-bajo .total-stock { color: #ffc107; }
-.stock-cero { border-color: #dc3545; }
-.stock-cero .total-stock { color: #dc3545; }
-.table-container { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-table { width: 100%; border-collapse: collapse; }
-th { background: #343a40; color: white; padding: 12px 15px; text-align: left; font-size: 13px; font-weight: 500; }
-td { padding: 12px 15px; border-bottom: 1px solid #dee2e6; font-size: 14px; }
-tr:last-child td { border-bottom: none; }
-tr:hover { background: #f8f9fa; }
-td.cantidad { font-weight: 600; text-align: right; }
-.loading-indicator, .no-results, .no-results-table { text-align: center; padding: 3rem; color: #6c757d; font-size: 1.1rem; }
 
-/* --- NUEVOS ESTILOS --- */
-.clickable { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
-.clickable:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
-.historial-content { display: flex; flex-direction: column; gap: 1.5rem; }
-.historial-filtro { display: flex; align-items: center; gap: 0.5rem; padding-bottom: 1rem; border-bottom: 1px solid #eee; }
-.historial-filtro label { font-weight: 500; }
-.historial-filtro select { padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px; }
-.table-container-modal { max-height: 55vh; overflow-y: auto; }
-.badge { padding: 0.25em 0.6em; font-size: 75%; font-weight: 700; line-height: 1; text-align: center; white-space: nowrap; vertical-align: baseline; border-radius: 0.375rem; color: #fff; }
-.badge-entrada { background-color: #28a745; }
-.badge-salida { background-color: #dc3545; }
-.badge-traspaso { background-color: #007bff; }
-.badge-ajuste { background-color: #6c757d; }
-.badge-devolucion { background-color: #17a2b8; }
-.btn-secondary { background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
-.btn-secondary:hover { background-color: #5a6268; }
-td.motivo { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-td.cantidad-movimiento { font-weight: bold; text-align: center; }
+.stock-card {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.stock-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 10px rgba(0,0,0,0.1);
+}
 </style>

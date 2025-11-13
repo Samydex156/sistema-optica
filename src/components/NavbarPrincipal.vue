@@ -1,43 +1,66 @@
 <template>
-  <nav class="navbar" :class="{ 'mobile-menu-open': isMobileMenuOpen }">
-    <div class="navbar-header">
-      <router-link to="/panel" class="navbar-brand">
-        <h1>Óptica Optalvis</h1>
-      </router-link>
+  <v-app-bar color="blue-darken-3" elevation="2" density="compact">
+    
+    <v-app-bar-nav-icon 
+      class="d-md-none" 
+      @click.stop="isMobileMenuOpen = !isMobileMenuOpen"
+    ></v-app-bar-nav-icon>
 
-      <button @click="toggleMobileMenu" class="hamburger-button">
-        <div class="hamburger-line"></div>
-        <div class="hamburger-line"></div>
-        <div class="hamburger-line"></div>
-      </button>
-    </div>
+    <v-app-bar-title>
+      <v-btn to="/panel" variant="text" class="text-none text-h6">
+        Óptica Optalvis
+      </v-btn>
+    </v-app-bar-title>
 
-    <div class="navbar-menu" :class="{ 'is-open': isMobileMenuOpen }">
-      <router-link to="/landing" class="nav-link" @click="closeMobileMenu">Inicio</router-link>
-      <router-link to="/clientes" class="nav-link" @click="closeMobileMenu">Clientes</router-link>
-      <router-link to="/ordenes" class="nav-link" @click="closeMobileMenu">Órdenes</router-link>
-      <router-link to="/productos/registrar" class="nav-link" @click="closeMobileMenu">Productos</router-link>
-      <div class="navbar-spacer"></div>
-      <button @click="openCalculator" class="nav-link-button">
+    <div class="d-none d-md-flex">
+      <v-btn to="/landing">Inicio</v-btn>
+      <v-btn to="/clientes">Clientes</v-btn>
+      <v-btn to="/ordenes">Órdenes</v-btn>
+      <v-btn to="/productos/registrar">Productos</v-btn>
+      
+      <v-spacer></v-spacer>
+      
+      <v-btn prepend-icon="mdi-calculator" @click="openCalculator">
         Calculadora
-      </button>
+      </v-btn>
 
-      <button @click="logout" class="nav-link-button logout-button">
+      <v-btn prepend-icon="mdi-logout" @click="logout">
         Cerrar Sesión
-      </button>
+      </v-btn>
     </div>
-  </nav>
-  
-  <HoraActual 
-    :user="user" 
-    :nombreTienda="nombreTienda" 
-    :loading="isTiendaLoading" 
-  />
+
+    <template #extension>
+      <HoraActual 
+        :user="user" 
+        :nombre-tienda="nombreTienda" 
+        :loading="isTiendaLoading" 
+      />
+    </template>
+
+  </v-app-bar>
+
+  <v-navigation-drawer
+    v-model="isMobileMenuOpen"
+    location="left"
+    temporary
+  >
+    <v-list nav density="compact">
+      <v-list-item prepend-icon="mdi-view-dashboard" title="Panel" to="/panel" @click="closeMobileMenu"></v-list-item>
+      <v-list-item prepend-icon="mdi-home" title="Inicio" to="/landing" @click="closeMobileMenu"></v-list-item>
+      <v-list-item prepend-icon="mdi-account-group" title="Clientes" to="/clientes" @click="closeMobileMenu"></v-list-item>
+      <v-list-item prepend-icon="mdi-file-document" title="Órdenes" to="/ordenes" @click="closeMobileMenu"></v-list-item>
+      <v-list-item prepend-icon="mdi-package-variant" title="Productos" to="/productos/registrar" @click="closeMobileMenu"></v-list-item>
+      
+      <v-divider></v-divider>
+      
+      <v-list-item prepend-icon="mdi-calculator" title="Calculadora" @click="openCalculator"></v-list-item>
+      <v-list-item prepend-icon="mdi-logout" title="Cerrar Sesión" @click="logout"></v-list-item>
+    </v-list>
+  </v-navigation-drawer>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue';
-import { RouterLink } from 'vue-router';
 import { useAuth } from '../composables/useAuth';
 import { supabase } from '../lib/supabaseClient';
 import HoraActual from './HoraActual.vue';
@@ -48,15 +71,10 @@ const { user } = useAuth();
 const nombreTienda = ref('No asignada');
 const isTiendaLoading = ref(false);
 
-// 3. ESTADO PARA EL MENÚ: Controla si el menú móvil está abierto o cerrado.
+// Este 'ref' ahora controla el v-navigation-drawer
 const isMobileMenuOpen = ref(false);
 
-// Función para alternar la visibilidad del menú móvil
-const toggleMobileMenu = () => {
-  isMobileMenuOpen.value = !isMobileMenuOpen.value;
-};
-
-// Función para cerrar el menú (útil al hacer clic en un enlace)
+// Función para cerrar el menú (¡sigue siendo necesaria!)
 const closeMobileMenu = () => {
   isMobileMenuOpen.value = false;
 };
@@ -102,151 +120,16 @@ watch(user, getNombreTienda, { immediate: true });
 </script>
 
 <style scoped>
-.navbar {
+
+:deep(.v-toolbar__extension) {
   width: 100%;
-  background-color: #1d5cb9;
-  padding: 0 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 50px;
-  color: white;
-  position: sticky;
-  top: 0;
-  z-index: 1010; /* Asegura que la barra de navegación esté por encima de otros elementos */
+  padding: 0; /* Opcional, si HoraActual ya tiene su padding */
 }
-.navbar-brand {
-  text-decoration: none;
-  color: white;
-}
-.navbar-brand h1 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-.navbar-menu {
-  display: flex;
-  align-items: center;
-  height: 100%;
-}
-.nav-link {
-  color: white;
-  text-decoration: none;
-  padding: 0 20px;
-  display: flex;
-  align-items: center;
-  height: 50px;
-  transition: background-color 0.3s;
-}
-.nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-.nav-link.router-link-active {
-  background-color: rgba(255, 255, 255, 0.2);
-  font-weight: 600;
-}
-.navbar-spacer {
-  flex-grow: 1;
-}
-.nav-link-button {
-  color: white;
-  text-decoration: none;
-  padding: 0 20px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  border: none;
-  background: none;
+
+/* Opcional: Si el título (Óptica Optalvis) debe verse como un
+  cursor 'pointer' para indicar que es un enlace.
+*/
+.v-app-bar-title .v-btn {
   cursor: pointer;
-  font-size: 1rem;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  transition: background-color 0.3s;
-}
-.nav-link-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-.logout-button {
-  background-color: rgba(0, 0, 0, 0.15);
-}
-.logout-button:hover {
-  background-color: rgba(0, 0, 0, 0.3);
-}
-
-/* 4. ESTILOS PARA EL MENÚ HAMBURGUESA */
-.navbar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.hamburger-button {
-  display: none; /* Oculto por defecto en pantallas grandes */
-  flex-direction: column;
-  justify-content: space-around;
-  width: 30px;
-  height: 25px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  z-index: 10;
-}
-
-.hamburger-line {
-  width: 30px;
-  height: 3px;
-  background-color: white;
-  border-radius: 5px;
-}
-
-
-/* 5. ESTILOS RESPONSIVE */
-@media (max-width: 750px) {
-  .navbar {
-    flex-direction: column;
-    /* Evita que el navbar se estire al abrir el menú */
-    align-items: flex-start;
-  }
-  
-  /* Cuando el menú móvil está abierto, la barra principal se mantiene roja */
-  .navbar.mobile-menu-open {
-    padding-bottom: 10px;
-  }
-
-  .navbar-header {
-    /* Asegura que el título y el botón ocupen todo el ancho */
-    width: 100%;
-    min-height: 60px;
-  }
-
-  .hamburger-button {
-    display: flex; /* Se muestra el botón en móviles */
-  }
-
-  .navbar-menu {
-    display: none; /* Oculta el menú por defecto en móviles */
-    flex-direction: column;
-    width: 100%;
-    height: auto;
-    background-color: #1d5cb9;
-  }
-
-  /* Esta clase muestra el menú cuando isMobileMenuOpen es true */
-  .navbar-menu.is-open {
-    display: flex;
-  }
-
-  .navbar-spacer {
-    display: none; /* No necesitamos el espaciador en vista de columna */
-  }
-
-  .nav-link, .nav-link-button {
-    height: 50px;
-    width: 100%;
-    justify-content: center;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-  }
 }
 </style>

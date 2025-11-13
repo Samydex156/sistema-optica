@@ -1,162 +1,261 @@
 <template>
-  <div>
-    <h3>Registro de Productos</h3>
-    <div class="botones-arriba">
-      <button @click="abrirModalCrear" class="btn-nuevo-producto">Nuevo Producto</button>
-      <button @click="getProductos">Actualizar</button>
-    </div>
-    
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Descripción</th>
-          <th>Color</th>
-          <th>Precio Venta</th>
-          <th>Activo</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(producto, index) in productos" :key="producto.cod_producto">
-          <td>{{ index + 1 }}</td>
-          <td>{{ producto.descripcion_producto }}</td>
-          <td>
-            <div class="color-info">
-              <div 
-                class="color-sample" 
-                :style="{ backgroundColor: producto.color_hex || '#ccc' }"
-                :title="producto.color_nombre"
-              ></div>
-              {{ producto.color_nombre }}
-            </div>
-          </td>
-          <td>Bs. {{ producto.precio_venta_producto }}</td>
-          <td>
-            <span :class="producto.activo ? 'activo-si' : 'activo-no'">
-              {{ producto.activo ? 'Sí' : 'No' }}
-            </span>
-          </td>
-          <td>
-            <button @click="editarProducto(producto)">Editar</button>
-            <button @click="cambiarEstado(producto.cod_producto, !producto.activo)" 
-                    :class="producto.activo ? 'btn-desactivar' : 'btn-activar'">
-              {{ producto.activo ? 'Desactivar' : 'Activar' }}
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <v-container fluid>
 
-    <BaseModal 
-      v-model="showModal" 
-      :title="editId ? 'Editar Producto' : 'Registrar Producto'" 
-      size="lg"
-    >
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Categoría:</label>
-          <AutoComplete
-            ref="categoriaAutoComplete"
-            v-model="formProducto.cod_categoria"
-            :options="categoriaOptions"
-            placeholder="Buscar categoría..."
-            @change="actualizarDescripcion"
-          />
-        </div>
+    <v-card variant="flat" border>
+      <v-toolbar color="grey-lighten-4">
+        <v-card-title class="text-h6 font-weight-regular">
+          <v-icon icon="mdi-package-variant-closed" start></v-icon>
+          Registro de Productos
+        </v-card-title>
 
-        <div class="form-group">
-          <label>Proveedor / Marca:</label>
-          <AutoComplete
-            v-model="formProducto.proveedor_producto"
-            :options="proveedorOptions"
-            placeholder="Buscar proveedor o marca..."
-            @change="actualizarDescripcion"
-          />
-        </div>
+        <v-spacer></v-spacer>
 
-        <div class="form-group">
-          <label>Material:</label>
-          <AutoComplete
-            v-model="formProducto.material_producto"
-            :options="materialOptions"
-            placeholder="Buscar material..."
-            @change="actualizarDescripcion"
-          />
-        </div>
+        <v-btn 
+          color="primary" 
+          @click="abrirModalCrear" 
+          prepend-icon="mdi-plus"
+          class="mr-2"
+        >
+          Nuevo Producto
+        </v-btn>
+        <v-btn 
+          variant="outlined" 
+          @click="getProductos" 
+          prepend-icon="mdi-refresh"
+        >
+          Actualizar
+        </v-btn>
+      </v-toolbar>
 
-        <div class="form-group">
-          <label>Modelo:</label>
-          <AutoComplete
-            v-model="formProducto.modelo_producto"
-            :options="modeloOptions"
-            placeholder="Buscar modelo..."
-            @change="actualizarDescripcion"
-          />
-        </div>
+      <v-table fixed-header hover density="compact">
+        <thead>
+          <tr>
+            <th class="text-left">#</th>
+            <th class="text-left">Descripción</th>
+            <th class="text-left">Color</th>
+            <th class="text-left">Precio Venta</th>
+            <th class="text-left">Activo</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(producto, index) in productos" :key="producto.cod_producto">
+            <td>{{ index + 1 }}</td>
+            <td>{{ producto.descripcion_producto }}</td>
+            <td>
+              <v-chip
+                :color="producto.color_hex || '#ccc'"
+                size="small"
+                label
+                :text-color="producto.color_hex ? 'white' : 'black'"
+                variant="flat"
+                style="min-width: 100px;"
+              >
+                {{ producto.color_nombre }}
+              </v-chip>
+            </td>
+            <td>Bs. {{ producto.precio_venta_producto }}</td>
+            <td>
+              <v-chip
+                :color="producto.activo ? 'green' : 'red'"
+                size="small"
+                variant="flat"
+                label
+              >
+                {{ producto.activo ? 'Sí (Activo)' : 'No (Inactivo)' }}
+              </v-chip>
+            </td>
+            <td class="text-center">
+              <v-tooltip text="Editar Producto">
+                <template v-slot:activator="{ props }">
+                  <v-btn 
+                    v-bind="props"
+                    icon="mdi-pencil" 
+                    variant="text" 
+                    color="yellow-darken-2" 
+                    size="small" 
+                    @click="editarProducto(producto)"
+                  ></v-btn>
+                </template>
+              </v-tooltip>
+              
+              <v-tooltip :text="producto.activo ? 'Desactivar' : 'Activar'">
+                <template v-slot:activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    :icon="producto.activo ? 'mdi-toggle-switch-off' : 'mdi-toggle-switch'"
+                    variant="text"
+                    :color="producto.activo ? 'red-lighten-1' : 'green-lighten-1'"
+                    size="small"
+                    @click="cambiarEstado(producto.cod_producto, !producto.activo)"
+                  ></v-btn>
+                </template>
+              </v-tooltip>
+            </td>
+          </tr>
+        </tbody>
+      </v-table>
+    </v-card>
 
-        <div class="form-group">
-          <label>Color:</label>
-          <AutoComplete
-            v-model="formProducto.color_producto"
-            :options="colorOptions"
-            placeholder="Buscar color..."
-            @change="actualizarDescripcion"
-          />
-        </div>
+    <v-dialog v-model="showModal" max-width="1000px" persistent>
+      <v-card>
+        <v-card-title class="text-h5 pa-4 bg-grey-lighten-3">
+          {{ editId ? 'Editar Producto' : 'Registrar Producto' }}
+        </v-card-title>
 
-        <div class="form-group">
-          <label>Género:</label>
-          <select v-model="formProducto.genero_producto" @change="actualizarDescripcion">
-            <option value="UNISEX">Unisex</option>
-            <option value="MASCULINO">Masculino</option>
-            <option value="FEMENINO">Femenino</option>
-          </select>
-        </div>
+        <v-card-text class="pt-4">
+          <v-container>
+            <v-row>
+              <v-col cols="12" md="4">
+                <v-autocomplete
+                  ref="categoriaAutoComplete"
+                  v-model="formProducto.cod_categoria"
+                  :items="categoriaOptions"
+                  item-title="label"
+                  item-value="value"
+                  label="Categoría"
+                  variant="outlined"
+                  density="compact"
+                  @update:modelValue="actualizarDescripcion"
+                ></v-autocomplete>
+              </v-col>
 
-        <div class="form-group form-group-full">
-          <label>Descripción:</label>
-          <input v-model="formProducto.descripcion_producto" placeholder="Descripción del producto" />
-          <small class="help-text">La descripción se genera automáticamente, pero puedes editarla</small>
-        </div>
+              <v-col cols="12" md="4">
+                <v-autocomplete
+                  v-model="formProducto.proveedor_producto"
+                  :items="proveedorOptions"
+                  item-title="label"
+                  item-value="value"
+                  label="Proveedor / Marca"
+                  variant="outlined"
+                  density="compact"
+                  @update:modelValue="actualizarDescripcion"
+                ></v-autocomplete>
+              </v-col>
 
-        <div class="form-group">
-          <label>Precio Compra:</label>
-          <input v-model="formProducto.precio_compra_producto" type="number" step="0.01" placeholder="0.00" />
-        </div>
+              <v-col cols="12" md="4">
+                <v-autocomplete
+                  v-model="formProducto.material_producto"
+                  :items="materialOptions"
+                  item-title="label"
+                  item-value="value"
+                  label="Material"
+                  variant="outlined"
+                  density="compact"
+                  @update:modelValue="actualizarDescripcion"
+                ></v-autocomplete>
+              </v-col>
 
-        <div class="form-group">
-          <label>Precio Venta:</label>
-          <input v-model="formProducto.precio_venta_producto" type="number" step="0.01" placeholder="0.00" />
-        </div>
+              <v-col cols="12" md="4">
+                <v-autocomplete
+                  v-model="formProducto.modelo_producto"
+                  :items="modeloOptions"
+                  item-title="label"
+                  item-value="value"
+                  label="Modelo"
+                  variant="outlined"
+                  density="compact"
+                  @update:modelValue="actualizarDescripcion"
+                ></v-autocomplete>
+              </v-col>
 
-        <div class="form-group">
-          <label>Stock Mínimo:</label>
-          <input v-model="formProducto.stock_minimo_producto" type="number" placeholder="0" />
-        </div>
+              <v-col cols="12" md="4">
+                <v-autocomplete
+                  v-model="formProducto.color_producto"
+                  :items="colorOptions"
+                  item-title="label"
+                  item-value="value"
+                  label="Color"
+                  variant="outlined"
+                  density="compact"
+                  @update:modelValue="actualizarDescripcion"
+                ></v-autocomplete>
+              </v-col>
 
-        <div class="form-group">
-          <label>Estado:</label>
-          <select v-model="formProducto.activo">
-            <option :value="true">Activo</option>
-            <option :value="false">Inactivo</option>
-          </select>
-        </div>
-      </div>
+              <v-col cols="12" md="4">
+                <v-select
+                  v-model="formProducto.genero_producto"
+                  :items="['UNISEX', 'MASCULINO', 'FEMENINO']"
+                  label="Género"
+                  variant="outlined"
+                  density="compact"
+                  @update:modelValue="actualizarDescripcion"
+                ></v-select>
+              </v-col>
+              
+              <v-col cols="12">
+                <v-text-field
+                  v-model="formProducto.descripcion_producto"
+                  label="Descripción (Generada automáticamente)"
+                  variant="outlined"
+                  density="compact"
+                  hint="La descripción se genera automáticamente, pero puedes editarla"
+                  persistent-hint
+                ></v-text-field>
+              </v-col>
 
-      <template #footer>
-        <button @click="guardarProducto" class="btn-guardar">Guardar</button>
-        <button @click="cerrarModal" class="btn-cancelar">Cancelar</button>
-      </template>
-    </BaseModal>
-  </div>
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="formProducto.precio_compra_producto"
+                  label="Precio Compra"
+                  type="number"
+                  step="0.01"
+                  prefix="Bs."
+                  variant="outlined"
+                  density="compact"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="formProducto.precio_venta_producto"
+                  label="Precio Venta"
+                  type="number"
+                  step="0.01"
+                  prefix="Bs."
+                  variant="outlined"
+                  density="compact"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" md="3">
+                <v-text-field
+                  v-model="formProducto.stock_minimo_producto"
+                  label="Stock Mínimo"
+                  type="number"
+                  variant="outlined"
+                  density="compact"
+                ></v-text-field>
+              </v-col>
+              
+              <v-col cols="12" md="3">
+                 <v-select
+                  v-model="formProducto.activo"
+                  :items="[{title: 'Activo', value: true}, {title: 'Inactivo', value: false}]"
+                  label="Estado"
+                  variant="outlined"
+                  density="compact"
+                ></v-select>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+
+        <v-card-actions class="pa-4 bg-grey-lighten-3">
+          <v-spacer></v-spacer>
+          <v-btn color="grey-darken-1" variant="text" @click="cerrarModal">Cancelar</v-btn>
+          <v-btn color="blue-darken-1" variant="flat" @click="guardarProducto">Guardar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+  </v-container>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick, computed } from "vue";
 import { supabase } from "../lib/supabaseClient.js";
-import AutoComplete from "./Autocomplete.vue";
-import BaseModal from "./BaseModal.vue";
+// Ya no importamos BaseModal ni AutoComplete
 
 // --- ESTADO GENERAL ---
 const productos = ref([]);
@@ -165,12 +264,14 @@ const proveedores = ref([]);
 const materiales = ref([]);
 const modelos = ref([]);
 const colores = ref([]);
-const showModal = ref(false);
+const showModal = ref(false); // Controla el v-dialog
 const editId = ref(null);
 
+// Ref para el v-autocomplete
 const categoriaAutoComplete = ref(null);
 
 // --- FORMULARIO DEL PRODUCTO ---
+// (Sin cambios, la lógica de estado es la misma)
 const formProducto = ref({
   cod_categoria: "",
   proveedor_producto: "",
@@ -186,34 +287,31 @@ const formProducto = ref({
 });
 
 // --- OPCIONES PARA AUTOCOMPLETE ---
+// (Sin cambios, v-autocomplete las consume igual)
 const categoriaOptions = computed(() =>
   categorias.value.map(c => ({
     value: c.cod_categoria,
     label: c.nombre_categoria_producto
   }))
 );
-
 const proveedorOptions = computed(() => 
   proveedores.value.map(p => ({
     value: p.cod_proveedor,
     label: p.nombre_proveedor
   }))
 );
-
 const materialOptions = computed(() => 
   materiales.value.map(m => ({
     value: m.cod_material,
     label: m.descripcion_material
   }))
 );
-
 const modeloOptions = computed(() => 
   modelos.value.map(mo => ({
     value: mo.cod_modelo,
     label: mo.descripcion_modelo
   }))
 );
-
 const colorOptions = computed(() => 
   colores.value.map(c => ({
     value: c.cod_color_montura,
@@ -222,6 +320,7 @@ const colorOptions = computed(() =>
 );
 
 // --- OBTENCIÓN DE DATOS ---
+// (Sin cambios, la lógica de Supabase es la misma)
 async function getProductos() {
   const { data, error } = await supabase
     .from("productos")
@@ -282,6 +381,7 @@ async function getColores() {
 }
 
 // --- LÓGICA DEL COMPONENTE ---
+// (Sin cambios, la lógica de negocio es la misma)
 function actualizarDescripcion() {
   const categoria = categorias.value.find(c => c.cod_categoria == formProducto.value.cod_categoria);
   const proveedor = proveedores.value.find(p => p.cod_proveedor == formProducto.value.proveedor_producto);
@@ -375,6 +475,7 @@ async function editarProducto(producto) {
   showModal.value = true;
   
   nextTick(() => {
+    // v-autocomplete también expone el método focus()
     if (categoriaAutoComplete.value) {
       categoriaAutoComplete.value.focus();
     }
@@ -458,152 +559,24 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.btn-nuevo-producto {
-  background: #007bff;
-  color: white;
-}
-.btn-nuevo-producto:hover {
-  background: #0056b3;
-}
-h3 {
-  margin: 0 0 20px 0;
-  color: #333;
-  font-size: 24px;
-  font-weight: 600;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #e0e0e0;
-}
-.botones-arriba {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-button {
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-}
-th {
-  background: #343a40;
-  color: white;
-  padding: 12px 8px;
-  text-align: left;
-  font-size: 13px;
-  font-weight: 500;
-}
-td {
-  padding: 10px 8px;
-  border-bottom: 1px solid #dee2e6;
-  font-size: 13px;
-}
-tr:hover {
-  background: #f8f9fa;
-}
-.color-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.color-sample {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 1px solid #ddd;
-  flex-shrink: 0;
-}
-.activo-si { color: #28a745; font-weight: 500; }
-.activo-no { color: #dc3545; font-weight: 500; }
-td button {
-  padding: 4px 8px;
-  margin: 0 2px;
-  border-radius: 3px;
-  font-size: 11px;
-}
-.btn-desactivar { background: #dc3545; color: white; }
-.btn-desactivar:hover { background: #c82333; }
-.btn-activar { background: #28a745; color: white; }
-.btn-activar:hover { background: #218838; }
-td button:not(.btn-desactivar):not(.btn-activar) { background: #ffc107; color: #212529; }
-td button:not(.btn-desactivar):not(.btn-activar):hover { background: #e0a800; }
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-}
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.form-group-full {
-  grid-column: 1 / -1;
-}
-.form-group label {
-  font-weight: 500;
-  color: #333;
-  font-size: 14px;
-}
-.form-group input,
-.form-group select {
-  padding: 8px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 14px;
-  width: 100%;
-  box-sizing: border-box;
-}
-.form-group input:focus,
-.form-group select:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-  outline: none;
-}
-.help-text {
-  color: #6c757d;
-  font-size: 12px;
-  margin-top: 2px;
+/* ¡CASI NO SE NECESITA CSS!
+  Vuetify maneja el 99% del estilo. 
+  Solo ajustamos el título del v-card-title para que
+  no tenga tanto margen inferior por defecto.
+*/
+.v-card-title {
+  margin-bottom: 0 !important;
 }
 
-.btn-guardar {
-  background: #007bff;
-  color: white;
-}
-.btn-guardar:hover {
-  background: #0056b3;
-}
-.btn-cancelar {
-  background: #6c757d;
-  color: white;
-}
-.btn-cancelar:hover {
-  background: #545b62;
-}
-
+/* Aseguramos que la tabla sea responsive en móviles,
+  aunque v-table no es tan "responsive" como v-data-table.
+  Para una mejor experiencia móvil, se usaría v-data-table.
+*/
 @media (max-width: 768px) {
-  .botones-arriba {
-    flex-direction: column;
-  }
-  table {
-    font-size: 11px;
-  }
-  th, td {
-    padding: 8px 6px;
-  }
-  .form-grid {
-    grid-template-columns: 1fr;
-    padding: 10px 0;
+  .v-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
   }
 }
 </style>
