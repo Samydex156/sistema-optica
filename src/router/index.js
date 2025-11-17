@@ -1,33 +1,19 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuth } from "../composables/useAuth";
 
-// Importar componentes Principales
 import RegistrarUsuario from "../components/RegistrarUsuario.vue";
 import PanelPrincipal from "../components/PanelPrincipal.vue";
-
-// Importar componentes de cliente
 import RegistrarCliente from "../components/RegistrarCliente.vue";
 import PanelCliente from "../components/PanelCliente.vue";
-
-// Importar componente de RegistrarPrescripción
 import RegistrarPrescripcion from "../components/RegistrarPrescripcion.vue";
-
-// Importar componente de Registrar orden de trabajo
-// Cambiamos el nombre para reflejar que es una página de gestión completa
 import GestionOrdenesTrabajo from "../components/GestionOrdenesTrabajo.vue";
-
-// Importar componentes para inventarios
 import GestionCaracteristicas from "../components/GestionCaracteristicas.vue";
 import RegistrarProducto from "../components/RegistrarProducto.vue";
 import GestionInventario from "../components/GestionInventario.vue";
 import ConsultaStock from "../components/ConsultaStock.vue";
-
-// Importar componente de Ejercicios básicos
-import EjerciciosComputed from "../components/EjerciciosComputed.vue";
-
-
-// Importar el componente para reporte de prescripciones.
 import ReportePrescripciones from "../components/ReportePrescripciones.vue";
+
+import EjerciciosComputed from "../components/EjerciciosComputed.vue";
 
 const routes = [
   {
@@ -80,8 +66,8 @@ const routes = [
   },
   {
     path: "/ordenes",
-    name: "GestionOrdenesTrabajo", // Añadimos un nombre a la ruta
-    component: GestionOrdenesTrabajo, // Apuntamos al nuevo componente
+    name: "GestionOrdenesTrabajo",
+    component: GestionOrdenesTrabajo,
     meta: { requiresAuth: true },
   },
   {
@@ -119,7 +105,7 @@ const router = createRouter({
   routes,
 });
 
-// Guardia de navegación (sin cambios)
+// Guardia de navegación
 router.beforeEach((to, from, next) => {
   const { isAuthenticated } = useAuth();
   const requiresAuth = to.meta.requiresAuth;

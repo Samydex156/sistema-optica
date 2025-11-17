@@ -30,12 +30,11 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import NavbarPrincipal from './components/NavbarPrincipal.vue';
-// Renombrado de CalculatorModal a CalculatorDialog para claridad
 import CalculatorDialog from './components/CalculatorDialog.vue'; 
 import { useAuth } from './composables/useAuth';
 import CronometroFlotante from './components/CronometroFlotante.vue';
 
-// Estado para el modal de la calculadora, ahora llamado 'showCalculatorDialog'
+// Estado para el modal de la calculadora
 const showCalculatorDialog = ref(false);
 
 const { isAuthenticated, logout } = useAuth();
@@ -48,9 +47,6 @@ const handleLogout = () => {
 </script>
 
 <style scoped>
-/* Opcional: Asegura que v-main tenga un fondo de color 
-  consistente con el tema de Vuetify.
-*/
 .v-main {
   background-color: rgb(var(--v-theme-background));
 }
