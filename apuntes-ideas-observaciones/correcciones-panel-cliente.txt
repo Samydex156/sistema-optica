@@ -1,5 +1,0 @@
-Crear un componente para adicionar tratamientos.
-
-Unificar el tipo y los tratamientos en un solo cuadro.
-Implementar modal para visualizar detalles.
-Eliminar modal para registro de prescripción de cliente.

@@ -1,3 +1,0 @@
-//////Panel principal de la aplicación
-
-Tener un panel con tarjetas ordenadas de los pedidos de lentes que muestre información del estado para saber si se una entrega pendiente que muestre en la tarejta la informacion del cliente, el numero de sobre, la fecha y hora de entrega y resaltar con color para visulaizar 
