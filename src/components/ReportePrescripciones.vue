@@ -2,7 +2,8 @@
   <v-container fluid>
     <v-card class="mb-4">
       <v-card-title class="text-h5">Reporte de Prescripciones</v-card-title>
-      <v-card-subtitle>Filtra y analiza los registros de prescripciones por fecha, doctor, proveedor y armazón.</v-card-subtitle>
+      <v-card-subtitle>Filtra y analiza los registros de prescripciones por fecha, doctor, proveedor y
+        armazón.</v-card-subtitle>
     </v-card>
 
     <v-card class="mb-4">
@@ -10,61 +11,25 @@
       <v-card-text>
         <v-row dense>
           <v-col cols="12" md="3">
-            <v-text-field
-              v-model="filtros.fechaInicio"
-              label="Fecha Inicial (Entrega)"
-              type="date"
-              variant="outlined"
-              density="compact"
-              clearable
-            ></v-text-field>
+            <v-text-field v-model="filtros.fechaInicio" label="Fecha Inicial (Entrega)" type="date" variant="outlined"
+              density="compact" clearable></v-text-field>
           </v-col>
           <v-col cols="12" md="3">
-            <v-text-field
-              v-model="filtros.fechaFin"
-              label="Fecha Final (Entrega)"
-              type="date"
-              variant="outlined"
-              density="compact"
-              clearable
-            ></v-text-field>
+            <v-text-field v-model="filtros.fechaFin" label="Fecha Final (Entrega)" type="date" variant="outlined"
+              density="compact" clearable></v-text-field>
           </v-col>
 
           <v-col cols="12" md="2">
-            <v-autocomplete
-              v-model="filtros.doctor"
-              :items="doctoresOptions"
-              item-title="label"
-              item-value="value"
-              label="Doctor"
-              variant="outlined"
-              density="compact"
-              clearable
-            ></v-autocomplete>
+            <v-autocomplete v-model="filtros.doctor" :items="doctoresOptions" item-title="label" item-value="value"
+              label="Doctor" variant="outlined" density="compact" clearable></v-autocomplete>
           </v-col>
           <v-col cols="12" md="2">
-            <v-autocomplete
-              v-model="filtros.proveedor"
-              :items="proveedoresOptions"
-              item-title="label"
-              item-value="value"
-              label="Proveedor"
-              variant="outlined"
-              density="compact"
-              clearable
-            ></v-autocomplete>
+            <v-autocomplete v-model="filtros.proveedor" :items="proveedoresOptions" item-title="label"
+              item-value="value" label="Proveedor" variant="outlined" density="compact" clearable></v-autocomplete>
           </v-col>
           <v-col cols="12" md="2">
-            <v-autocomplete
-              v-model="filtros.armazon"
-              :items="armazonesOptions"
-              item-title="label"
-              item-value="value"
-              label="Armazón"
-              variant="outlined"
-              density="compact"
-              clearable
-            ></v-autocomplete>
+            <v-autocomplete v-model="filtros.armazon" :items="armazonesOptions" item-title="label" item-value="value"
+              label="Armazón" variant="outlined" density="compact" clearable></v-autocomplete>
           </v-col>
         </v-row>
       </v-card-text>
@@ -76,23 +41,22 @@
         <v-btn @click="aplicarFiltros" color="primary" variant="flat" prepend-icon="mdi-magnify" :loading="cargando">
           Filtrar
         </v-btn>
+        <v-btn @click="exportarPDF" color="secondary" variant="flat" prepend-icon="mdi-file-pdf-box"
+          :disabled="resultadosBusqueda.length === 0 || cargando" class="ml-2">
+          Exportar PDF
+        </v-btn>
       </v-card-actions>
     </v-card>
 
     <v-progress-linear v-if="cargando" indeterminate color="primary" class="my-4"></v-progress-linear>
 
-    <v-alert
-      v-if="busquedaRealizada && !cargando && resultadosBusqueda.length === 0"
-      type="info"
-      variant="outlined"
-      icon="mdi-information-outline"
-      class="mt-4"
-    >
+    <v-alert v-if="busquedaRealizada && !cargando && resultadosBusqueda.length === 0" type="info" variant="outlined"
+      icon="mdi-information-outline" class="mt-4">
       No se encontraron resultados para los filtros seleccionados.
     </v-alert>
 
     <v-row v-if="!cargando && resultadosBusqueda.length > 0">
-      
+
       <v-col cols="12" md="3">
         <v-card class="mb-4" style="position: sticky; top: 80px;">
           <v-card-text class="text-center">
@@ -104,36 +68,24 @@
         <v-card class="mb-4">
           <v-card-title>Resumen por Doctor</v-card-title>
           <v-list density="compact">
-            <v-list-item
-              v-for="(count, doctor) in resumenPorDoctor"
-              :key="doctor"
-              :title="doctor"
-              :subtitle="`${count} prescripciones`"
-            ></v-list-item>
+            <v-list-item v-for="(count, doctor) in resumenPorDoctor" :key="doctor" :title="doctor"
+              :subtitle="`${count} prescripciones`"></v-list-item>
           </v-list>
         </v-card>
 
         <v-card class="mb-4">
           <v-card-title>Resumen por Proveedor</v-card-title>
           <v-list density="compact">
-            <v-list-item
-              v-for="(count, proveedor) in resumenPorProveedor"
-              :key="proveedor"
-              :title="proveedor"
-              :subtitle="`${count} prescripci(ón/ones)`"
-            ></v-list-item>
+            <v-list-item v-for="(count, proveedor) in resumenPorProveedor" :key="proveedor" :title="proveedor"
+              :subtitle="`${count} prescripci(ón/ones)`"></v-list-item>
           </v-list>
         </v-card>
 
         <v-card>
           <v-card-title>Resumen por Armazón</v-card-title>
           <v-list density="compact">
-            <v-list-item
-              v-for="(count, armazon) in resumenPorArmazon"
-              :key="armazon"
-              :title="armazon"
-              :subtitle="`${count} prescripci(ón/ones)`"
-            ></v-list-item>
+            <v-list-item v-for="(count, armazon) in resumenPorArmazon" :key="armazon" :title="armazon"
+              :subtitle="`${count} prescripci(ón/ones)`"></v-list-item>
           </v-list>
         </v-card>
       </v-col>
@@ -147,15 +99,10 @@
 
           <v-card-text class="pt-4">
             <v-window v-model="tab">
-              
+
               <v-window-item value="detalle">
-                <v-data-table
-                  :headers="tableHeaders"
-                  :items="resultadosBusqueda"
-                  :items-per-page="15"
-                  class="elevation-0"
-                  density="compact"
-                >
+                <v-data-table :headers="tableHeaders" :items="resultadosBusqueda" :items-per-page="15"
+                  class="elevation-0" density="compact">
                   <template v-slot:item.cliente="{ item }">
                     {{ item.clientes.nombre_cliente }} {{ item.clientes.apellido_paterno_cliente }}
                   </template>
@@ -183,42 +130,33 @@
                     <v-card variant="outlined">
                       <v-card-title>Prescripciones por Doctor (Top 5 + Otros)</v-card-title>
                       <v-card-text>
-                        <VueApexCharts
-                          type="bar"
-                          height="350"
-                          :options="chartDoctorOptions"
-                          :series="chartDoctorSeries"
-                        ></VueApexCharts>
-                      </v-card-text>
-                    </v-card>
-                  </v-col>
-                  
-                  <v-col cols="12" md="6">
-                    <v-card variant="outlined">
-                      <v-card-title>Distribución por Proveedor</v-card-title>
-                      <v-card-text>
-                        <VueApexCharts
-                          type="pie"
-                          height="350"
-                          :options="chartProveedorOptions"
-                          :series="chartProveedorSeries"
-                        ></VueApexCharts>
+                        <VueApexCharts type="bar" height="350" :options="chartDoctorOptions"
+                          :series="chartDoctorSeries">
+                        </VueApexCharts>
                       </v-card-text>
                     </v-card>
                   </v-col>
 
                   <v-col cols="12" md="6">
-                     <v-card variant="outlined">
-                       <v-card-title>Distribución por Armazón</v-card-title>
-                       <v-card-text>
-                         <VueApexCharts
-                          type="donut"
-                          height="350"
-                          :options="chartArmazonOptions"
-                          :series="chartArmazonSeries"
-                        ></VueApexCharts>
-                       </v-card-text>
-                     </v-card>
+                    <v-card variant="outlined">
+                      <v-card-title>Distribución por Proveedor</v-card-title>
+                      <v-card-text>
+                        <VueApexCharts type="pie" height="350" :options="chartProveedorOptions"
+                          :series="chartProveedorSeries">
+                        </VueApexCharts>
+                      </v-card-text>
+                    </v-card>
+                  </v-col>
+
+                  <v-col cols="12" md="6">
+                    <v-card variant="outlined">
+                      <v-card-title>Distribución por Armazón</v-card-title>
+                      <v-card-text>
+                        <VueApexCharts type="donut" height="350" :options="chartArmazonOptions"
+                          :series="chartArmazonSeries">
+                        </VueApexCharts>
+                      </v-card-text>
+                    </v-card>
                   </v-col>
                 </v-row>
               </v-window-item>
@@ -236,8 +174,10 @@
 import { ref, onMounted, computed } from 'vue';
 import { supabase } from '../lib/supabaseClient';
 import VueApexCharts from 'vue3-apexcharts';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
-const cargando = ref(true); 
+const cargando = ref(true);
 const busquedaRealizada = ref(false);
 const doctores = ref([]);
 const proveedores = ref([]);
@@ -310,10 +250,10 @@ const cargarDatosFiltros = async () => {
 const aplicarFiltros = async () => {
   cargando.value = true;
   busquedaRealizada.value = true;
-  
+
   try {
     let query = supabase
-      .from('prescripcion_clienten') 
+      .from('prescripcion_clienten')
       .select(`
         cod_prescripcion,
         cod_receta,
@@ -345,7 +285,7 @@ const aplicarFiltros = async () => {
     const { data, error } = await query.order('fecha_entrega', { ascending: false });
 
     if (error) throw error;
-    
+
     resultadosBusqueda.value = data;
     tab.value = 'detalle'; // Regresar a la pestaña de detalle en cada nueva búsqueda
 
@@ -355,6 +295,52 @@ const aplicarFiltros = async () => {
   } finally {
     cargando.value = false;
   }
+};
+
+const exportarPDF = () => {
+  const doc = new jsPDF();
+
+  // Título
+  doc.setFontSize(18);
+  doc.text('Reporte de Prescripciones', 14, 22);
+
+  // Fecha de generación
+  doc.setFontSize(10);
+  doc.text(`Generado el: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, 30);
+
+  // Definir columnas y filas para la tabla
+  const columns = [
+    { header: 'Cód. Receta', dataKey: 'cod_receta' },
+    { header: 'Cliente', dataKey: 'cliente' },
+    { header: 'Doctor', dataKey: 'doctor' },
+    { header: 'F. Prescripción', dataKey: 'fecha_prescripcion' },
+    { header: 'F. Entrega', dataKey: 'fecha_entrega' },
+    { header: 'Proveedor', dataKey: 'proveedor' },
+    { header: 'Armazón', dataKey: 'armazon' },
+  ];
+
+  const rows = resultadosBusqueda.value.map(item => ({
+    cod_receta: item.cod_receta,
+    cliente: `${item.clientes.nombre_cliente} ${item.clientes.apellido_paterno_cliente}`,
+    doctor: item.doctores.nombre_doctor,
+    fecha_prescripcion: new Date(item.fecha_prescripcion + 'T00:00:00').toLocaleDateString(),
+    fecha_entrega: new Date(item.fecha_entrega + 'T00:00:00').toLocaleDateString(),
+    proveedor: item.proveedores ? item.proveedores.nombre_proveedor : 'N/A',
+    armazon: item.armazon_lente ? item.armazon_lente.nombre_armazon : 'N/A',
+  }));
+
+  // Generar tabla
+  autoTable(doc, {
+    startY: 35,
+    head: [columns.map(col => col.header)],
+    body: rows.map(row => columns.map(col => row[col.dataKey])),
+    theme: 'striped',
+    headStyles: { fillColor: [25, 118, 210] }, // Color primario (azul)
+    styles: { fontSize: 8 },
+  });
+
+  // Guardar PDF
+  doc.save(`reporte_prescripciones_${new Date().toISOString().slice(0, 10)}.pdf`);
 };
 
 const limpiarFiltros = () => {
@@ -373,7 +359,7 @@ const totalResultados = computed(() => resultadosBusqueda.value.length);
 
 const crearResumen = (campo, nombreSubcampo, defaultNombre) => {
   if (!resultadosBusqueda.value.length) return {};
-  
+
   return resultadosBusqueda.value.reduce((acc, prescripcion) => {
     const nombre = prescripcion[campo]?.[nombreSubcampo] || defaultNombre;
     acc[nombre] = (acc[nombre] || 0) + 1;
@@ -390,7 +376,7 @@ const resumenDoctorAgrupado = computed(() => {
   const resumen = resumenPorDoctor.value;
   // Convertir el objeto a un array [nombre, total] y ordenarlo
   const entries = Object.entries(resumen).sort(([, countA], [, countB]) => countB - countA);
-  
+
   // Si hay 5 o menos, devolver el resumen tal cual
   if (entries.length <= 5) {
     return resumen;
@@ -400,12 +386,12 @@ const resumenDoctorAgrupado = computed(() => {
   const top5 = entries.slice(0, 5);
   // Agrupar el resto
   const otros = entries.slice(5);
-  
+
   // Crear el nuevo objeto agrupado
   const grouped = Object.fromEntries(top5);
   // Sumar el resto en la categoría "OTROS"
   grouped['OTROS'] = otros.reduce((acc, [, count]) => acc + count, 0);
-  
+
   return grouped;
 });
 
@@ -429,9 +415,9 @@ const chartDoctorSeries = computed(() => [{
 const chartProveedorOptions = computed(() => ({
   chart: { id: 'pie-proveedores' },
   labels: Object.keys(resumenPorProveedor.value),
-  responsive: [{ 
-    breakpoint: 480, 
-    options: { legend: { position: 'bottom' } } 
+  responsive: [{
+    breakpoint: 480,
+    options: { legend: { position: 'bottom' } }
   }],
   tooltip: {
     y: { formatter: (val) => `${val} prescripciones` }
@@ -444,9 +430,9 @@ const chartProveedorSeries = computed(() => Object.values(resumenPorProveedor.va
 const chartArmazonOptions = computed(() => ({
   chart: { id: 'donut-armazones' },
   labels: Object.keys(resumenPorArmazon.value),
-  responsive: [{ 
-    breakpoint: 480, 
-    options: { legend: { position: 'bottom' } } 
+  responsive: [{
+    breakpoint: 480,
+    options: { legend: { position: 'bottom' } }
   }],
   tooltip: {
     y: { formatter: (val) => `${val} prescripciones` }
@@ -457,5 +443,4 @@ const chartArmazonSeries = computed(() => Object.values(resumenPorArmazon.value)
 
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
