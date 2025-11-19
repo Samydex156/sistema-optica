@@ -4,7 +4,6 @@ import { useAuth } from "../composables/useAuth";
 import RegistrarUsuario from "../components/RegistrarUsuario.vue";
 import PanelPrincipal from "../components/PanelPrincipal.vue";
 import RegistrarCliente from "../components/RegistrarCliente.vue";
-import PanelCliente from "../components/PanelCliente.vue";
 import RegistrarPrescripcion from "../components/RegistrarPrescripcion.vue";
 import GestionOrdenesTrabajo from "../components/GestionOrdenesTrabajo.vue";
 import GestionCaracteristicas from "../components/GestionCaracteristicas.vue";
@@ -37,12 +36,6 @@ const routes = [
     name: 'GestionClientes',
     component: RegistrarCliente,
     meta: { requiresAuth: true },
-  },
-  {
-    path: "/cliente/:id",
-    name: "PanelCliente",
-    component: PanelCliente,
-    props: true,
   },
   {
     path: '/cliente/:clienteId/prescripcion/nueva',
