@@ -128,9 +128,13 @@
                 <v-row>
                   <v-col cols="12">
                     <v-card variant="outlined">
-                      <v-card-title>Prescripciones por Doctor (Top 5 + Otros)</v-card-title>
+                      <v-card-title class="d-flex justify-space-between align-center">
+                        Prescripciones por Doctor (Top 5 + Otros)
+                        <v-btn icon="mdi-download" variant="text" size="small"
+                          @click="descargarGrafico(chartDoctorRef, 'prescripciones_doctor')"></v-btn>
+                      </v-card-title>
                       <v-card-text>
-                        <VueApexCharts type="bar" height="350" :options="chartDoctorOptions"
+                        <VueApexCharts ref="chartDoctorRef" type="bar" height="350" :options="chartDoctorOptions"
                           :series="chartDoctorSeries">
                         </VueApexCharts>
                       </v-card-text>
@@ -139,9 +143,13 @@
 
                   <v-col cols="12" md="6">
                     <v-card variant="outlined">
-                      <v-card-title>Distribución por Proveedor</v-card-title>
+                      <v-card-title class="d-flex justify-space-between align-center">
+                        Distribución por Proveedor
+                        <v-btn icon="mdi-download" variant="text" size="small"
+                          @click="descargarGrafico(chartProveedorRef, 'distribucion_proveedor')"></v-btn>
+                      </v-card-title>
                       <v-card-text>
-                        <VueApexCharts type="pie" height="350" :options="chartProveedorOptions"
+                        <VueApexCharts ref="chartProveedorRef" type="pie" height="350" :options="chartProveedorOptions"
                           :series="chartProveedorSeries">
                         </VueApexCharts>
                       </v-card-text>
@@ -150,9 +158,13 @@
 
                   <v-col cols="12" md="6">
                     <v-card variant="outlined">
-                      <v-card-title>Distribución por Armazón</v-card-title>
+                      <v-card-title class="d-flex justify-space-between align-center">
+                        Distribución por Armazón
+                        <v-btn icon="mdi-download" variant="text" size="small"
+                          @click="descargarGrafico(chartArmazonRef, 'distribucion_armazon')"></v-btn>
+                      </v-card-title>
                       <v-card-text>
-                        <VueApexCharts type="donut" height="350" :options="chartArmazonOptions"
+                        <VueApexCharts ref="chartArmazonRef" type="donut" height="350" :options="chartArmazonOptions"
                           :series="chartArmazonSeries">
                         </VueApexCharts>
                       </v-card-text>
@@ -174,6 +186,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { supabase } from '../lib/supabaseClient';
 import VueApexCharts from 'vue3-apexcharts';
+import ApexCharts from 'apexcharts';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -183,6 +196,10 @@ const doctores = ref([]);
 const proveedores = ref([]);
 const armazones = ref([]);
 const resultadosBusqueda = ref([]);
+
+const chartDoctorRef = ref(null);
+const chartProveedorRef = ref(null);
+const chartArmazonRef = ref(null);
 
 const tab = ref('detalle');
 
@@ -297,50 +314,82 @@ const aplicarFiltros = async () => {
   }
 };
 
-const exportarPDF = () => {
-  const doc = new jsPDF();
+const exportarPDF = async () => {
+  cargando.value = true; // Mostrar loading mientras se genera
+  try {
+    const doc = new jsPDF();
 
-  // Título
-  doc.setFontSize(18);
-  doc.text('Reporte de Prescripciones', 14, 22);
+    // Título
+    doc.setFontSize(18);
+    doc.text('Reporte de Prescripciones', 14, 22);
 
-  // Fecha de generación
-  doc.setFontSize(10);
-  doc.text(`Generado el: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, 30);
+    // Fecha de generación
+    doc.setFontSize(10);
+    doc.text(`Generado el: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, 30);
 
-  // Definir columnas y filas para la tabla
-  const columns = [
-    { header: 'Cód. Receta', dataKey: 'cod_receta' },
-    { header: 'Cliente', dataKey: 'cliente' },
-    { header: 'Doctor', dataKey: 'doctor' },
-    { header: 'F. Prescripción', dataKey: 'fecha_prescripcion' },
-    { header: 'F. Entrega', dataKey: 'fecha_entrega' },
-    { header: 'Proveedor', dataKey: 'proveedor' },
-    { header: 'Armazón', dataKey: 'armazon' },
-  ];
+    let currentY = 40;
 
-  const rows = resultadosBusqueda.value.map(item => ({
-    cod_receta: item.cod_receta,
-    cliente: `${item.clientes.nombre_cliente} ${item.clientes.apellido_paterno_cliente}`,
-    doctor: item.doctores.nombre_doctor,
-    fecha_prescripcion: new Date(item.fecha_prescripcion + 'T00:00:00').toLocaleDateString(),
-    fecha_entrega: new Date(item.fecha_entrega + 'T00:00:00').toLocaleDateString(),
-    proveedor: item.proveedores ? item.proveedores.nombre_proveedor : 'N/A',
-    armazon: item.armazon_lente ? item.armazon_lente.nombre_armazon : 'N/A',
-  }));
+    // Tabla de datos
+    // Definir columnas y filas para la tabla
+    const columns = [
+      { header: 'Cód. Receta', dataKey: 'cod_receta' },
+      { header: 'Cliente', dataKey: 'cliente' },
+      { header: 'Doctor', dataKey: 'doctor' },
+      { header: 'F. Prescripción', dataKey: 'fecha_prescripcion' },
+      { header: 'F. Entrega', dataKey: 'fecha_entrega' },
+      { header: 'Proveedor', dataKey: 'proveedor' },
+      { header: 'Armazón', dataKey: 'armazon' },
+    ];
 
-  // Generar tabla
-  autoTable(doc, {
-    startY: 35,
-    head: [columns.map(col => col.header)],
-    body: rows.map(row => columns.map(col => row[col.dataKey])),
-    theme: 'striped',
-    headStyles: { fillColor: [25, 118, 210] }, // Color primario (azul)
-    styles: { fontSize: 8 },
-  });
+    const rows = resultadosBusqueda.value.map(item => ({
+      cod_receta: item.cod_receta,
+      cliente: `${item.clientes.nombre_cliente} ${item.clientes.apellido_paterno_cliente}`,
+      doctor: item.doctores.nombre_doctor,
+      fecha_prescripcion: new Date(item.fecha_prescripcion + 'T00:00:00').toLocaleDateString(),
+      fecha_entrega: new Date(item.fecha_entrega + 'T00:00:00').toLocaleDateString(),
+      proveedor: item.proveedores ? item.proveedores.nombre_proveedor : 'N/A',
+      armazon: item.armazon_lente ? item.armazon_lente.nombre_armazon : 'N/A',
+    }));
 
-  // Guardar PDF
-  doc.save(`reporte_prescripciones_${new Date().toISOString().slice(0, 10)}.pdf`);
+    doc.text('Detalle de Registros', 14, currentY);
+
+    autoTable(doc, {
+      startY: currentY + 5,
+      head: [columns.map(col => col.header)],
+      body: rows.map(row => columns.map(col => row[col.dataKey])),
+      theme: 'striped',
+      headStyles: { fillColor: [25, 118, 210] }, // Color primario (azul)
+      styles: { fontSize: 8 },
+    });
+
+    // Guardar PDF
+    doc.save(`reporte_prescripciones_${new Date().toISOString().slice(0, 10)}.pdf`);
+  } catch (e) {
+    console.error("Error generando PDF:", e);
+    alert("Error al generar el PDF");
+  } finally {
+    cargando.value = false;
+  }
+};
+
+const descargarGrafico = async (chartRef, nombreArchivo) => {
+  if (!chartRef) return;
+
+  try {
+    // chartRef.value accede al componente VueApexCharts
+    // .chart accede a la instancia interna de ApexCharts
+    const { imgURI } = await chartRef.chart.dataURI();
+
+    const link = document.createElement('a');
+    link.href = imgURI;
+    link.download = `${nombreArchivo}_${new Date().toISOString().slice(0, 10)}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Error al descargar gráfico:", error);
+    alert("No se pudo descargar el gráfico.");
+  }
 };
 
 const limpiarFiltros = () => {
