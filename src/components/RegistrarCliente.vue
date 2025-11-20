@@ -7,6 +7,32 @@
       </v-btn>
     </header>
 
+    <!-- Filtro por Letra -->
+    <div class="d-flex flex-wrap gap-1 mb-4 justify-center">
+      <v-chip
+        v-for="letra in alfabeto"
+        :key="letra"
+        :color="filtroLetra === letra ? 'primary' : 'default'"
+        :variant="filtroLetra === letra ? 'flat' : 'outlined'"
+        class="ma-1 cursor-pointer"
+        size="small"
+        @click="seleccionarLetra(letra)"
+      >
+        {{ letra }}
+      </v-chip>
+      <v-chip
+        v-if="filtroLetra"
+        color="error"
+        variant="text"
+        class="ma-1 cursor-pointer"
+        size="small"
+        prepend-icon="mdi-close"
+        @click="seleccionarLetra(null)"
+      >
+        Limpiar Filtro
+      </v-chip>
+    </div>
+
     <v-text-field
       ref="searchInputRef"
       v-model="busqueda"
@@ -15,7 +41,8 @@
       variant="outlined"
       density="compact"
       clearable
-      class="my-4"
+      class="mb-4"
+      hide-details
     ></v-text-field>
 
     <v-data-table-server
@@ -26,7 +53,7 @@
       :loading="cargando"
       :search="busqueda"
       item-value="cod_cliente"
-      class="elevation-1"
+      class="elevation-1 mt-4"
       @update:options="fetchClientes"
       hover
     >
@@ -230,12 +257,17 @@ const totalClientes = ref(0);
 const itemsPerPage = ref(10);
 const busqueda = ref("");
 
+// --- Filtro por Letra ---
+const filtroLetra = ref(null);
+const alfabeto = ['A', 'B', 'C', 'CH', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'LL', 'M', 'N', 'Ñ', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+
 const headers = [
-  { title: 'Nombre Completo', align: 'start', sortable: false, key: 'nombreCompleto' },
-  { title: 'Teléfono', key: 'telefono_cliente', sortable: false },
-  { title: 'Última Receta', key: 'cod_receta', sortable: false }, // Cambié el título para ser más claro
-  { title: 'Nro. Sobre', key: 'num_sobre', sortable: false },
-  { title: 'Acciones', key: 'actions', sortable: false, align: 'center' },
+  { title: 'Nombre Completo', align: 'start', sortable: true, key: 'nombreCompleto' },
+  { title: 'Teléfono', key: 'telefono_cliente', sortable: true },
+  { title: 'Código Receta', key: 'cod_receta', sortable: true },
+  { title: 'Nro. Sobre', key: 'num_sobre', sortable: true },
+  { title: 'Número de Pedido', key: 'pedidos', sortable: false },
+  { title: 'Acciones', key: 'actions', sortable: true, align: 'center' },
 ];
 
 // --- Estado del Modal Cliente (Crear/Editar) ---
@@ -265,19 +297,108 @@ onMounted(() => {
 
 // --- Funciones de Datos (Clientes) ---
 
+function seleccionarLetra(letra) {
+  if (filtroLetra.value === letra) {
+    filtroLetra.value = null; // Deseleccionar si ya estaba seleccionada
+  } else {
+    filtroLetra.value = letra;
+    busqueda.value = ""; // Limpiar búsqueda textual al seleccionar letra
+  }
+  fetchClientes({ page: 1, itemsPerPage: itemsPerPage.value });
+}
+
 async function fetchClientes({ page, itemsPerPage }) {
   cargando.value = true;
   try {
     const limite = itemsPerPage;
     const desplazamiento = (page - 1) * limite;
 
-    const { data, error } = await supabase.rpc('buscar_clientes_con_prescripcion', {
-      termino_busqueda: busqueda.value,
-      limite: limite,
-      desplazamiento: desplazamiento
-    });
-    
-    if (error) throw error;
+    let data = [];
+    let count = 0;
+
+    // CASO 1: Búsqueda por texto (Prioridad)
+    if (busqueda.value) {
+      const { data: rpcData, error: rpcError } = await supabase.rpc('buscar_clientes_con_prescripcion', {
+        termino_busqueda: busqueda.value,
+        limite: limite,
+        desplazamiento: desplazamiento
+      });
+      if (rpcError) throw rpcError;
+      data = rpcData || [];
+      count = (data && data.length > 0) ? data[0].conteo_total : 0;
+    } 
+    // CASO 2: Filtro por Letra
+    else if (filtroLetra.value) {
+      let query = supabase
+        .from('clientes')
+        .select('*', { count: 'exact' });
+
+      // Lógica específica para CH y LL
+      if (filtroLetra.value === 'CH') {
+        query = query.ilike('apellido_paterno_cliente', 'CH%');
+      }else if (filtroLetra.value === 'LL') {
+        query = query.ilike('apellido_paterno_cliente', 'LL%');
+      }else {
+        // Caso normal
+        query = query.ilike('apellido_paterno_cliente', `${filtroLetra.value}%`);
+      }
+
+      query = query
+        .order('apellido_paterno_cliente', { ascending: true })
+        .order('apellido_materno_cliente', { ascending: true })
+        .order('nombre_cliente', { ascending: true })
+        .range(desplazamiento, desplazamiento + limite - 1);
+
+      const { data: clientesData, error: clientesError, count: total } = await query;
+      if (clientesError) throw clientesError;
+
+      count = total;
+      
+      // Para mantener consistencia con la vista de búsqueda, necesitamos enriquecer con la última receta
+      // Hacemos una consulta adicional para estos clientes específicos
+      if (clientesData && clientesData.length > 0) {
+        const ids = clientesData.map(c => c.cod_cliente);
+        
+        // Traemos la última prescripción para cada cliente de la página actual
+        // Nota: Esto es una aproximación. Lo ideal sería una View o RPC, pero para mantenerlo simple en frontend:
+        const { data: prescripciones, error: prescError } = await supabase
+          .from('prescripcion_clienten')
+          .select('cod_cliente, cod_receta, num_sobre, cod_pedido1, cod_pedido2')
+          .in('cod_cliente', ids)
+          .order('fecha_prescripcion', { ascending: false }); // Ordenar por fecha para que al buscar encontremos la reciente
+
+        if (!prescError && prescripciones) {
+          // Mapeamos para unir datos
+          data = clientesData.map(cliente => {
+            // Encontrar la primera coincidencia (la más reciente por el order)
+            const ultimaReceta = prescripciones.find(p => p.cod_cliente === cliente.cod_cliente);
+            return {
+              ...cliente,
+              cod_receta: ultimaReceta?.cod_receta || '-',
+              num_sobre: ultimaReceta?.num_sobre || '-',
+              cod_pedido1: ultimaReceta?.cod_pedido1,
+              cod_pedido2: ultimaReceta?.cod_pedido2,
+              conteo_total: count // Para mantener estructura
+            };
+          });
+        } else {
+          data = clientesData.map(c => ({ ...c, cod_receta: '-', num_sobre: '-', conteo_total: count }));
+        }
+      } else {
+        data = [];
+      }
+    } 
+    // CASO 3: Sin filtros (Carga inicial o limpia)
+    else {
+       const { data: rpcData, error: rpcError } = await supabase.rpc('buscar_clientes_con_prescripcion', {
+        termino_busqueda: "",
+        limite: limite,
+        desplazamiento: desplazamiento
+      });
+      if (rpcError) throw rpcError;
+      data = rpcData || [];
+      count = (data && data.length > 0) ? data[0].conteo_total : 0;
+    }
 
     clientes.value = (data || []).map(cliente => {
       const pedidosArr = [cliente.cod_pedido1, cliente.cod_pedido2]
@@ -292,7 +413,7 @@ async function fetchClientes({ page, itemsPerPage }) {
       };
     });
     
-    totalClientes.value = (data && data.length > 0) ? data[0].conteo_total : 0;
+    totalClientes.value = count;
 
   } catch (error) {
     console.error("Error al obtener clientes:", error);
@@ -303,6 +424,9 @@ async function fetchClientes({ page, itemsPerPage }) {
 }
 
 watch(busqueda, debounce(() => {
+    if (busqueda.value) {
+        filtroLetra.value = null; // Limpiar filtro de letra si se busca por texto
+    }
     fetchClientes({ page: 1, itemsPerPage: itemsPerPage.value });
 }, 500));
 

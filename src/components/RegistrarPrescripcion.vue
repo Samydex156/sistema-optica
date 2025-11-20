@@ -206,7 +206,7 @@
         <v-card-actions class="pa-4 border-t">
           <v-spacer></v-spacer>
           <v-btn @click="cancelar" variant="text">Cancelar</v-btn>
-          <v-btn type="submit" color="primary" variant="flat" :disabled="cargando">
+          <v-btn type="submit" color="primary" variant="flat" :loading="guardando" :disabled="cargando || guardando">
             {{ isEditing ? 'Actualizar Prescripción' : 'Guardar Prescripción' }}
           </v-btn>
         </v-card-actions>
@@ -251,6 +251,7 @@ const router = useRouter();
 const isEditing = computed(() => !!props.prescripcionId);
 
 const cargando = ref(true);
+const guardando = ref(false);
 const cliente = ref(null);
 const recetaInputRef = ref(null);
 const recetaNumerica = ref(''); 
@@ -464,6 +465,7 @@ async function guardarPrescripcion() {
     return;
   }
 
+  guardando.value = true;
   try {
     const { l1_tratamientos, l2_tratamientos, ...prescripcionBaseData } = formData;
     
@@ -522,6 +524,8 @@ async function guardarPrescripcion() {
   } catch (error) {
     console.error("Error al guardar:", error); 
     alert('Error al guardar la prescripción: ' + error.message);
+  } finally {
+    guardando.value = false;
   }
 }
 
