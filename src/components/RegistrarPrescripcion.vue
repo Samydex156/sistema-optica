@@ -518,7 +518,7 @@ async function guardarPrescripcion() {
     }
 
     alert(isEditing.value ? 'Prescripción actualizada con éxito.' : 'Prescripción guardada con éxito.');
-    router.push({ name: 'PanelCliente', params: { id: props.clienteId } });
+    router.push({ name: 'GestionClientes' });
   } catch (error) {
     console.error("Error al guardar:", error); 
     alert('Error al guardar la prescripción: ' + error.message);
