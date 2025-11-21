@@ -305,3 +305,20 @@ create table public.usuarios (
   constraint usuarios_tienda_usuario_fkey foreign KEY (tienda_usuario) references tiendas (cod_tienda)
 ) TABLESPACE pg_default;
 
+
+create table public.pedidos_sobres (
+  numero_sobre integer not null,
+  fecha_pedido date not null default CURRENT_DATE,
+  fecha_entrega date null,
+  hora_entrega time without time zone null,
+  nombre_cliente character varying(150) not null,
+  fecha_cancelacion_total date null,
+  cod_doctor integer null,
+  monto_total numeric(10, 2) not null default 0.00,
+  monto_a_cuenta numeric(10, 2) not null default 0.00,
+  saldo numeric GENERATED ALWAYS as ((monto_total - monto_a_cuenta)) STORED (10, 2) null,
+  momento_ingreso timestamp with time zone not null default now(),
+  estado_pedido character varying(20) not null default 'pendiente'::character varying,
+  constraint pedidos_sobres_pkey primary key (numero_sobre),
+  constraint pedidos_sobres_cod_doctor_fkey foreign KEY (cod_doctor) references doctores (cod_doctor)
+) TABLESPACE pg_default;

@@ -92,6 +92,12 @@ const modulos = ref([
     icono: 'mdi-chart-line',
     ruta: '/reportes/prescripciones',
   },
+  {
+    titulo: 'Sobres',
+    descripcion: 'Registro de pedidos de sobres.',
+    icono: 'mdi-email-outline',
+    ruta: '/sobres/registrar',
+  },
 ]);
 
 /**

@@ -11,6 +11,7 @@ import RegistrarProducto from "../components/RegistrarProducto.vue";
 import GestionInventario from "../components/GestionInventario.vue";
 import ConsultaStock from "../components/ConsultaStock.vue";
 import ReportePrescripciones from "../components/ReportePrescripciones.vue";
+import RegistrarSobre from "../components/RegistrarSobre.vue";
 
 import EjerciciosComputed from "../components/EjerciciosComputed.vue";
 
@@ -55,6 +56,12 @@ const routes = [
     path: '/reportes/prescripciones',
     name: 'ReportePrescripciones',
     component: ReportePrescripciones,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/sobres/registrar",
+    name: "RegistrarSobre",
+    component: RegistrarSobre,
     meta: { requiresAuth: true },
   },
   {
