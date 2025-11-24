@@ -21,7 +21,10 @@
                 variant="outlined"
                 density="compact"
                 :rules="[v => !!v || 'El número de sobre es requerido']"
+                :error-messages="mensajeErrorSobre"
+                :loading="verificandoSobre"
                 required
+                autofocus
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="8">
@@ -79,6 +82,62 @@
                 clearable
               ></v-autocomplete>
             </v-col>
+          </v-row>
+
+          <v-row dense>
+            <v-col cols="12">
+              <div class="text-subtitle-2 mb-2">Tienda</div>
+              <div class="d-flex flex-wrap gap-2">
+                <v-btn
+                  v-for="tienda in tiendas"
+                  :key="tienda.cod_tienda"
+                  :color="formData.cod_tienda === tienda.cod_tienda ? 'primary' : undefined"
+                  :variant="formData.cod_tienda === tienda.cod_tienda ? 'flat' : 'outlined'"
+                  @click="formData.cod_tienda = tienda.cod_tienda"
+                  class="mr-2 mb-2"
+                >
+                  {{ tienda.nombre_tienda }}
+                </v-btn>
+              </div>
+              <div v-if="!formData.cod_tienda" class="text-caption text-error">
+                Seleccione una tienda
+              </div>
+            </v-col>
+          </v-row>
+
+          <v-row dense>
+            <v-col cols="12">
+              <div class="text-subtitle-2 mb-2">Estado del Pedido</div>
+              <div class="d-flex flex-wrap gap-2">
+                <v-btn
+                  :color="formData.estado_pedido === 'pendiente' ? 'warning' : undefined"
+                  :variant="formData.estado_pedido === 'pendiente' ? 'flat' : 'outlined'"
+                  @click="formData.estado_pedido = 'pendiente'"
+                  class="mr-2 mb-2"
+                >
+                  Pendiente
+                </v-btn>
+                <v-btn
+                  :color="formData.estado_pedido === 'entregado' ? 'success' : undefined"
+                  :variant="formData.estado_pedido === 'entregado' ? 'flat' : 'outlined'"
+                  @click="formData.estado_pedido = 'entregado'"
+                  class="mr-2 mb-2"
+                >
+                  Entregado
+                </v-btn>
+                <v-btn
+                  :color="formData.estado_pedido === 'cancelado' ? 'error' : undefined"
+                  :variant="formData.estado_pedido === 'cancelado' ? 'flat' : 'outlined'"
+                  @click="formData.estado_pedido = 'cancelado'"
+                  class="mr-2 mb-2"
+                >
+                  Cancelado
+                </v-btn>
+              </div>
+            </v-col>
+          </v-row>
+
+          <v-row dense>
             <v-col cols="12" md="6">
               <v-text-field
                 v-model="formData.fecha_cancelacion_total"
@@ -90,18 +149,7 @@
             </v-col>
           </v-row>
 
-          <v-row dense>
-            <v-col cols="12" md="6">
-              <v-select
-                v-model="formData.estado_pedido"
-                :items="['pendiente', 'entregado', 'cancelado']"
-                label="Estado del Pedido"
-                variant="outlined"
-                density="compact"
-                required
-              ></v-select>
-            </v-col>
-          </v-row>
+
 
           <v-divider class="my-4"></v-divider>
           <v-row dense>
@@ -155,7 +203,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, computed } from 'vue';
+import { ref, onMounted, reactive, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { supabase } from '../lib/supabaseClient';
 
@@ -163,6 +211,10 @@ const router = useRouter();
 const cargando = ref(true);
 const guardando = ref(false);
 const doctores = ref([]);
+const tiendas = ref([]);
+const mensajeErrorSobre = ref('');
+const verificandoSobre = ref(false);
+let debounceTimer = null;
 
 const getInitialFormData = () => ({
   numero_sobre: null,
@@ -171,6 +223,7 @@ const getInitialFormData = () => ({
   fecha_entrega: null,
   hora_entrega: null,
   cod_doctor: null,
+  cod_tienda: null,
   monto_total: 0,
   monto_a_cuenta: 0,
   fecha_cancelacion_total: null,
@@ -180,6 +233,7 @@ const getInitialFormData = () => ({
 const formData = reactive(getInitialFormData());
 
 const doctoresOptions = computed(() => doctores.value.map(d => ({ value: d.cod_doctor, label: d.nombre_doctor })));
+const tiendasOptions = computed(() => tiendas.value.map(t => ({ value: t.cod_tienda, label: t.nombre_tienda })));
 
 const saldoCalculado = computed(() => {
   const total = parseFloat(formData.monto_total) || 0;
@@ -194,24 +248,72 @@ onMounted(async () => {
 async function cargarDatos() {
   cargando.value = true;
   try {
-    const { data, error } = await supabase.from('doctores').select('*');
-    if (error) throw error;
-    doctores.value = data || [];
+    const { data: doctoresData, error: doctoresError } = await supabase.from('doctores').select('*');
+    if (doctoresError) throw doctoresError;
+    doctores.value = doctoresData || [];
+
+    const { data: tiendasData, error: tiendasError } = await supabase.from('tiendas').select('*');
+    if (tiendasError) throw tiendasError;
+    tiendas.value = tiendasData || [];
+
+    // Pre-seleccionar tienda CENTRAL
+    const central = tiendas.value.find(t => t.nombre_tienda.toUpperCase().includes('CENTRAL'));
+    if (central) {
+      formData.cod_tienda = central.cod_tienda;
+    }
   } catch (error) {
-    console.error("Error al cargar doctores:", error);
-    alert("Error al cargar la lista de doctores.");
+    console.error("Error al cargar datos:", error);
+    alert("Error al cargar la lista de doctores o tiendas.");
   } finally {
     cargando.value = false;
   }
 }
 
+
+
+watch(() => formData.numero_sobre, (nuevoValor) => {
+  if (debounceTimer) clearTimeout(debounceTimer);
+  mensajeErrorSobre.value = '';
+
+  if (!nuevoValor) return;
+
+  debounceTimer = setTimeout(async () => {
+    verificandoSobre.value = true;
+    try {
+      const { data, error } = await supabase
+        .from('pedidos_sobres')
+        .select('numero_sobre')
+        .eq('numero_sobre', nuevoValor)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        mensajeErrorSobre.value = `El número de sobre ${nuevoValor} ya existe.`;
+      }
+    } catch (error) {
+      console.error("Error al verificar sobre:", error);
+    } finally {
+      verificandoSobre.value = false;
+    }
+  }, 500);
+});
+
 async function guardarSobre() {
+  if (mensajeErrorSobre.value) {
+    alert('Corrija los errores antes de guardar.');
+    return;
+  }
   if (!formData.numero_sobre) {
     alert('El número de sobre es obligatorio.');
     return;
   }
   if (!formData.nombre_cliente.trim()) {
     alert('El nombre del cliente es obligatorio.');
+    return;
+  }
+  if (!formData.cod_tienda) {
+    alert('Debe seleccionar una tienda.');
     return;
   }
 
@@ -225,6 +327,7 @@ async function guardarSobre() {
       fecha_entrega: formData.fecha_entrega,
       hora_entrega: formData.hora_entrega,
       cod_doctor: formData.cod_doctor,
+      cod_tienda: formData.cod_tienda,
       monto_total: formData.monto_total,
       monto_a_cuenta: formData.monto_a_cuenta,
       fecha_cancelacion_total: formData.fecha_cancelacion_total,

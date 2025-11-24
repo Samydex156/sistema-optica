@@ -319,6 +319,8 @@ create table public.pedidos_sobres (
   saldo numeric GENERATED ALWAYS as ((monto_total - monto_a_cuenta)) STORED (10, 2) null,
   momento_ingreso timestamp with time zone not null default now(),
   estado_pedido character varying(20) not null default 'pendiente'::character varying,
+  cod_tienda integer null,
   constraint pedidos_sobres_pkey primary key (numero_sobre),
-  constraint pedidos_sobres_cod_doctor_fkey foreign KEY (cod_doctor) references doctores (cod_doctor)
+  constraint pedidos_sobres_cod_doctor_fkey foreign KEY (cod_doctor) references doctores (cod_doctor),
+  constraint pedidos_sobres_cod_tienda_fkey foreign KEY (cod_tienda) references tiendas (cod_tienda)
 ) TABLESPACE pg_default;
