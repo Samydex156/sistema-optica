@@ -12,180 +12,97 @@
         </v-card-title>
 
         <v-card-text class="py-4">
+          <!-- Fila 1: Datos principales y fechas -->
           <v-row dense>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model.number="formData.numero_sobre"
-                label="Número de Sobre"
-                type="number"
-                variant="outlined"
-                density="compact"
-                :rules="[v => !!v || 'El número de sobre es requerido']"
-                :error-messages="mensajeErrorSobre"
-                :loading="verificandoSobre"
-                required
-                autofocus
-              ></v-text-field>
+            <v-col cols="12" md="2">
+              <v-text-field v-model.number="formData.numero_sobre" label="Número de Sobre" type="number"
+                variant="outlined" density="compact" :rules="[v => !!v || 'El número de sobre es requerido']"
+                :error-messages="mensajeErrorSobre" :loading="verificandoSobre" required autofocus></v-text-field>
             </v-col>
-            <v-col cols="12" md="8">
-              <v-text-field
-                v-model="formData.nombre_cliente"
-                label="Nombre del Cliente"
-                variant="outlined"
-                density="compact"
-                :rules="[v => !!v || 'El nombre del cliente es requerido']"
-                required
-              ></v-text-field>
+            <v-col cols="12" md="4">
+              <v-text-field v-model="formData.nombre_cliente" label="Nombre del Cliente" variant="outlined"
+                density="compact" :rules="[v => !!v || 'El nombre del cliente es requerido']" required></v-text-field>
+            </v-col>
+            <v-col cols="12" md="2">
+              <v-text-field v-model="formData.fecha_pedido" label="Fecha Pedido" type="date" variant="outlined"
+                density="compact"></v-text-field>
+            </v-col>
+            <v-col cols="12" md="2">
+              <v-text-field v-model="formData.fecha_entrega" label="Fecha Entrega" type="date" variant="outlined"
+                density="compact"></v-text-field>
+            </v-col>
+            <v-col cols="12" md="2">
+              <v-text-field v-model="formData.hora_entrega" label="Hora Entrega" type="time" variant="outlined"
+                density="compact"></v-text-field>
             </v-col>
           </v-row>
 
-          <v-row dense>
+          <!-- Fila 2: Doctor, Tienda, Estado -->
+          <v-row dense class="mt-2">
             <v-col cols="12" md="4">
-              <v-text-field
-                v-model="formData.fecha_pedido"
-                label="Fecha Pedido"
-                type="date"
-                variant="outlined"
-                density="compact"
-              ></v-text-field>
+              <v-autocomplete v-model="formData.cod_doctor" :items="doctoresOptions" item-title="label"
+                item-value="value" label="Doctor" variant="outlined" density="compact" clearable></v-autocomplete>
             </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="formData.fecha_entrega"
-                label="Fecha Entrega"
-                type="date"
-                variant="outlined"
-                density="compact"
-              ></v-text-field>
+
+            <v-col cols="12" md="2">
+              <v-text-field v-model.number="formData.monto_total" label="Monto Total" type="number" step="0.01"
+                prefix="Bs." variant="outlined" density="compact"></v-text-field>
             </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="formData.hora_entrega"
-                label="Hora Entrega"
-                type="time"
-                variant="outlined"
-                density="compact"
-              ></v-text-field>
+            <v-col cols="12" md="2">
+              <v-text-field v-model.number="formData.monto_a_cuenta" label="Monto a Cuenta" type="number" step="0.01"
+                prefix="Bs." variant="outlined" density="compact"></v-text-field>
+            </v-col>
+            <v-col cols="12" md="2">
+              <v-text-field :model-value="saldoCalculado" label="Saldo" type="number" prefix="Bs." variant="outlined"
+                density="compact" readonly bg-color="grey-lighten-4"></v-text-field>
+            </v-col>
+            <v-col cols="12" md="2">
+              <v-text-field v-model="formData.fecha_cancelacion_total" label="Fecha Cancelación" type="date"
+                variant="outlined" density="compact"></v-text-field>
             </v-col>
           </v-row>
 
-          <v-row dense>
-            <v-col cols="12" md="6">
-              <v-autocomplete
-                v-model="formData.cod_doctor"
-                :items="doctoresOptions"
-                item-title="label"
-                item-value="value"
-                label="Doctor"
-                variant="outlined"
-                density="compact"
-                clearable
-              ></v-autocomplete>
-            </v-col>
-          </v-row>
+          <v-row dense class="mt-2">
 
-          <v-row dense>
-            <v-col cols="12">
-              <div class="text-subtitle-2 mb-2">Tienda</div>
-              <div class="d-flex flex-wrap gap-2">
-                <v-btn
-                  v-for="tienda in tiendas"
-                  :key="tienda.cod_tienda"
-                  :color="formData.cod_tienda === tienda.cod_tienda ? 'primary' : undefined"
-                  :variant="formData.cod_tienda === tienda.cod_tienda ? 'flat' : 'outlined'"
-                  @click="formData.cod_tienda = tienda.cod_tienda"
-                  class="mr-2 mb-2"
-                >
-                  {{ tienda.nombre_tienda }}
+
+            <v-col cols="12" md="5">
+              <div class="text-subtitle-2 mb-1">Estado del Pedido</div>
+              <div class="d-flex gap-2">
+                <v-btn :color="formData.estado_pedido === 'pendiente' ? 'warning' : undefined"
+                  :variant="formData.estado_pedido === 'pendiente' ? 'flat' : 'outlined'"
+                  @click="formData.estado_pedido = 'pendiente'" size="small" class="mr-1 mb-1">
+                  Pendiente
+                </v-btn>
+                <v-btn :color="formData.estado_pedido === 'entregado' ? 'success' : undefined"
+                  :variant="formData.estado_pedido === 'entregado' ? 'flat' : 'outlined'"
+                  @click="formData.estado_pedido = 'entregado'" size="small" class="mr-1 mb-1">
+                  Entregado
+                </v-btn>
+                <v-btn :color="formData.estado_pedido === 'cancelado' ? 'success' : undefined"
+                  :variant="formData.estado_pedido === 'cancelado' ? 'flat' : 'outlined'"
+                  @click="formData.estado_pedido = 'cancelado'" size="small" class="mr-1 mb-1">
+                  Cancelado
+                </v-btn>
+              </div>
+            </v-col>
+
+            <v-col cols="3" md="4">
+              <div class="text-subtitle-2 mb-1">Tienda</div>
+              <div class="d-flex gap-2">
+                <v-btn :color="formData.cod_tienda === 1 ? '#FF8075' : undefined"
+                  :variant="formData.cod_tienda === 1 ? 'flat' : 'outlined'" @click="formData.cod_tienda = 1"
+                  size="small" class="mr-1 mb-1">
+                  CENTRAL
+                </v-btn>
+                <v-btn :color="formData.cod_tienda === 2 ? '#E6C325' : undefined"
+                  :variant="formData.cod_tienda === 2 ? 'flat' : 'outlined'" @click="formData.cod_tienda = 2"
+                  size="small" class="mr-1 mb-1">
+                  SUCURSAL
                 </v-btn>
               </div>
               <div v-if="!formData.cod_tienda" class="text-caption text-error">
                 Seleccione una tienda
               </div>
-            </v-col>
-          </v-row>
-
-          <v-row dense>
-            <v-col cols="12">
-              <div class="text-subtitle-2 mb-2">Estado del Pedido</div>
-              <div class="d-flex flex-wrap gap-2">
-                <v-btn
-                  :color="formData.estado_pedido === 'pendiente' ? 'warning' : undefined"
-                  :variant="formData.estado_pedido === 'pendiente' ? 'flat' : 'outlined'"
-                  @click="formData.estado_pedido = 'pendiente'"
-                  class="mr-2 mb-2"
-                >
-                  Pendiente
-                </v-btn>
-                <v-btn
-                  :color="formData.estado_pedido === 'entregado' ? 'success' : undefined"
-                  :variant="formData.estado_pedido === 'entregado' ? 'flat' : 'outlined'"
-                  @click="formData.estado_pedido = 'entregado'"
-                  class="mr-2 mb-2"
-                >
-                  Entregado
-                </v-btn>
-                <v-btn
-                  :color="formData.estado_pedido === 'cancelado' ? 'error' : undefined"
-                  :variant="formData.estado_pedido === 'cancelado' ? 'flat' : 'outlined'"
-                  @click="formData.estado_pedido = 'cancelado'"
-                  class="mr-2 mb-2"
-                >
-                  Cancelado
-                </v-btn>
-              </div>
-            </v-col>
-          </v-row>
-
-          <v-row dense>
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="formData.fecha_cancelacion_total"
-                label="Fecha Cancelación Total"
-                type="date"
-                variant="outlined"
-                density="compact"
-              ></v-text-field>
-            </v-col>
-          </v-row>
-
-
-
-          <v-divider class="my-4"></v-divider>
-          <v-row dense>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model.number="formData.monto_total"
-                label="Monto Total"
-                type="number"
-                step="0.01"
-                prefix="Bs."
-                variant="outlined"
-                density="compact"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model.number="formData.monto_a_cuenta"
-                label="Monto a Cuenta"
-                type="number"
-                step="0.01"
-                prefix="Bs."
-                variant="outlined"
-                density="compact"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                :model-value="saldoCalculado"
-                label="Saldo"
-                type="number"
-                prefix="Bs."
-                variant="outlined"
-                density="compact"
-                readonly
-                bg-color="grey-lighten-4"
-              ></v-text-field>
             </v-col>
           </v-row>
         </v-card-text>
@@ -227,7 +144,7 @@ const getInitialFormData = () => ({
   monto_total: 0,
   monto_a_cuenta: 0,
   fecha_cancelacion_total: null,
-  estado_pedido: 'pendiente',
+  estado_pedido: 'cancelado',
 });
 
 const formData = reactive(getInitialFormData());
@@ -299,6 +216,13 @@ watch(() => formData.numero_sobre, (nuevoValor) => {
   }, 500);
 });
 
+watch(() => formData.fecha_pedido, (nuevoValor) => {
+  if (nuevoValor) {
+    formData.fecha_entrega = nuevoValor;
+    formData.fecha_cancelacion_total = nuevoValor;
+  }
+});
+
 async function guardarSobre() {
   if (mensajeErrorSobre.value) {
     alert('Corrija los errores antes de guardar.');
@@ -362,9 +286,10 @@ function cancelar() {
 
 <style scoped>
 .border-b {
-  border-bottom: 1px solid rgba(0,0,0,0.12);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
+
 .border-t {
-  border-top: 1px solid rgba(0,0,0,0.12);
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 </style>
