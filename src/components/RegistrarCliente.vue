@@ -18,6 +18,11 @@
         prepend-icon="mdi-close" @click="seleccionarLetra(null)">
         Limpiar Filtro
       </v-chip>
+      <v-chip :color="filtroSinReceta ? 'warning' : 'default'" :variant="filtroSinReceta ? 'flat' : 'outlined'"
+        class="ma-1 cursor-pointer" size="small"
+        :prepend-icon="filtroSinReceta ? 'mdi-filter-remove' : 'mdi-filter-outline'" @click="toggleFiltroSinReceta">
+        {{ filtroSinReceta ? 'Sin Prescripción (Activo)' : 'Filtrar: Sin Prescripción' }}
+      </v-chip>
     </div>
 
     <v-text-field ref="searchInputRef" v-model="busqueda"
@@ -26,7 +31,7 @@
 
     <v-data-table-server v-model:items-per-page="itemsPerPage" :headers="headers" :items="clientes"
       :items-length="totalClientes" :loading="cargando" :search="busqueda" item-value="cod_cliente"
-      class="elevation-1 mt-4" @update:options="fetchClientes" hover>
+      class="elevation-1 mt-4" @update:options="fetchClientes" hover :row-props="rowProps" density="compact">
       <template v-slot:item.actions="{ item }">
         <v-menu location="bottom end">
           <template v-slot:activator="{ props }">
@@ -213,8 +218,9 @@ const totalClientes = ref(0);
 const itemsPerPage = ref(10);
 const busqueda = ref("");
 
-// --- Filtro por Letra ---
+// --- Filtro por Letra y Sin Receta ---
 const filtroLetra = ref(null);
+const filtroSinReceta = ref(false);
 const alfabeto = ['A', 'B', 'C', 'CH', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'LL', 'M', 'N', 'Ñ', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
 const headers = [
@@ -274,6 +280,14 @@ function seleccionarLetra(letra) {
   fetchClientes({ page: 1, itemsPerPage: itemsPerPage.value });
 }
 
+function toggleFiltroSinReceta() {
+  filtroSinReceta.value = !filtroSinReceta.value;
+  if (filtroSinReceta.value) {
+    busqueda.value = ""; // Limpiar búsqueda si se activa el filtro
+  }
+  fetchClientes({ page: 1, itemsPerPage: itemsPerPage.value });
+}
+
 async function fetchClientes({ page, itemsPerPage }) {
   cargando.value = true;
   try {
@@ -294,20 +308,37 @@ async function fetchClientes({ page, itemsPerPage }) {
       data = rpcData || [];
       count = (data && data.length > 0) ? data[0].conteo_total : 0;
     }
-    // CASO 2: Filtro por Letra
-    else if (filtroLetra.value) {
+    // CASO 2: Filtro por Letra O Filtro Sin Receta
+    else if (filtroLetra.value || filtroSinReceta.value) {
       let query = supabase
         .from('clientes')
         .select('*', { count: 'exact' });
 
-      // Lógica específica para CH y LL
-      if (filtroLetra.value === 'CH') {
-        query = query.ilike('apellido_paterno_cliente', 'CH%');
-      } else if (filtroLetra.value === 'LL') {
-        query = query.ilike('apellido_paterno_cliente', 'LL%');
-      } else {
-        // Caso normal
-        query = query.ilike('apellido_paterno_cliente', `${filtroLetra.value}%`);
+      // Filtro por Letra
+      if (filtroLetra.value) {
+        // Lógica específica para CH y LL
+        if (filtroLetra.value === 'CH') {
+          query = query.ilike('apellido_paterno_cliente', 'CH%');
+        } else if (filtroLetra.value === 'LL') {
+          query = query.ilike('apellido_paterno_cliente', 'LL%');
+        } else {
+          // Caso normal
+          query = query.ilike('apellido_paterno_cliente', `${filtroLetra.value}%`);
+        }
+      }
+
+      // Filtro Sin Receta (Exclusión)
+      if (filtroSinReceta.value) {
+        // Obtenemos IDs de clientes que TIENEN prescripción para excluirlos
+        const { data: pData, error: pError } = await supabase.from('prescripcion_clienten').select('cod_cliente');
+        if (pError) throw pError;
+
+        if (pData && pData.length > 0) {
+          // Extraemos IDs únicos
+          const idsConReceta = [...new Set(pData.map(p => p.cod_cliente))];
+          // Filtramos clientes que NO estén en esa lista
+          query = query.not('cod_cliente', 'in', `(${idsConReceta.join(',')})`);
+        }
       }
 
       query = query
@@ -321,35 +352,35 @@ async function fetchClientes({ page, itemsPerPage }) {
 
       count = total;
 
-      // Para mantener consistencia con la vista de búsqueda, necesitamos enriquecer con la última receta
-      // Hacemos una consulta adicional para estos clientes específicos
+      // Enriquecimiento de datos
       if (clientesData && clientesData.length > 0) {
-        const ids = clientesData.map(c => c.cod_cliente);
-
-        // Traemos la última prescripción para cada cliente de la página actual
-        // Nota: Esto es una aproximación. Lo ideal sería una View o RPC, pero para mantenerlo simple en frontend:
-        const { data: prescripciones, error: prescError } = await supabase
-          .from('prescripcion_clienten')
-          .select('cod_cliente, cod_receta, num_sobre, cod_pedido1, cod_pedido2')
-          .in('cod_cliente', ids)
-          .order('fecha_prescripcion', { ascending: false }); // Ordenar por fecha para que al buscar encontremos la reciente
-
-        if (!prescError && prescripciones) {
-          // Mapeamos para unir datos
-          data = clientesData.map(cliente => {
-            // Encontrar la primera coincidencia (la más reciente por el order)
-            const ultimaReceta = prescripciones.find(p => p.cod_cliente === cliente.cod_cliente);
-            return {
-              ...cliente,
-              cod_receta: ultimaReceta?.cod_receta || '-',
-              num_sobre: ultimaReceta?.num_sobre || '-',
-              cod_pedido1: ultimaReceta?.cod_pedido1,
-              cod_pedido2: ultimaReceta?.cod_pedido2,
-              conteo_total: count // Para mantener estructura
-            };
-          });
-        } else {
+        // Si el filtro "Sin Receta" está activo, sabemos que no tienen receta, así que no buscamos
+        if (filtroSinReceta.value) {
           data = clientesData.map(c => ({ ...c, cod_receta: '-', num_sobre: '-', conteo_total: count }));
+        } else {
+          // Comportamiento normal (buscar última receta)
+          const ids = clientesData.map(c => c.cod_cliente);
+          const { data: prescripciones, error: prescError } = await supabase
+            .from('prescripcion_clienten')
+            .select('cod_cliente, cod_receta, num_sobre, cod_pedido1, cod_pedido2')
+            .in('cod_cliente', ids)
+            .order('fecha_prescripcion', { ascending: false });
+
+          if (!prescError && prescripciones) {
+            data = clientesData.map(cliente => {
+              const ultimaReceta = prescripciones.find(p => p.cod_cliente === cliente.cod_cliente);
+              return {
+                ...cliente,
+                cod_receta: ultimaReceta?.cod_receta || '-',
+                num_sobre: ultimaReceta?.num_sobre || '-',
+                cod_pedido1: ultimaReceta?.cod_pedido1,
+                cod_pedido2: ultimaReceta?.cod_pedido2,
+                conteo_total: count
+              };
+            });
+          } else {
+            data = clientesData.map(c => ({ ...c, cod_receta: '-', num_sobre: '-', conteo_total: count }));
+          }
         }
       } else {
         data = [];
@@ -393,6 +424,7 @@ async function fetchClientes({ page, itemsPerPage }) {
 watch(busqueda, debounce(() => {
   if (busqueda.value) {
     filtroLetra.value = null; // Limpiar filtro de letra si se busca por texto
+    filtroSinReceta.value = false; // Limpiar filtro sin receta
   }
   fetchClientes({ page: 1, itemsPerPage: itemsPerPage.value });
 }, 500));
@@ -400,6 +432,13 @@ watch(busqueda, debounce(() => {
 // Helper visual para el icono del menú
 function tieneHistorial(item) {
   return item.hasHistory;
+}
+
+function rowProps(data) {
+  if (!data.item.hasHistory) {
+    return { class: 'row-sin-receta' };
+  }
+  return {};
 }
 
 // --- Funciones de Historial (Lo que hacía PanelCliente) ---
@@ -581,5 +620,41 @@ function limpiarFormulario() {
 .historial-card {
   display: flex;
   flex-direction: column;
+}
+
+:deep(.row-sin-receta) {
+  background-color: #f2ffd3;
+  font-weight: bold;
+  color: #8f671d;
+}
+
+:deep(.row-sin-receta:hover) {
+  background-color: #fbffc5 !important;
+}
+
+/* Control de altura de filas */
+:deep(.v-data-table__td) {
+  height: 30px !important;
+  /* Puedes cambiar este valor (ej. 30px, 50px) */
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  font-size: 0.85rem;
+}
+
+/* Estilos para el encabezado de la tabla */
+:deep(.v-data-table__th) {
+  background-color: #2c3e50 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+:deep(.v-data-table__th:hover) {
+  background-color: #34495e !important;
+}
+
+:deep(.v-data-table-header__sort-icon) {
+  color: rgba(255, 255, 255, 0.7) !important;
 }
 </style>
