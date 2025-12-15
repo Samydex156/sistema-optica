@@ -48,9 +48,6 @@
       <v-btn icon="mdi-logout" variant="text" color="red-lighten-4" density="compact" class="nav-btn" @click="logout"
         title="Cerrar Sesión"></v-btn>
     </div>
-
-
-
   </v-app-bar>
 
   <v-navigation-drawer v-model="isMobileMenuOpen" location="left" temporary>
@@ -66,7 +63,6 @@
 
       <v-divider></v-divider>
 
-
       <v-list-item prepend-icon="mdi-logout" title="Cerrar Sesión" @click="logout"></v-list-item>
     </v-list>
   </v-navigation-drawer>
@@ -78,9 +74,7 @@ import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useAuth } from '../composables/useAuth';
 import { supabase } from '../lib/supabaseClient';
 
-
 const emit = defineEmits(['logout']);
-
 const { user } = useAuth();
 const nombreTienda = ref('No asignada');
 const isTiendaLoading = ref(false);
@@ -94,13 +88,10 @@ const closeMobileMenu = () => {
 };
 
 // Envolvemos los emits en funciones para poder cerrar el menú también
-
-
 const logout = () => {
   emit('logout');
   closeMobileMenu();
 };
-
 
 const getNombreTienda = async () => {
   if (user.value && user.value.tienda_usuario) {
@@ -196,7 +187,6 @@ onUnmounted(() => {
   height: auto !important;
 }
 
-/* Styles from HoraActual.vue */
 .font-mono {
   font-family: 'Roboto Mono', monospace;
   letter-spacing: 1px;
