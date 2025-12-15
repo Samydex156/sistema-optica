@@ -83,6 +83,12 @@ const modulos = ref([
     icono: 'mdi-email-outline',
     ruta: '/sobres/registrar',
   },
+  {
+    titulo: 'Recetas Legacy',
+    descripcion: 'Consulta histórico de recetas antiguas.',
+    icono: 'mdi-database-clock-outline',
+    ruta: '/recetas-legacy',
+  },
 ]);
 
 const navegarA = (ruta) => {

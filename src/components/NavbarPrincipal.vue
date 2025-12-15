@@ -1,5 +1,5 @@
 <template>
-  <v-app-bar color="transparent" elevation="0" class="glass-nav border-b" density="comfortable" floating>
+  <v-app-bar color="transparent" elevation="4" class="glass-nav" density="comfortable" floating>
     <v-app-bar-nav-icon class="d-md-none text-white" variant="text"
       @click.stop="isMobileMenuOpen = !isMobileMenuOpen"></v-app-bar-nav-icon>
 

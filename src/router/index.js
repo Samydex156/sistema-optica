@@ -12,6 +12,7 @@ import GestionInventario from "../components/GestionInventario.vue";
 import ConsultaStock from "../components/ConsultaStock.vue";
 import ReportePrescripciones from "../components/ReportePrescripciones.vue";
 import RegistrarSobre from "../components/RegistrarSobre.vue";
+import VisualizarRecetasLegacy from "../components/VisualizarRecetasLegacy.vue";
 
 const routes = [
   {
@@ -89,6 +90,12 @@ const routes = [
     path: "/stock",
     name: "ConsultaStock",
     component: ConsultaStock,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/recetas-legacy",
+    name: "VisualizarRecetasLegacy",
+    component: VisualizarRecetasLegacy,
     meta: { requiresAuth: true },
   },
 ];

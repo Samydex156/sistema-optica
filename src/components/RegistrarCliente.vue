@@ -226,8 +226,8 @@ const alfabeto = ['A', 'B', 'C', 'CH', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', '
 const headers = [
   { title: 'Nombre Completo', align: 'start', sortable: true, key: 'nombreCompleto' },
   { title: 'Teléfono', key: 'telefono_cliente', sortable: true },
-  { title: 'Código Receta', key: 'cod_receta', sortable: true },
-  { title: 'Nro. Sobre', key: 'num_sobre', sortable: true },
+  { title: 'Código Receta', key: 'cod_receta', sortable: false },
+  { title: 'Nro. Sobre', key: 'num_sobre', sortable: false },
   { title: 'Número de Pedido', key: 'pedidos', sortable: false },
   { title: 'Acciones', key: 'actions', sortable: true, align: 'center' },
 ];
@@ -288,7 +288,7 @@ function toggleFiltroSinReceta() {
   fetchClientes({ page: 1, itemsPerPage: itemsPerPage.value });
 }
 
-async function fetchClientes({ page, itemsPerPage }) {
+async function fetchClientes({ page, itemsPerPage, sortBy }) {
   cargando.value = true;
   try {
     const limite = itemsPerPage;
@@ -297,8 +297,11 @@ async function fetchClientes({ page, itemsPerPage }) {
     let data = [];
     let count = 0;
 
-    // CASO 1: Búsqueda por texto (Prioridad)
+    // CASO 1: Búsqueda por texto (Usamos RPC para búsqueda global)
     if (busqueda.value) {
+      // Nota: El RPC 'buscar_clientes_con_prescripcion' actualmente hace su propio ordenamiento por relevancia/coincidencia.
+      // Si se quisiera ordenar los resultados de la búsqueda, habría que filtrar en cliente o modificar el RPC.
+      // Por ahora mantenemos el comportamiento de mostrar resultados por relevancia.
       const { data: rpcData, error: rpcError } = await supabase.rpc('buscar_clientes_con_prescripcion', {
         termino_busqueda: busqueda.value,
         limite: limite,
@@ -308,57 +311,69 @@ async function fetchClientes({ page, itemsPerPage }) {
       data = rpcData || [];
       count = (data && data.length > 0) ? data[0].conteo_total : 0;
     }
-    // CASO 2: Filtro por Letra O Filtro Sin Receta
-    else if (filtroLetra.value || filtroSinReceta.value) {
+    // CASO 2: Navegación Estándar (Filtros o Lista Completa)
+    else {
       let query = supabase
         .from('clientes')
         .select('*', { count: 'exact' });
 
-      // Filtro por Letra
+      // -- Filtros --
       if (filtroLetra.value) {
-        // Lógica específica para CH y LL
         if (filtroLetra.value === 'CH') {
           query = query.ilike('apellido_paterno_cliente', 'CH%');
         } else if (filtroLetra.value === 'LL') {
           query = query.ilike('apellido_paterno_cliente', 'LL%');
         } else {
-          // Caso normal
           query = query.ilike('apellido_paterno_cliente', `${filtroLetra.value}%`);
         }
       }
 
-      // Filtro Sin Receta (Exclusión)
       if (filtroSinReceta.value) {
-        // Obtenemos IDs de clientes que TIENEN prescripción para excluirlos
         const { data: pData, error: pError } = await supabase.from('prescripcion_clienten').select('cod_cliente');
         if (pError) throw pError;
-
         if (pData && pData.length > 0) {
-          // Extraemos IDs únicos
           const idsConReceta = [...new Set(pData.map(p => p.cod_cliente))];
-          // Filtramos clientes que NO estén en esa lista
           query = query.not('cod_cliente', 'in', `(${idsConReceta.join(',')})`);
         }
       }
 
-      query = query
-        .order('apellido_paterno_cliente', { ascending: true })
-        .order('apellido_materno_cliente', { ascending: true })
-        .order('nombre_cliente', { ascending: true })
-        .range(desplazamiento, desplazamiento + limite - 1);
+      // -- Ordenamiento --
+      if (sortBy && sortBy.length > 0) {
+        const sort = sortBy[0];
+        const order = sort.order === 'asc';
+
+        if (sort.key === 'nombreCompleto') {
+          // Ordenar por Apellidos y luego Nombre
+          query = query.order('apellido_paterno_cliente', { ascending: order })
+            .order('apellido_materno_cliente', { ascending: order })
+            .order('nombre_cliente', { ascending: order });
+        } else if (sort.key === 'telefono_cliente') {
+          query = query.order('telefono_cliente', { ascending: order });
+        } else {
+          // Fallback para otras columnas si se mapearan directamente
+          // Nota: cod_receta, num_sobre no existen en la tabla clientes, por lo que no ordenarán aquí.
+          // Se debería deshabilitar sortable en esas columnas o usar una vista.
+          query = query.order('apellido_paterno_cliente', { ascending: true });
+        }
+      } else {
+        // Orden por defecto: Fecha de registro descendente (lo más nuevo primero)
+        query = query.order('fecha_registro_cliente', { ascending: false });
+      }
+
+      // -- Paginación --
+      query = query.range(desplazamiento, desplazamiento + limite - 1);
 
       const { data: clientesData, error: clientesError, count: total } = await query;
       if (clientesError) throw clientesError;
 
       count = total;
 
-      // Enriquecimiento de datos
+      // -- Enriquecer con Prescripciones (Join Manual) --
       if (clientesData && clientesData.length > 0) {
-        // Si el filtro "Sin Receta" está activo, sabemos que no tienen receta, así que no buscamos
+        // Optimización: Si filtramos "Sin Receta", no buscamos recetas
         if (filtroSinReceta.value) {
           data = clientesData.map(c => ({ ...c, cod_receta: '-', num_sobre: '-', conteo_total: count }));
         } else {
-          // Comportamiento normal (buscar última receta)
           const ids = clientesData.map(c => c.cod_cliente);
           const { data: prescripciones, error: prescError } = await supabase
             .from('prescripcion_clienten')
@@ -368,6 +383,7 @@ async function fetchClientes({ page, itemsPerPage }) {
 
           if (!prescError && prescripciones) {
             data = clientesData.map(cliente => {
+              // Encontrar la receta más reciente para este cliente
               const ultimaReceta = prescripciones.find(p => p.cod_cliente === cliente.cod_cliente);
               return {
                 ...cliente,
@@ -386,17 +402,6 @@ async function fetchClientes({ page, itemsPerPage }) {
         data = [];
       }
     }
-    // CASO 3: Sin filtros (Carga inicial o limpia)
-    else {
-      const { data: rpcData, error: rpcError } = await supabase.rpc('buscar_clientes_con_prescripcion', {
-        termino_busqueda: "",
-        limite: limite,
-        desplazamiento: desplazamiento
-      });
-      if (rpcError) throw rpcError;
-      data = rpcData || [];
-      count = (data && data.length > 0) ? data[0].conteo_total : 0;
-    }
 
     clientes.value = (data || []).map(cliente => {
       const pedidosArr = [cliente.cod_pedido1, cliente.cod_pedido2]
@@ -404,9 +409,8 @@ async function fetchClientes({ page, itemsPerPage }) {
 
       return {
         ...cliente,
-        nombreCompleto: `${cliente.nombre_cliente} ${cliente.apellido_paterno_cliente} ${cliente.apellido_materno_cliente || ''}`.trim(),
+        nombreCompleto: `${cliente.apellido_paterno_cliente} ${cliente.apellido_materno_cliente || ''} ${cliente.nombre_cliente}`.trim(),
         pedidos: pedidosArr.length > 0 ? pedidosArr.join(', ') : '-',
-        // Flag auxiliar para saber si tiene historial en la vista de tabla
         hasHistory: !!(cliente.cod_receta && cliente.cod_receta !== '-')
       };
     });
@@ -420,6 +424,7 @@ async function fetchClientes({ page, itemsPerPage }) {
     cargando.value = false;
   }
 }
+
 
 watch(busqueda, debounce(() => {
   if (busqueda.value) {
