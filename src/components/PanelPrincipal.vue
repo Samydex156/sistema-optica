@@ -1,34 +1,13 @@
 <template>
   <v-container>
-    <v-row justify="center" class="text-center my-4">
-      <v-col cols="12">
-        <h1 class="text-h3 font-weight-bold text-grey-darken-3">Panel Principal</h1>
-        <p class="text-subtitle-1 text-grey-darken-1 mt-2">
-          Seleccione un módulo para iniciar operaciones.
-        </p>
-      </v-col>
-    </v-row>
-
     <v-row>
-      <v-col
-        v-for="modulo in modulos"
-        :key="modulo.titulo"
-        cols="12"
-        sm="6"
-        md="4"
-        lg="4"
-      >
-        <v-card
-          @click="navegarA(modulo.ruta)"
-          hover
-          class="text-center pa-4 fill-height d-flex flex-column"
-          elevation="4"
-          rounded="lg"
-        >
+      <v-col v-for="modulo in modulos" :key="modulo.titulo" cols="6" sm="6" md="4" lg="4">
+        <v-card @click="navegarA(modulo.ruta)" hover class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2"
+          elevation="4" rounded="xl" variant="elevated" color="white">
           <v-card-item class="d-flex flex-column justify-center align-center">
-            <v-icon :icon="modulo.icono" color="primary" size="64"></v-icon>
+            <v-icon :icon="modulo.icono" color="primary" size="50"></v-icon>
 
-            <v-card-title class="font-weight-bold mt-4">
+            <v-card-title class="font-weight-bold mt-1">
               {{ modulo.titulo }}
             </v-card-title>
 
@@ -81,6 +60,12 @@ const modulos = ref([
     ruta: '/clientes',
   },
   {
+    titulo: 'Órdenes de Trabajo',
+    descripcion: 'Gestión completa de órdenes de trabajo y seguimiento.',
+    icono: 'mdi-clipboard-text-clock',
+    ruta: '/ordenes',
+  },
+  {
     titulo: 'Caja',
     descripcion: 'Registro de órdenes de trabajo y gestión de pagos.',
     icono: 'mdi-cash-register',
@@ -100,10 +85,6 @@ const modulos = ref([
   },
 ]);
 
-/**
- * Navega a la ruta especificada.
- * @param {string} ruta - La ruta a la que se desea navegar.
- */
 const navegarA = (ruta) => {
   if (ruta) {
     router.push(ruta);
