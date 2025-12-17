@@ -1,18 +1,186 @@
 <template>
   <v-container>
     <v-row>
-      <v-col v-for="modulo in modulos" :key="modulo.titulo" cols="6" sm="6" md="4" lg="4">
-        <v-card @click="navegarA(modulo.ruta)" hover class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2"
-          elevation="4" rounded="xl" variant="elevated" color="white">
+      <!-- Módulo: Productos -->
+      <v-col cols="6" sm="6" md="4" lg="4">
+        <v-card @click="navegarA('/productos/registrar')" hover
+          class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2" elevation="4" rounded="xl"
+          variant="elevated" color="white">
           <v-card-item class="d-flex flex-column justify-center align-center">
-            <v-icon :icon="modulo.icono" color="primary" size="50"></v-icon>
+            <v-icon icon="mdi-package-variant-closed-plus" color="primary" size="50"></v-icon>
 
             <v-card-title class="font-weight-bold mt-1">
-              {{ modulo.titulo }}
+              Productos
             </v-card-title>
 
             <v-card-text class="text-medium-emphasis">
-              {{ modulo.descripcion }}
+              Creación de nuevos productos en el sistema.
+            </v-card-text>
+          </v-card-item>
+        </v-card>
+      </v-col>
+
+      <!-- Módulo: Características -->
+      <v-col cols="6" sm="6" md="4" lg="4">
+        <v-card @click="navegarA('/productos/caracteristicas')" hover
+          class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2" elevation="4" rounded="xl"
+          variant="elevated" color="white">
+          <v-card-item class="d-flex flex-column justify-center align-center">
+            <v-icon icon="mdi-format-list-bulleted-type" color="primary" size="50"></v-icon>
+
+            <v-card-title class="font-weight-bold mt-1">
+              Características
+            </v-card-title>
+
+            <v-card-text class="text-medium-emphasis">
+              Gestiona categorías, proveedores, materiales y más.
+            </v-card-text>
+          </v-card-item>
+        </v-card>
+      </v-col>
+
+      <!-- Módulo: Inventario -->
+      <v-col cols="6" sm="6" md="4" lg="4">
+        <v-card @click="navegarA('/inventario')" hover class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2"
+          elevation="4" rounded="xl" variant="elevated" color="white">
+          <v-card-item class="d-flex flex-column justify-center align-center">
+            <v-icon icon="mdi-store-cog" color="primary" size="50"></v-icon>
+
+            <v-card-title class="font-weight-bold mt-1">
+              Inventario
+            </v-card-title>
+
+            <v-card-text class="text-medium-emphasis">
+              Gestión de entradas, salidas o traspasos de stock.
+            </v-card-text>
+          </v-card-item>
+        </v-card>
+      </v-col>
+
+      <!-- Módulo: Consultar Stock -->
+      <v-col cols="6" sm="6" md="4" lg="4">
+        <v-card @click="navegarA('/stock')" hover class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2"
+          elevation="4" rounded="xl" variant="elevated" color="white">
+          <v-card-item class="d-flex flex-column justify-center align-center">
+            <v-icon icon="mdi-magnify-scan" color="primary" size="50"></v-icon>
+
+            <v-card-title class="font-weight-bold mt-1">
+              Consultar Stock
+            </v-card-title>
+
+            <v-card-text class="text-medium-emphasis">
+              Visualiza las cantidades actuales del inventario.
+            </v-card-text>
+          </v-card-item>
+        </v-card>
+      </v-col>
+
+      <!-- Módulo: Clientes -->
+      <v-col cols="6" sm="6" md="4" lg="4">
+        <v-card @click="navegarA('/clientes')" hover class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2"
+          elevation="4" rounded="xl" variant="elevated" color="white">
+          <v-card-item class="d-flex flex-column justify-center align-center">
+            <v-icon icon="mdi-account-group-outline" color="primary" size="50"></v-icon>
+
+            <v-card-title class="font-weight-bold mt-1">
+              Clientes
+            </v-card-title>
+
+            <v-card-text class="text-medium-emphasis">
+              Gestión de clientes y registro de prescripciones.
+            </v-card-text>
+          </v-card-item>
+        </v-card>
+      </v-col>
+
+      <!-- Módulo: Órdenes de Trabajo -->
+      <v-col cols="6" sm="6" md="4" lg="4">
+        <v-card @click="navegarA('/ordenes')" hover class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2"
+          elevation="4" rounded="xl" variant="elevated" color="white">
+          <v-card-item class="d-flex flex-column justify-center align-center">
+            <v-icon icon="mdi-clipboard-text-clock" color="primary" size="50"></v-icon>
+
+            <v-card-title class="font-weight-bold mt-1">
+              Órdenes de Trabajo
+            </v-card-title>
+
+            <v-card-text class="text-medium-emphasis">
+              Gestión completa de órdenes de trabajo y seguimiento.
+            </v-card-text>
+          </v-card-item>
+        </v-card>
+      </v-col>
+
+      <!-- Módulo: Caja -->
+      <v-col cols="6" sm="6" md="4" lg="4">
+        <v-card @click="navegarA('/ordenes')" hover class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2"
+          elevation="4" rounded="xl" variant="elevated" color="white">
+          <v-card-item class="d-flex flex-column justify-center align-center">
+            <v-icon icon="mdi-cash-register" color="primary" size="50"></v-icon>
+
+            <v-card-title class="font-weight-bold mt-1">
+              Caja
+            </v-card-title>
+
+            <v-card-text class="text-medium-emphasis">
+              Registro de órdenes de trabajo y gestión de pagos.
+            </v-card-text>
+          </v-card-item>
+        </v-card>
+      </v-col>
+
+      <!-- Módulo: Reportes -->
+      <v-col cols="6" sm="6" md="4" lg="4">
+        <v-card @click="navegarA('/reportes/prescripciones')" hover
+          class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2" elevation="4" rounded="xl"
+          variant="elevated" color="white">
+          <v-card-item class="d-flex flex-column justify-center align-center">
+            <v-icon icon="mdi-chart-line" color="primary" size="50"></v-icon>
+
+            <v-card-title class="font-weight-bold mt-1">
+              Reportes
+            </v-card-title>
+
+            <v-card-text class="text-medium-emphasis">
+              Análisis y reportes de prescripciones médicas.
+            </v-card-text>
+          </v-card-item>
+        </v-card>
+      </v-col>
+
+      <!-- Módulo: Sobres -->
+      <v-col cols="6" sm="6" md="4" lg="4">
+        <v-card @click="navegarA('/sobres/registrar')" hover
+          class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2" elevation="4" rounded="xl"
+          variant="elevated" color="white">
+          <v-card-item class="d-flex flex-column justify-center align-center">
+            <v-icon icon="mdi-email-outline" color="primary" size="50"></v-icon>
+
+            <v-card-title class="font-weight-bold mt-1">
+              Sobres
+            </v-card-title>
+
+            <v-card-text class="text-medium-emphasis">
+              Registro de pedidos de sobres.
+            </v-card-text>
+          </v-card-item>
+        </v-card>
+      </v-col>
+
+      <!-- Módulo: Recetas Legacy -->
+      <v-col cols="6" sm="6" md="4" lg="4">
+        <v-card @click="navegarA('/recetas-legacy')" hover
+          class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2" elevation="4" rounded="xl"
+          variant="elevated" color="white">
+          <v-card-item class="d-flex flex-column justify-center align-center">
+            <v-icon icon="mdi-database-clock-outline" color="primary" size="50"></v-icon>
+
+            <v-card-title class="font-weight-bold mt-1">
+              Recetas Legacy
+            </v-card-title>
+
+            <v-card-text class="text-medium-emphasis">
+              Consulta histórico de recetas antiguas.
             </v-card-text>
           </v-card-item>
         </v-card>
@@ -23,73 +191,8 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { ref } from 'vue';
 
 const router = useRouter();
-
-// Se define un array con la información de los módulos para hacer el template más limpio
-const modulos = ref([
-  {
-    titulo: 'Productos',
-    descripcion: 'Creación de nuevos productos en el sistema.',
-    icono: 'mdi-package-variant-closed-plus',
-    ruta: '/productos/registrar',
-  },
-  {
-    titulo: 'Características',
-    descripcion: 'Gestiona categorías, proveedores, materiales y más.',
-    icono: 'mdi-format-list-bulleted-type',
-    ruta: '/productos/caracteristicas',
-  },
-  {
-    titulo: 'Inventario',
-    descripcion: 'Gestión de entradas, salidas o traspasos de stock.',
-    icono: 'mdi-store-cog',
-    ruta: '/inventario',
-  },
-  {
-    titulo: 'Consultar Stock',
-    descripcion: 'Visualiza las cantidades actuales del inventario.',
-    icono: 'mdi-magnify-scan',
-    ruta: '/stock',
-  },
-  {
-    titulo: 'Clientes',
-    descripcion: 'Gestión de clientes y registro de prescripciones.',
-    icono: 'mdi-account-group-outline',
-    ruta: '/clientes',
-  },
-  {
-    titulo: 'Órdenes de Trabajo',
-    descripcion: 'Gestión completa de órdenes de trabajo y seguimiento.',
-    icono: 'mdi-clipboard-text-clock',
-    ruta: '/ordenes',
-  },
-  {
-    titulo: 'Caja',
-    descripcion: 'Registro de órdenes de trabajo y gestión de pagos.',
-    icono: 'mdi-cash-register',
-    ruta: '/ordenes',
-  },
-  {
-    titulo: 'Reportes',
-    descripcion: 'Análisis y reportes de prescripciones médicas.',
-    icono: 'mdi-chart-line',
-    ruta: '/reportes/prescripciones',
-  },
-  {
-    titulo: 'Sobres',
-    descripcion: 'Registro de pedidos de sobres.',
-    icono: 'mdi-email-outline',
-    ruta: '/sobres/registrar',
-  },
-  {
-    titulo: 'Recetas Legacy',
-    descripcion: 'Consulta histórico de recetas antiguas.',
-    icono: 'mdi-database-clock-outline',
-    ruta: '/recetas-legacy',
-  },
-]);
 
 const navegarA = (ruta) => {
   if (ruta) {

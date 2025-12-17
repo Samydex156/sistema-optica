@@ -559,19 +559,9 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* ¡CASI NO SE NECESITA CSS!
-  Vuetify maneja el 99% del estilo. 
-  Solo ajustamos el título del v-card-title para que
-  no tenga tanto margen inferior por defecto.
-*/
 .v-card-title {
   margin-bottom: 0 !important;
 }
-
-/* Aseguramos que la tabla sea responsive en móviles,
-  aunque v-table no es tan "responsive" como v-data-table.
-  Para una mejor experiencia móvil, se usaría v-data-table.
-*/
 @media (max-width: 768px) {
   .v-table {
     display: block;

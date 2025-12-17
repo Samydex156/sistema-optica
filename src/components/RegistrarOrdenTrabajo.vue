@@ -850,15 +850,5 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* ¡TODO EL CSS PERSONALIZADO HA SIDO ELIMINADO!
-  Vuetify se encarga del 100% del estilo:
-  - La grilla (v-row, v-col)
-  - La tabla (v-data-table)
-  - Los modales (v-dialog)
-  - Los formularios (v-text-field, v-select, v-autocomplete)
-  - Los botones (v-btn)
-  - Los menús (v-menu)
-  - Los estados (v-chip)
-  - Las clases de texto (text-red, font-weight-bold)
-*/
+
 </style>
