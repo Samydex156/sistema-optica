@@ -44,7 +44,7 @@
                 <v-icon :icon="tieneHistorial(item) ? 'mdi-clipboard-text-clock' : 'mdi-glasses'"></v-icon>
               </template>
               <v-list-item-title>
-                {{ tieneHistorial(item) ? 'Ver Historial / Recetas' : 'Nueva Prescripción' }}
+                {{ tieneHistorial(item) ? 'Ver / Editar Receta' : 'Nueva Receta' }}
               </v-list-item-title>
               <template v-slot:append v-if="tieneHistorial(item)">
                 <v-badge color="info" dot inline></v-badge>
@@ -64,7 +64,7 @@
               <template v-slot:prepend>
                 <v-icon icon="mdi-delete"></v-icon>
               </template>
-              <v-list-item-title class="text-error">Eliminar</v-list-item-title>
+              <v-list-item-title class="text-error">Eliminar Cliente</v-list-item-title>
             </v-list-item>
           </v-list>
         </v-menu>
@@ -75,7 +75,7 @@
       </template>
     </v-data-table-server>
 
-    <v-dialog v-model="dialog" persistent max-width="600px" transition="dialog-bottom-transition">
+    <v-dialog v-model="dialog" persistent max-width="500px" transition="dialog-bottom-transition">
       <v-card class="rounded-lg elevation-4">
         <v-toolbar color="primary" density="compact">
           <v-toolbar-title class="text-h6 font-weight-bold">
@@ -86,34 +86,32 @@
           <v-btn icon="mdi-close" variant="text" @click="cerrarModal"></v-btn>
         </v-toolbar>
 
-        <v-card-text class="pt-4">
-          <v-container>
-            <v-row>
-              <v-col cols="12">
-                <v-text-field ref="nameClienteInputRef" v-model="formData.nombre_cliente" label="Nombre del cliente *"
-                  placeholder="Ej. JOHN WILLIAM" prepend-inner-icon="mdi-account" required variant="outlined"
-                  class="text-uppercase-input" color="primary"></v-text-field>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field v-model="formData.apellido_paterno_cliente" label="Apellido paterno *"
-                  placeholder="Ej. LOPEZ" required variant="outlined" class="text-uppercase-input"
-                  color="primary"></v-text-field>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field v-model="formData.apellido_materno_cliente" label="Apellido materno"
-                  placeholder="Ej. GARCIA" variant="outlined" class="text-uppercase-input"
-                  color="primary"></v-text-field>
-              </v-col>
-              <v-col cols="12">
-                <v-text-field v-model="formData.telefono_cliente" label="Teléfono" placeholder="Ej. 78912345"
-                  prepend-inner-icon="mdi-phone" variant="outlined" color="primary"></v-text-field>
-              </v-col>
-            </v-row>
-          </v-container>
-          <div class="text-caption text-grey-darken-1 px-4">* Campos obligatorios</div>
+        <v-card-text class="pa-4">
+          <v-row dense>
+            <v-col cols="12">
+              <v-text-field ref="nameClienteInputRef" v-model="formData.nombre_cliente" label="Nombre del cliente *"
+                placeholder="Ej. JOHN WILLIAM" prepend-inner-icon="mdi-account" required variant="outlined"
+                class="text-uppercase-input" color="primary" density="compact"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-text-field v-model="formData.apellido_paterno_cliente" label="Apellido paterno *"
+                placeholder="Ej. LOPEZ" required variant="outlined" class="text-uppercase-input" color="primary"
+                density="compact"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-text-field v-model="formData.apellido_materno_cliente" label="Apellido materno"
+                placeholder="Ej. GARCIA" variant="outlined" class="text-uppercase-input" color="primary"
+                density="compact"></v-text-field>
+            </v-col>
+            <v-col cols="12">
+              <v-text-field v-model="formData.telefono_cliente" label="Teléfono" placeholder="Ej. 78912345"
+                prepend-inner-icon="mdi-phone" variant="outlined" color="primary" density="compact"></v-text-field>
+            </v-col>
+          </v-row>
+          <div class="text-caption text-grey-darken-1 mt-2">* Campos obligatorios</div>
         </v-card-text>
         <v-divider></v-divider>
-        <v-card-actions class="pa-4">
+        <v-card-actions class="pa-4 pt-2">
           <v-spacer></v-spacer>
           <v-btn color="grey-darken-1" variant="text" @click="cerrarModal" :disabled="guardando" class="px-4">
             Cancelar
@@ -450,8 +448,14 @@ function rowProps(data) {
 
 async function abrirHistorial(cliente) {
   clienteSeleccionado.value = cliente;
-  // Si NO tiene historial según la tabla, podemos ir directo a crear si prefieres,
-  // pero mejor abrimos el modal para que vea que está vacío y decida crear.
+
+  // Si el cliente NO tiene historial, redirigir directamente a Nueva Receta
+  if (!tieneHistorial(cliente)) {
+    irANuevaPrescripcion(cliente.cod_cliente);
+    return;
+  }
+
+  // Si tiene historial, abrir el diálogo para ver/editar/agregar
   dialogHistorial.value = true;
   await cargarPrescripciones(cliente.cod_cliente);
 }
