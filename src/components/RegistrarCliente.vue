@@ -31,7 +31,22 @@
 
     <v-data-table-server v-model:items-per-page="itemsPerPage" :headers="headers" :items="clientes"
       :items-length="totalClientes" :loading="cargando" :search="busqueda" item-value="cod_cliente"
-      class="elevation-1 mt-4" @update:options="fetchClientes" hover :row-props="rowProps" density="compact">
+      class="elevation-1 mt-4" @update:options="fetchClientes" hover density="compact">
+      <template v-slot:item.nombreCompleto="{ item }">
+        <div class="d-flex align-center">
+          <span class="mr-2">{{ item.nombreCompleto }}</span>
+          <v-tooltip location="top"
+            :text="item.hasHistory ? 'Registrar Nueva Receta (Tiene historial)' : 'Registrar Primera Receta (Pendiente)'">
+            <template v-slot:activator="{ props }">
+              <v-btn v-bind="props" icon size="x-small" variant="text" :color="item.hasHistory ? 'success' : 'warning'"
+                @click.stop="irANuevaPrescripcion(item.cod_cliente)">
+                <v-icon size="small">{{ item.hasHistory ? 'mdi-check-circle' : 'mdi-alert-circle-outline' }}</v-icon>
+              </v-btn>
+            </template>
+          </v-tooltip>
+        </div>
+      </template>
+
       <template v-slot:item.actions="{ item }">
         <v-menu location="bottom end">
           <template v-slot:activator="{ props }">
@@ -437,16 +452,11 @@ function tieneHistorial(item) {
   return item.hasHistory;
 }
 
-function rowProps(data) {
-  if (!data.item.hasHistory) {
-    return { class: 'row-sin-receta' };
-  }
-  return {};
-}
 
 // --- Funciones de Historial (Lo que hacía PanelCliente) ---
 
 async function abrirHistorial(cliente) {
+
   clienteSeleccionado.value = cliente;
 
   // Si el cliente NO tiene historial, redirigir directamente a Nueva Receta
@@ -629,16 +639,6 @@ function limpiarFormulario() {
 .historial-card {
   display: flex;
   flex-direction: column;
-}
-
-:deep(.row-sin-receta) {
-  background-color: #f2ffd3;
-  font-weight: bold;
-  color: #8f671d;
-}
-
-:deep(.row-sin-receta:hover) {
-  background-color: #fbffc5 !important;
 }
 
 /* Control de altura de filas */

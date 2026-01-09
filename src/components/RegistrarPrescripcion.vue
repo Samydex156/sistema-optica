@@ -116,14 +116,17 @@
           </v-row>
 
           <v-divider class="my-4"></v-divider>
-          <v-row dense align="center">
-            <v-col cols="12" sm="auto"><strong class="text-subtitle-1">Cristal 1:</strong></v-col>
-            <v-col cols="3" sm="1"><v-text-field type="number" min="0" v-model.number="formData.l1_cantidad_cristal"
-                variant="outlined" density="compact"></v-text-field></v-col>
-            <v-col cols="9" sm="2"><v-autocomplete label="Material" v-model="formData.l1_material_cristal"
-                :items="materialesOptions" item-title="label" item-value="value" variant="outlined"
-                density="compact"></v-autocomplete></v-col>
-            <v-col cols="12" sm="4">
+          <v-row dense>
+            <v-col cols="12"><strong class="text-subtitle-1">Cristal 1:</strong></v-col>
+            <v-col cols="3" sm="2" md="1">
+              <v-text-field type="number" min="0" v-model.number="formData.l1_cantidad_cristal" label="Cant."
+                variant="outlined" density="compact"></v-text-field>
+            </v-col>
+            <v-col cols="9" sm="10" md="2">
+              <v-autocomplete label="Material" v-model="formData.l1_material_cristal" :items="materialesOptions"
+                item-title="label" item-value="value" variant="outlined" density="compact"></v-autocomplete>
+            </v-col>
+            <v-col cols="12" md="5">
               <v-autocomplete v-model="formData.l1_tratamientos" :items="tratamientosOptions" item-title="label"
                 item-value="value" label="Tratamientos" multiple chips closable-chips variant="outlined"
                 density="compact">
@@ -133,29 +136,39 @@
                 </template>
               </v-autocomplete>
             </v-col>
-            <v-col cols="6" sm="2"><v-autocomplete label="Color" v-model="formData.l1_color_cristal"
-                :items="coloresOptions" item-title="label" item-value="value" variant="outlined"
-                density="compact"></v-autocomplete></v-col>
-            <v-col cols="6" sm="2"><v-text-field label="Extras" v-model="formData.l1_extra_cristal" variant="outlined"
-                density="compact"></v-text-field></v-col>
+            <v-col cols="6" md="2">
+              <v-autocomplete label="Color" v-model="formData.l1_color_cristal" :items="coloresOptions"
+                item-title="label" item-value="value" variant="outlined" density="compact"></v-autocomplete>
+            </v-col>
+            <v-col cols="6" md="2">
+              <v-text-field label="Extras" v-model="formData.l1_extra_cristal" variant="outlined"
+                density="compact"></v-text-field>
+            </v-col>
           </v-row>
-          <v-row dense align="center">
-            <v-col cols="12" sm="auto"><strong class="text-subtitle-1">Cristal 2:</strong></v-col>
-            <v-col cols="3" sm="1"><v-text-field type="number" min="0" v-model.number="formData.l2_cantidad_cristal"
-                variant="outlined" density="compact"></v-text-field></v-col>
-            <v-col cols="9" sm="2"><v-autocomplete label="Material" v-model="formData.l2_material_cristal"
-                :items="materialesOptions" item-title="label" item-value="value" variant="outlined"
-                density="compact"></v-autocomplete></v-col>
-            <v-col cols="12" sm="4">
+
+          <v-row dense class="mt-2">
+            <v-col cols="12"><strong class="text-subtitle-1">Cristal 2:</strong></v-col>
+            <v-col cols="3" sm="2" md="1">
+              <v-text-field type="number" min="0" v-model.number="formData.l2_cantidad_cristal" label="Cant."
+                variant="outlined" density="compact"></v-text-field>
+            </v-col>
+            <v-col cols="9" sm="10" md="2">
+              <v-autocomplete label="Material" v-model="formData.l2_material_cristal" :items="materialesOptions"
+                item-title="label" item-value="value" variant="outlined" density="compact"></v-autocomplete>
+            </v-col>
+            <v-col cols="12" md="5">
               <v-autocomplete v-model="formData.l2_tratamientos" :items="tratamientosOptions" item-title="label"
                 item-value="value" label="Tratamientos" multiple chips closable-chips variant="outlined"
                 density="compact"></v-autocomplete>
             </v-col>
-            <v-col cols="6" sm="2"><v-autocomplete label="Color" v-model="formData.l2_color_cristal"
-                :items="coloresOptions" item-title="label" item-value="value" variant="outlined"
-                density="compact"></v-autocomplete></v-col>
-            <v-col cols="6" sm="2"><v-text-field label="Extras" v-model="formData.l2_extra_cristal" variant="outlined"
-                density="compact"></v-text-field></v-col>
+            <v-col cols="6" md="2">
+              <v-autocomplete label="Color" v-model="formData.l2_color_cristal" :items="coloresOptions"
+                item-title="label" item-value="value" variant="outlined" density="compact"></v-autocomplete>
+            </v-col>
+            <v-col cols="6" md="2">
+              <v-text-field label="Extras" v-model="formData.l2_extra_cristal" variant="outlined"
+                density="compact"></v-text-field>
+            </v-col>
           </v-row>
 
           <v-divider class="my-4"></v-divider>
