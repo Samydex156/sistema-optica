@@ -27,19 +27,19 @@
 
       <!-- Info Items -->
       <div v-if="user" class="d-flex align-center text-white px-2 py-1 rounded-pill glass-chip" title="Usuario">
-        <v-icon icon="mdi-account" size="small" class="mr-1 text-blue-lighten-3"></v-icon>
-        <span class="text-caption font-weight-bold">{{ user.nombre_usuario }}</span>
+        <v-icon icon="mdi-account" size="small" class="mr-1 text-white"></v-icon>
+        <span class="text-caption">{{ user.nombre_usuario }}</span>
       </div>
 
       <div class="d-flex align-center text-white px-2 py-1 rounded-pill glass-chip" title="Tienda">
         <v-progress-circular v-if="isTiendaLoading" indeterminate size="10" width="1" color="white"
           class="mr-1"></v-progress-circular>
-        <v-icon v-else icon="mdi-store" size="small" class="mr-1 text-blue-lighten-3"></v-icon>
+        <v-icon v-else icon="mdi-store" size="small" class="mr-1 text-white"></v-icon>
         <span class="text-caption">{{ nombreTienda }}</span>
       </div>
 
       <div class="d-flex align-center glass-chip px-2 py-1 rounded-pill" title="Fecha">
-        <span class="text-blue-lighten-4 font-weight-medium text-caption mr-1">{{ currentDate }}</span>
+        <span class="text-white text-caption mr-1">{{ currentDate }}</span>
         <span class="text-white font-weight-bold font-mono text-caption">{{ currentTime }}</span>
       </div>
 
@@ -152,7 +152,7 @@ onUnmounted(() => {
 
 <style scoped>
 .glass-nav {
-  background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%) !important;
+  background: linear-gradient(135deg, #4119a0 0%, #2400c2 100%) !important;
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
   position: fixed !important;

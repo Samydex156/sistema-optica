@@ -36,11 +36,11 @@
         <div class="d-flex align-center">
           <span class="mr-2">{{ item.nombreCompleto }}</span>
           <v-tooltip location="top"
-            :text="item.hasHistory ? 'Registrar Nueva Receta (Tiene historial)' : 'Registrar Primera Receta (Pendiente)'">
+            :text="item.hasHistory ? 'Registrar Nueva Receta (Tiene Receta)' : 'Registrar Primera Receta (Pendiente)'">
             <template v-slot:activator="{ props }">
               <v-btn v-bind="props" icon size="x-small" variant="text" :color="item.hasHistory ? 'success' : 'warning'"
                 @click.stop="irANuevaPrescripcion(item.cod_cliente)">
-                <v-icon size="small">{{ item.hasHistory ? 'mdi-check-circle' : 'mdi-alert-circle-outline' }}</v-icon>
+                <v-icon size="medium">{{ item.hasHistory ? 'mdi-check-circle' : 'mdi-alert-circle-outline' }}</v-icon>
               </v-btn>
             </template>
           </v-tooltip>
@@ -50,7 +50,7 @@
       <template v-slot:item.actions="{ item }">
         <v-menu location="bottom end">
           <template v-slot:activator="{ props }">
-            <v-btn icon="mdi-dots-vertical" variant="text" density="comfortable" v-bind="props"></v-btn>
+            <v-btn icon="mdi-dots-horizontal-circle" variant="text" density="comfortable" v-bind="props"></v-btn>
           </template>
 
           <v-list density="compact" elevation="2">
