@@ -34,16 +34,16 @@
       class="elevation-1 mt-4" @update:options="fetchClientes" hover density="compact">
       <template v-slot:item.nombreCompleto="{ item }">
         <div class="d-flex align-center">
-          <span class="mr-2">{{ item.nombreCompleto }}</span>
           <v-tooltip location="top"
-            :text="item.hasHistory ? 'Registrar Nueva Receta (Tiene Receta)' : 'Registrar Primera Receta (Pendiente)'">
+            :text="item.hasHistory ? 'Ver / Editar Última Receta' : 'Registrar Primera Receta (Pendiente)'">
             <template v-slot:activator="{ props }">
               <v-btn v-bind="props" icon size="x-small" variant="text" :color="item.hasHistory ? 'success' : 'warning'"
-                @click.stop="irANuevaPrescripcion(item.cod_cliente)">
+                @click.stop="manejarClickIcono(item)" class="mr-2">
                 <v-icon size="medium">{{ item.hasHistory ? 'mdi-check-circle' : 'mdi-alert-circle-outline' }}</v-icon>
               </v-btn>
             </template>
           </v-tooltip>
+          <span>{{ item.nombreCompleto }}</span>
         </div>
       </template>
 
@@ -390,7 +390,7 @@ async function fetchClientes({ page, itemsPerPage, sortBy }) {
           const ids = clientesData.map(c => c.cod_cliente);
           const { data: prescripciones, error: prescError } = await supabase
             .from('prescripcion_clienten')
-            .select('cod_cliente, cod_receta, num_sobre, cod_pedido1, cod_pedido2')
+            .select('cod_cliente, cod_prescripcion, cod_receta, num_sobre, cod_pedido1, cod_pedido2')
             .in('cod_cliente', ids)
             .order('fecha_prescripcion', { ascending: false });
 
@@ -400,6 +400,7 @@ async function fetchClientes({ page, itemsPerPage, sortBy }) {
               const ultimaReceta = prescripciones.find(p => p.cod_cliente === cliente.cod_cliente);
               return {
                 ...cliente,
+                cod_prescripcion: ultimaReceta?.cod_prescripcion,
                 cod_receta: ultimaReceta?.cod_receta || '-',
                 num_sobre: ultimaReceta?.num_sobre || '-',
                 cod_pedido1: ultimaReceta?.cod_pedido1,
@@ -450,6 +451,19 @@ watch(busqueda, debounce(() => {
 // Helper visual para el icono del menú
 function tieneHistorial(item) {
   return item.hasHistory;
+}
+
+function manejarClickIcono(item) {
+  if (item.hasHistory) {
+    if (item.cod_prescripcion) {
+      clienteSeleccionado.value = item;
+      editarPrescripcion(item.cod_prescripcion);
+    } else {
+      abrirHistorial(item);
+    }
+  } else {
+    irANuevaPrescripcion(item.cod_cliente);
+  }
 }
 
 

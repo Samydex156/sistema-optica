@@ -5,7 +5,7 @@
       <div class="ml-4 text-h6">Cargando datos...</div>
     </div>
 
-    <v-form @submit.prevent="guardarPrescripcion" v-else>
+    <v-form @submit.prevent="guardarPrescripcion" @keydown="manejarEnterComoTab" v-else>
       <v-card>
         <v-card-title class="text-h5 border-b">
           {{ pageTitle }}
@@ -315,14 +315,14 @@ const armazones = ref([]);
 const getInitialFormData = () => ({
   cod_prescripcion: null,
   cod_cliente: parseInt(props.clienteId),
-  fecha_prescripcion: new Date().toISOString().split('T')[0],
+  fecha_prescripcion: '',
   doctor_prescriptor: null,
   distancia_lente1: 'LEJOS', l1_dip: '', l1_esf_od: '', l1_cil_od: '', l1_eje_od: '', l1_esf_oi: '', l1_cil_oi: '', l1_eje_oi: '',
   distancia_lente2: 'CERCA', l2_dip: '', l2_esf_od: '', l2_cil_od: '', l2_eje_od: '', l2_esf_oi: '', l2_cil_oi: '', l2_eje_oi: '',
   l1_cantidad_cristal: 2, l1_material_cristal: null, l1_color_cristal: null, l1_extra_cristal: '', l1_tratamientos: [],
   l2_cantidad_cristal: 2, l2_material_cristal: null, l2_color_cristal: null, l2_extra_cristal: '', l2_tratamientos: [],
   cod_proveedor: null, cod_armador: null, cod_armazon: null,
-  fecha_entrega: new Date().toISOString().split('T')[0],
+  fecha_entrega: '',
   num_sobre: '', cod_pedido1: '', cod_pedido2: '',
   notas_adicionales: '',
 });
@@ -529,6 +529,17 @@ async function guardarPrescripcion() {
     return;
   }
 
+  if (!formData.num_sobre || !String(formData.num_sobre).trim()) {
+    mostrarMensaje('El campo "Núm. Sobre" es obligatorio.', "warning");
+    return;
+  }
+
+  if ((!formData.cod_pedido1 || !String(formData.cod_pedido1).trim()) &&
+    (!formData.cod_pedido2 || !String(formData.cod_pedido2).trim())) {
+    mostrarMensaje('Debe ingresar al menos un número de pedido (1 o 2).', "warning");
+    return;
+  }
+
   guardando.value = true;
   try {
     const { l1_tratamientos, l2_tratamientos, ...prescripcionBaseData } = formData;
@@ -598,6 +609,34 @@ async function guardarPrescripcion() {
 function cancelar() {
   if (confirm('Los cambios no se guardarán. Clic en Aceptar para volver atrás.')) {
     router.back();
+  }
+}
+
+function manejarEnterComoTab(event) {
+  if (event.key === 'Enter') {
+    // Permitir Enter en textareas y botones 
+    if (event.target.tagName === 'TEXTAREA' || event.target.tagName === 'BUTTON') {
+      return;
+    }
+
+    // Prevenir que el formulario se envíe con Enter
+    event.preventDefault();
+
+    const form = event.target.closest('form');
+    if (!form) return;
+
+    // Obtener todos los elementos que pueden recibir foco (inputs, textareas, botones submit)
+    const elementosFocusables = form.querySelectorAll(
+      'input:not([disabled]):not([readonly]), textarea:not([disabled]):not([readonly]), button[type="submit"]:not([disabled])'
+    );
+
+    const arrayElementos = Array.from(elementosFocusables);
+    const indiceActual = arrayElementos.indexOf(event.target);
+
+    // Mover el foco al siguiente elemento, si existe
+    if (indiceActual > -1 && indiceActual + 1 < arrayElementos.length) {
+      arrayElementos[indiceActual + 1].focus();
+    }
   }
 }
 </script>

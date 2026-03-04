@@ -36,11 +36,167 @@
             <template v-slot:item.NOMBRES="{ item }">
                 {{ `${item.AP_PATERNO || ''} ${item.AP_MATERNO || ''} ${item.NOMBRES || ''}` }}
             </template>
+            <template v-slot:item.acciones="{ item }">
+                <v-tooltip location="top" text="Ver Detalles Completos">
+                    <template v-slot:activator="{ props }">
+                        <v-btn v-bind="props" icon size="small" variant="text" color="primary"
+                            @click="verDetalles(item)">
+                            <v-icon>mdi-eye</v-icon>
+                        </v-btn>
+                    </template>
+                </v-tooltip>
+            </template>
             <template v-slot:no-data>
                 No se encontraron recetas.
             </template>
         </v-data-table-server>
 
+        <v-dialog v-model="dialogDetalles" max-width="850px" scrollable>
+            <v-card v-if="recetaSeleccionada">
+                <v-toolbar color="primary" density="compact">
+                    <v-toolbar-title class="text-subtitle-1 font-weight-bold">
+                        Detalles de Receta: {{ recetaSeleccionada.NRO_RECETA }}
+                    </v-toolbar-title>
+                    <v-spacer></v-spacer>
+                    <v-btn icon="mdi-close" variant="text" @click="dialogDetalles = false"></v-btn>
+                </v-toolbar>
+                <v-card-text class="pa-4 bg-grey-lighten-4">
+                    <v-row>
+                        <!-- Información del Cliente -->
+                        <v-col cols="12" md="6">
+                            <v-card variant="outlined" class="bg-white h-100">
+                                <v-card-title class="text-subtitle-2 font-weight-bold border-b py-2">Datos del
+                                    Cliente</v-card-title>
+                                <v-card-text class="pt-3">
+                                    <div class="mb-1"><strong>Nombre:</strong> {{ `${recetaSeleccionada.AP_PATERNO ||
+                                        ''}
+                                        ${recetaSeleccionada.AP_MATERNO || ''} ${recetaSeleccionada.NOMBRES || ''}` }}
+                                    </div>
+                                    <div class="mb-1"><strong>Teléfono / Dir:</strong> {{ recetaSeleccionada.DIR_TEL ||
+                                        '-' }}
+                                    </div>
+                                    <div class="mb-1"><strong>Procedencia:</strong> {{ recetaSeleccionada.PROCEDENCIA ||
+                                        '-' }}
+                                    </div>
+                                    <div class="mb-1"><strong>Tienda:</strong> {{ recetaSeleccionada.TIENDA || '-' }}
+                                    </div>
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+
+                        <!-- Información General -->
+                        <v-col cols="12" md="6">
+                            <v-card variant="outlined" class="bg-white h-100">
+                                <v-card-title class="text-subtitle-2 font-weight-bold border-b py-2">Datos
+                                    Generales</v-card-title>
+                                <v-card-text class="pt-3">
+                                    <div class="mb-1"><strong>Fecha Receta:</strong> {{
+                                        formatearFecha(recetaSeleccionada.FECHA_RECETA) }}</div>
+                                    <div class="mb-1"><strong>Fecha Entrega:</strong> {{
+                                        formatearFecha(recetaSeleccionada.FECHA_ENTREGA) }}</div>
+                                    <div class="mb-1"><strong>Doctor:</strong> {{ recetaSeleccionada.DOCTOR || '-' }}
+                                    </div>
+                                    <div class="mb-1"><strong>Nº Boleta:</strong> {{ recetaSeleccionada.NRO_BOLETA ||
+                                        '-' }} |
+                                        <strong>Nº Sobre:</strong> {{ recetaSeleccionada.NRO_SOBRE || '-' }}
+                                    </div>
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+
+                        <!-- Especificaciones de Lentes -->
+                        <v-col cols="12">
+                            <v-card variant="outlined" class="bg-white">
+                                <v-card-title class="text-subtitle-2 font-weight-bold border-b py-2">Especificaciones
+                                    Ópticas</v-card-title>
+                                <v-card-text class="pt-3">
+                                    <v-table density="compact" class="text-caption mb-3">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th class="text-center font-weight-bold">ESF</th>
+                                                <th class="text-center font-weight-bold">CIL</th>
+                                                <th class="text-center font-weight-bold">EJE</th>
+                                                <th class="text-center font-weight-bold">DIP</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="font-weight-bold">OD (Lejos)</td>
+                                                <td class="text-center">{{ recetaSeleccionada.ESF_OD_LEJ || '-' }}</td>
+                                                <td class="text-center">{{ recetaSeleccionada.CIL_OD_LEJ || '-' }}</td>
+                                                <td class="text-center">{{ recetaSeleccionada.EJE_OD_LEJ || '-' }}</td>
+                                                <td class="text-center" rowspan="2" style="vertical-align: middle;">{{
+                                                    recetaSeleccionada.DIP_LEJOS || '-' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-weight-bold">OI (Lejos)</td>
+                                                <td class="text-center">{{ recetaSeleccionada.ESF_OI_LEJ || '-' }}</td>
+                                                <td class="text-center">{{ recetaSeleccionada.CIL_OI_LEJ || '-' }}</td>
+                                                <td class="text-center">{{ recetaSeleccionada.EJE_OI_LEJ || '-' }}</td>
+                                            </tr>
+                                            <tr class="bg-grey-lighten-4">
+                                                <td class="font-weight-bold">OD (Cerca)</td>
+                                                <td class="text-center">{{ recetaSeleccionada.ESF_OD_CER || '-' }}</td>
+                                                <td class="text-center">{{ recetaSeleccionada.CIL_OD_CER || '-' }}</td>
+                                                <td class="text-center">{{ recetaSeleccionada.EJE_OD_CER || '-' }}</td>
+                                                <td class="text-center" rowspan="2" style="vertical-align: middle;">{{
+                                                    recetaSeleccionada.DIP_CERCA || '-' }}</td>
+                                            </tr>
+                                            <tr class="bg-grey-lighten-4">
+                                                <td class="font-weight-bold">OI (Cerca)</td>
+                                                <td class="text-center">{{ recetaSeleccionada.ESF_OI_CER || '-' }}</td>
+                                                <td class="text-center">{{ recetaSeleccionada.CIL_OI_CER || '-' }}</td>
+                                                <td class="text-center">{{ recetaSeleccionada.EJE_OI_CER || '-' }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </v-table>
+
+                                    <!-- Otras Medidas -->
+                                    <div class="d-flex flex-wrap gap-4 text-caption mt-2">
+                                        <div><strong>DIP OD:</strong> {{ recetaSeleccionada.DIP_OD || '-' }}</div>
+                                        <div><strong>DIP OI:</strong> {{ recetaSeleccionada.DIP_OI || '-' }}</div>
+                                        <div><strong>Base:</strong> {{ recetaSeleccionada.BASE || '-' }}</div>
+                                        <div><strong>Altura:</strong> {{ recetaSeleccionada.ALTURA || '-' }}</div>
+                                    </div>
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+
+                        <!-- Materiales y Armazón -->
+                        <v-col cols="12">
+                            <v-card variant="outlined" class="bg-white">
+                                <v-card-title class="text-subtitle-2 font-weight-bold border-b py-2">Materiales y
+                                    Trabajo</v-card-title>
+                                <v-card-text class="pt-3">
+                                    <v-row dense class="text-body-2">
+                                        <v-col cols="12" sm="6">
+                                            <div class="mb-1"><strong>Cristales 1:</strong> {{
+                                                recetaSeleccionada.CRISTALES_1 ||
+                                                '-' }}</div>
+                                            <div class="mb-1"><strong>Cristales 2:</strong> {{
+                                                recetaSeleccionada.CRISTALES_2 ||
+                                                '-' }}</div>
+                                        </v-col>
+                                        <v-col cols="12" sm="6">
+                                            <div class="mb-1"><strong>Armazón:</strong> {{ recetaSeleccionada.ARMAZON ||
+                                                '-' }}
+                                            </div>
+                                            <div class="mb-1"><strong>Proveedor:</strong> {{
+                                                recetaSeleccionada.PROVEEDOR || '-'
+                                            }}</div>
+                                            <div class="mb-1"><strong>Armador:</strong> {{ recetaSeleccionada.ARMADOR ||
+                                                '-' }}
+                                            </div>
+                                        </v-col>
+                                    </v-row>
+                                </v-card-text>
+                            </v-card>
+                        </v-col>
+                    </v-row>
+                </v-card-text>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 
@@ -62,6 +218,15 @@ const totalRecetas = ref(0);
 const itemsPerPage = ref(10);
 const busqueda = ref("");
 
+// --- Modal de Detalles ---
+const dialogDetalles = ref(false);
+const recetaSeleccionada = ref(null);
+
+function verDetalles(item) {
+    recetaSeleccionada.value = item;
+    dialogDetalles.value = true;
+}
+
 // --- Filtro por Letra ---
 const filtroLetra = ref(null);
 const alfabeto = ['A', 'B', 'C', 'CH', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'LL', 'M', 'N', 'Ñ', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
@@ -69,38 +234,12 @@ const alfabeto = ['A', 'B', 'C', 'CH', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', '
 // --- Headers ---
 // Adaptados para mostrar la información más relevante primero
 const headers = [
-    { title: 'Nº Receta', key: 'NRO_RECETA', sortable: true, width: '100px', fixed: true },
-    { title: 'Cliente', key: 'NOMBRES', sortable: false, width: '250px' }, // Combinaremos Nombre + Apellidos en el template
-    { title: 'Fecha', key: 'FECHA_RECETA', sortable: true, width: '110px' },
+    { title: 'Nº Receta', key: 'NRO_RECETA', sortable: true, width: '100px' },
+    { title: 'Cliente', key: 'NOMBRES', sortable: false, width: '250px' },
+    { title: 'Fecha Receta', key: 'FECHA_RECETA', sortable: true, width: '110px' },
     { title: 'Tienda', key: 'TIENDA', width: '120px' },
-    //   { title: 'Procedencia', key: 'PROCEDENCIA', width: '120px' },
-    //   { title: 'Doctor', key: 'DOCTOR', width: '150px' },
-
-    // OD Lejos
-    { title: 'Esf OD (L)', key: 'ESF_OD_LEJ', align: 'end', cellProps: { class: 'text-blue-grey-darken-1' } },
-    { title: 'Cil OD (L)', key: 'CIL_OD_LEJ', align: 'end', cellProps: { class: 'text-blue-grey-darken-1' } },
-    { title: 'Eje OD (L)', key: 'EJE_OD_LEJ', align: 'end', cellProps: { class: 'text-blue-grey-darken-1' } },
-
-    // OI Lejos
-    { title: 'Esf OI (L)', key: 'ESF_OI_LEJ', align: 'end', cellProps: { class: 'text-blue-grey-darken-1' } },
-    { title: 'Cil OI (L)', key: 'CIL_OI_LEJ', align: 'end', cellProps: { class: 'text-blue-grey-darken-1' } },
-    { title: 'Eje OI (L)', key: 'EJE_OI_LEJ', align: 'end', cellProps: { class: 'text-blue-grey-darken-1' } },
-
-    // OD Cerca
-    //   { title: 'Esf OD (C)', key: 'ESF_OD_CER', align: 'end', cellProps: { class: 'text-brown-darken-1' } },
-    //   { title: 'Cil OD (C)', key: 'CIL_OD_CER', align: 'end', cellProps: { class: 'text-brown-darken-1' } },
-    //   { title: 'Eje OD (C)', key: 'EJE_OD_CER', align: 'end', cellProps: { class: 'text-brown-darken-1' } },
-
-    // OI Cerca
-    //   { title: 'Esf OI (C)', key: 'ESF_OI_CER', align: 'end', cellProps: { class: 'text-brown-darken-1' } },
-    //   { title: 'Cil OI (C)', key: 'CIL_OI_CER', align: 'end', cellProps: { class: 'text-brown-darken-1' } },
-    //   { title: 'Eje OI (C)', key: 'EJE_OI_CER', align: 'end', cellProps: { class: 'text-brown-darken-1' } },
-
-    //   { title: 'Armazón', key: 'ARMAZON', width: '150px' },
-    //   { title: 'Cristales 1', key: 'CRISTALES_1', width: '200px' },
-    //   { title: 'Cristales 2', key: 'CRISTALES_2', width: '200px' },
     { title: 'F. Entrega', key: 'FECHA_ENTREGA', width: '110px' },
-    { title: 'Nº Boleta', key: 'NRO_BOLETA' },
+    { title: 'Acciones', key: 'acciones', sortable: false, align: 'center', width: '100px' },
 ];
 
 
