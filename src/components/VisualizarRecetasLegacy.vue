@@ -25,8 +25,8 @@
             hide-details></v-text-field>
 
         <v-data-table-server v-model:items-per-page="itemsPerPage" :headers="headers" :items="recetas"
-            :items-length="totalRecetas" :loading="cargando" :search="busqueda" item-value="id" class="elevation-1 mt-4"
-            @update:options="fetchRecetas" hover density="compact">
+            :items-length="totalRecetas" :loading="cargando" :search="busqueda" item-value="id" class="elevation-1 mt-4 cursor-pointer"
+            @update:options="fetchRecetas" hover density="compact" @click:row="(event, { item }) => verDetalles(item)">
             <template v-slot:item.FECHA_RECETA="{ item }">
                 {{ formatearFecha(item.FECHA_RECETA) }}
             </template>
@@ -40,7 +40,7 @@
                 <v-tooltip location="top" text="Ver Detalles Completos">
                     <template v-slot:activator="{ props }">
                         <v-btn v-bind="props" icon size="small" variant="text" color="primary"
-                            @click="verDetalles(item)">
+                            @click.stop="verDetalles(item)">
                             <v-icon>mdi-eye</v-icon>
                         </v-btn>
                     </template>
@@ -215,7 +215,7 @@ const searchInputRef = ref(null);
 const cargando = ref(true);
 const recetas = ref([]);
 const totalRecetas = ref(0);
-const itemsPerPage = ref(10);
+const itemsPerPage = ref(50);
 const busqueda = ref("");
 
 // --- Modal de Detalles ---
@@ -378,6 +378,10 @@ const formatearFecha = (fecha) => {
     margin: 0;
     font-size: 1.75rem;
     font-weight: 600;
+}
+
+:deep(.v-data-table tbody tr) {
+    cursor: pointer;
 }
 
 /* Control de altura de filas */
