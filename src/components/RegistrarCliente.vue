@@ -31,7 +31,8 @@
 
     <v-data-table-server v-model:items-per-page="itemsPerPage" :headers="headers" :items="clientes"
       :items-length="totalClientes" :loading="cargando" :search="busqueda" item-value="cod_cliente"
-      class="elevation-1 mt-4" @update:options="fetchClientes" hover density="compact">
+      class="elevation-1 mt-4 cursor-pointer" @update:options="fetchClientes" hover density="compact"
+      @click:row="(event, { item }) => manejarClickIcono(item)">
       <template v-slot:item.nombreCompleto="{ item }">
         <div class="d-flex align-center">
           <v-tooltip location="top"
@@ -48,41 +49,34 @@
       </template>
 
       <template v-slot:item.actions="{ item }">
-        <v-menu location="bottom end">
-          <template v-slot:activator="{ props }">
-            <v-btn icon="mdi-dots-horizontal-circle" variant="text" density="comfortable" v-bind="props"></v-btn>
-          </template>
+        <div class="d-flex align-center justify-center">
+          <v-tooltip location="top" :text="tieneHistorial(item) ? 'Ver / Editar Receta' : 'Nueva Receta'">
+            <template v-slot:activator="{ props }">
+              <v-btn v-bind="props" icon size="small" variant="text" color="primary" @click.stop="abrirHistorial(item)">
+                <v-badge v-if="tieneHistorial(item)" color="info" dot>
+                  <v-icon>mdi-clipboard-text-clock</v-icon>
+                </v-badge>
+                <v-icon v-else>mdi-glasses</v-icon>
+              </v-btn>
+            </template>
+          </v-tooltip>
 
-          <v-list density="compact" elevation="2">
-            <v-list-item @click="abrirHistorial(item)" base-color="primary">
-              <template v-slot:prepend>
-                <v-icon :icon="tieneHistorial(item) ? 'mdi-clipboard-text-clock' : 'mdi-glasses'"></v-icon>
-              </template>
-              <v-list-item-title>
-                {{ tieneHistorial(item) ? 'Ver / Editar Receta' : 'Nueva Receta' }}
-              </v-list-item-title>
-              <template v-slot:append v-if="tieneHistorial(item)">
-                <v-badge color="info" dot inline></v-badge>
-              </template>
-            </v-list-item>
+          <v-tooltip location="top" text="Editar Cliente">
+            <template v-slot:activator="{ props }">
+              <v-btn v-bind="props" icon size="small" variant="text" color="grey-darken-2" @click.stop="editarCliente(item)">
+                <v-icon>mdi-pencil</v-icon>
+              </v-btn>
+            </template>
+          </v-tooltip>
 
-            <v-list-item @click="editarCliente(item)">
-              <template v-slot:prepend>
-                <v-icon icon="mdi-pencil"></v-icon>
-              </template>
-              <v-list-item-title>Editar Cliente</v-list-item-title>
-            </v-list-item>
-
-            <v-divider class="my-1"></v-divider>
-
-            <v-list-item @click="eliminarCliente(item.cod_cliente)" base-color="error">
-              <template v-slot:prepend>
-                <v-icon icon="mdi-delete"></v-icon>
-              </template>
-              <v-list-item-title class="text-error">Eliminar Cliente</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+          <v-tooltip location="top" text="Eliminar Cliente">
+            <template v-slot:activator="{ props }">
+              <v-btn v-bind="props" icon size="small" variant="text" color="error" @click.stop="eliminarCliente(item.cod_cliente)">
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+            </template>
+          </v-tooltip>
+        </div>
       </template>
 
       <template v-slot:no-data>
@@ -228,7 +222,7 @@ const nameClienteInputRef = ref(null);
 const cargando = ref(true);
 const clientes = ref([]);
 const totalClientes = ref(0);
-const itemsPerPage = ref(10);
+const itemsPerPage = ref(20);
 const busqueda = ref("");
 
 // --- Filtro por Letra y Sin Receta ---
@@ -656,6 +650,10 @@ function limpiarFormulario() {
 }
 
 /* Control de altura de filas */
+:deep(.v-data-table tbody tr) {
+  cursor: pointer;
+}
+
 :deep(.v-data-table__td) {
   height: 30px !important;
   /* Puedes cambiar este valor (ej. 30px, 50px) */
