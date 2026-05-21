@@ -12,14 +12,14 @@
 
     <div class="d-none d-md-flex align-center ga-2 mr-4">
       <!-- Navigation items -->
-      <v-btn to="/clientes" variant="text" class="text-caption font-weight-medium text-white nav-btn" rounded="lg">
+      <v-btn to="/clientes" variant="text" class="text-caption font-weight-medium text-white nav-btn" rounded="lg" active-class="nav-btn-active">
         Clientes
       </v-btn>
-      <v-btn to="/ordenes" variant="text" class="text-caption font-weight-medium text-white nav-btn" rounded="lg">
+      <v-btn to="/ordenes" variant="text" class="text-caption font-weight-medium text-white nav-btn" rounded="lg" active-class="nav-btn-active">
         Órdenes
       </v-btn>
       <v-btn to="/productos/registrar" variant="text" class="text-caption font-weight-medium text-white nav-btn"
-        rounded="lg">
+        rounded="lg" active-class="nav-btn-active">
         Productos
       </v-btn>
 
@@ -51,6 +51,17 @@
   </v-app-bar>
 
   <v-navigation-drawer v-model="isMobileMenuOpen" location="left" temporary>
+    <template v-if="user">
+      <v-list-item
+        lines="two"
+        prepend-icon="mdi-account-circle"
+        :title="user.nombre_usuario"
+        :subtitle="nombreTienda"
+        class="bg-grey-lighten-4 py-3"
+      ></v-list-item>
+      <v-divider></v-divider>
+    </template>
+
     <v-list nav density="compact">
       <v-list-item prepend-icon="mdi-view-dashboard" title="Panel" to="/panel" @click="closeMobileMenu"></v-list-item>
 
@@ -125,24 +136,35 @@ const currentTime = ref('');
 const currentDate = ref('');
 let timer = null;
 
-const updateTime = () => {
+const updateDate = () => {
   const now = new Date();
-
-  currentTime.value = now.toLocaleTimeString('es-ES', { hour12: true });
-
-  currentDate.value = now.toLocaleDateString('es-ES', {
+  const dateStr = now.toLocaleDateString('es-ES', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric'
   });
+  currentDate.value = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+};
 
-  currentDate.value = currentDate.value.charAt(0).toUpperCase() + currentDate.value.slice(1);
+const updateTime = () => {
+  const now = new Date();
+  currentTime.value = now.toLocaleTimeString('es-ES', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: true 
+  });
+  
+  if (now.getHours() === 0 && now.getMinutes() === 0) {
+    updateDate();
+  }
 };
 
 onMounted(() => {
+  updateDate();
   updateTime();
-  timer = setInterval(updateTime, 1000);
+  // Actualizar solo cada 60 segundos para mejorar rendimiento
+  timer = setInterval(updateTime, 60000);
 });
 
 onUnmounted(() => {
@@ -155,11 +177,11 @@ onUnmounted(() => {
   background: linear-gradient(135deg, #4119a0 0%, #2400c2 100%) !important;
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-  position: fixed !important;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
+}
+
+.nav-btn-active {
+  background: rgba(255, 255, 255, 0.2) !important;
+  font-weight: 700 !important;
 }
 
 .glass-extension {

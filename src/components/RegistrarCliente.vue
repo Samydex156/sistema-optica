@@ -203,6 +203,25 @@
       </v-card>
     </v-dialog>
 
+    <!-- Diálogo de Confirmación Genérico -->
+    <v-dialog v-model="dialogConfirmacion" max-width="400px" persistent>
+      <v-card class="rounded-lg text-center pa-4 elevation-10">
+        <v-card-text>
+          <v-icon :icon="confirmacionDatos.icono" :color="confirmacionDatos.color" size="64" class="mb-4"></v-icon>
+          <h3 class="text-h6 font-weight-bold mb-2">{{ confirmacionDatos.titulo }}</h3>
+          <p class="text-body-1 text-grey-darken-1">{{ confirmacionDatos.mensaje }}</p>
+        </v-card-text>
+        <v-card-actions class="justify-center pt-0 pb-4">
+          <v-btn color="grey-darken-1" variant="text" class="px-4" @click="responderConfirmacion(false)">
+            Cancelar
+          </v-btn>
+          <v-btn :color="confirmacionDatos.color" variant="elevated" class="px-6" @click="responderConfirmacion(true)">
+            Sí, Eliminar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
   </div>
 </template>
 
@@ -517,7 +536,11 @@ function editarPrescripcion(prescripcionId) {
 }
 
 async function eliminarPrescripcion(prescripcionId) {
-  if (!confirm('¿Seguro que desea eliminar esta receta?')) return;
+  const confirmado = await confirmarAccion(
+    "Eliminar Receta",
+    "¿Estás seguro de que deseas eliminar esta receta? Esta acción no se puede deshacer."
+  );
+  if (!confirmado) return;
 
   try {
     // Primero borramos los tratamientos asociados (si no hay Cascade delete)
@@ -578,7 +601,11 @@ async function guardarCliente() {
 }
 
 async function eliminarCliente(id) {
-  if (!confirm("¿Eliminar cliente y TODO su historial?")) return;
+  const confirmado = await confirmarAccion(
+    "Eliminar Cliente",
+    "¿Estás seguro de que deseas eliminar este cliente y TODO su historial? Esta acción es irreversible."
+  );
+  if (!confirmado) return;
   try {
     const { error: errorPresc } = await supabase.from("prescripcion_clienten").delete().eq("cod_cliente", id);
     if (errorPresc) throw errorPresc;
@@ -613,6 +640,35 @@ function cerrarModal() {
 function limpiarFormulario() {
   editId.value = null;
   Object.assign(formData, formDefault);
+}
+
+// --- Funciones del Diálogo de Confirmación ---
+const dialogConfirmacion = ref(false);
+const confirmacionDatos = reactive({
+  titulo: '',
+  mensaje: '',
+  color: 'error',
+  icono: 'mdi-alert-circle-outline'
+});
+let resolveConfirmacion = null;
+
+function confirmarAccion(titulo, mensaje, color = 'error', icono = 'mdi-alert-circle-outline') {
+  confirmacionDatos.titulo = titulo;
+  confirmacionDatos.mensaje = mensaje;
+  confirmacionDatos.color = color;
+  confirmacionDatos.icono = icono;
+  dialogConfirmacion.value = true;
+  return new Promise((resolve) => {
+    resolveConfirmacion = resolve;
+  });
+}
+
+function responderConfirmacion(respuesta) {
+  dialogConfirmacion.value = false;
+  if (resolveConfirmacion) {
+    resolveConfirmacion(respuesta);
+    resolveConfirmacion = null;
+  }
 }
 </script>
 

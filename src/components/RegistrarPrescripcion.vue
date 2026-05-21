@@ -1,11 +1,11 @@
 <template>
-  <v-container>
+  <v-container class="text-uppercase-container">
     <div v-if="cargando" class="d-flex justify-center align-center" style="height: 60vh;">
       <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
       <div class="ml-4 text-h6">Cargando datos...</div>
     </div>
 
-    <v-form @submit.prevent="guardarPrescripcion" @keydown="manejarEnterComoTab" v-else>
+    <v-form ref="formRef" @submit.prevent="guardarPrescripcion" @keydown="manejarEnterComoTab" v-else>
       <v-card>
         <v-card-title class="text-h5 border-b">
           {{ pageTitle }}
@@ -19,8 +19,9 @@
             </v-col>
             <v-col cols="12" sm="6" md="3">
               <v-text-field ref="recetaInputRef" v-model="recetaNumerica" :error-messages="mensajeErrorReceta"
-                :loading="verificandoReceta" label="Cód. Receta" placeholder="Ej. 1234" :suffix="sufijoReceta"
-                @input="formateaRecetaInput" variant="outlined" density="compact" counter="4"></v-text-field>
+                :loading="verificandoReceta" label="Cód. Receta *" placeholder="Ej. 1234" :suffix="sufijoReceta"
+                @input="formateaRecetaInput" variant="outlined" density="compact" counter="4"
+                :rules="requiredRule"></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" md="2">
               <v-text-field v-model="formData.fecha_prescripcion" label="Fecha Prescripción" type="date"
@@ -197,8 +198,8 @@
             </v-col>
           </v-row>
           <v-row dense>
-            <v-col cols="6" md="3"><v-text-field v-model="formData.num_sobre" label="Núm. Sobre" variant="outlined"
-                density="compact"></v-text-field></v-col>
+            <v-col cols="6" md="3"><v-text-field v-model="formData.num_sobre" label="Núm. Sobre *" variant="outlined"
+                density="compact" :rules="requiredRule"></v-text-field></v-col>
             <v-col cols="6" md="3"><v-text-field v-model="formData.fecha_entrega" label="Fecha Entrega" type="date"
                 variant="outlined" density="compact"></v-text-field></v-col>
             <v-col cols="6" md="3"><v-text-field v-model="formData.cod_pedido1" label="Núm. Pedido 1" variant="outlined"
@@ -247,6 +248,25 @@
         <v-btn variant="text" @click="snackbar = false" icon="mdi-close"></v-btn>
       </template>
     </v-snackbar>
+
+    <!-- Diálogo de Confirmación Genérico -->
+    <v-dialog v-model="dialogConfirmacion" max-width="400px" persistent>
+      <v-card class="rounded-lg text-center pa-4 elevation-10">
+        <v-card-text>
+          <v-icon :icon="confirmacionDatos.icono" :color="confirmacionDatos.color" size="64" class="mb-4"></v-icon>
+          <h3 class="text-h6 font-weight-bold mb-2">{{ confirmacionDatos.titulo }}</h3>
+          <p class="text-body-1 text-grey-darken-1">{{ confirmacionDatos.mensaje }}</p>
+        </v-card-text>
+        <v-card-actions class="justify-center pt-0 pb-4">
+          <v-btn color="grey-darken-1" variant="text" class="px-4" @click="responderConfirmacion(false)">
+            Volver al Formulario
+          </v-btn>
+          <v-btn :color="confirmacionDatos.color" variant="elevated" class="px-6" @click="responderConfirmacion(true)">
+            Sí, Salir
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -262,6 +282,9 @@ const props = defineProps({
 
 const router = useRouter();
 const isEditing = computed(() => !!props.prescripcionId);
+
+const formRef = ref(null);
+const requiredRule = [(v) => !!v || 'Este campo es requerido'];
 
 const cargando = ref(true);
 const guardando = ref(false);
@@ -499,7 +522,15 @@ async function guardarNuevoItem() {
     if (error) throw error;
 
     mostrarMensaje(`'${value}' ha sido añadido con éxito.`, "success");
-    await cargarDatosSelect();
+    
+    // Añadir a la lista local en lugar de recargar de la BD
+    if (tableName === 'doctores') doctores.value.push(nuevoRegistro);
+    else if (tableName === 'material_cristal') materiales.value.push(nuevoRegistro);
+    else if (tableName === 'color_cristal') colores.value.push(nuevoRegistro);
+    else if (tableName === 'tratamientos') tratamientos.value.push(nuevoRegistro);
+    else if (tableName === 'proveedores') proveedores.value.push(nuevoRegistro);
+    else if (tableName === 'armador_lente') armadores.value.push(nuevoRegistro);
+    else if (tableName === 'armazon_lente') armazones.value.push(nuevoRegistro);
 
     if (fieldToUpdate && idField) {
       formData[fieldToUpdate] = nuevoRegistro[idField];
@@ -516,6 +547,12 @@ async function guardarNuevoItem() {
 }
 
 async function guardarPrescripcion() {
+  const { valid } = await formRef.value.validate();
+  if (!valid) {
+    mostrarMensaje('Complete los campos obligatorios marcados en rojo.', 'error');
+    return;
+  }
+
   const recetaFinal = codigoRecetaCompleto.value;
   if (!recetaFinal || !recetaNumerica.value.trim()) {
     mostrarMensaje('El campo "Cód. Receta" es obligatorio y debe tener la parte numérica.', "warning");
@@ -606,8 +643,43 @@ async function guardarPrescripcion() {
   }
 }
 
-function cancelar() {
-  if (confirm('Los cambios no se guardarán. Clic en Aceptar para volver atrás.')) {
+// --- Funciones del Diálogo de Confirmación ---
+const dialogConfirmacion = ref(false);
+const confirmacionDatos = reactive({
+  titulo: '',
+  mensaje: '',
+  color: 'warning',
+  icono: 'mdi-alert'
+});
+let resolveConfirmacion = null;
+
+function confirmarAccion(titulo, mensaje, color = 'warning', icono = 'mdi-alert') {
+  confirmacionDatos.titulo = titulo;
+  confirmacionDatos.mensaje = mensaje;
+  confirmacionDatos.color = color;
+  confirmacionDatos.icono = icono;
+  dialogConfirmacion.value = true;
+  return new Promise((resolve) => {
+    resolveConfirmacion = resolve;
+  });
+}
+
+function responderConfirmacion(respuesta) {
+  dialogConfirmacion.value = false;
+  if (resolveConfirmacion) {
+    resolveConfirmacion(respuesta);
+    resolveConfirmacion = null;
+  }
+}
+
+async function cancelar() {
+  const confirmado = await confirmarAccion(
+    'Descartar cambios',
+    'Los cambios no se guardarán. ¿Estás seguro de que deseas salir?',
+    'warning',
+    'mdi-alert-circle-outline'
+  );
+  if (confirmado) {
     router.back();
   }
 }
@@ -642,6 +714,11 @@ function manejarEnterComoTab(event) {
 </script>
 
 <style scoped>
+.text-uppercase-container :deep(input:not([type="number"]):not([type="date"])),
+.text-uppercase-container :deep(textarea) {
+  text-transform: uppercase;
+}
+
 .border-b {
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
