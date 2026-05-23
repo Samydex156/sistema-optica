@@ -226,7 +226,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, nextTick, watch, onMounted } from "vue";
+import { ref, reactive, nextTick, watch, onMounted, onUnmounted } from "vue";
 import { useRouter } from 'vue-router';
 import { supabase } from "../lib/supabaseClient.js";
 import { debounce } from 'lodash-es';
@@ -292,7 +292,24 @@ onMounted(() => {
   nextTick(() => {
     searchInputRef.value?.focus();
   });
+  window.addEventListener('keydown', handleGlobalKeydown);
 });
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown);
+});
+
+function handleGlobalKeydown(e) {
+  if (e.key === 'Enter') {
+    if (!dialog.value && !dialogHistorial.value && !dialogConfirmacion.value) {
+      if (document.activeElement && document.activeElement.tagName === 'BUTTON') {
+        return;
+      }
+      e.preventDefault();
+      abrirModalCrear();
+    }
+  }
+}
 
 // --- Funciones de Datos (Clientes) ---
 
