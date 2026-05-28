@@ -2,7 +2,7 @@
   <div class="page-container">
     <header class="page-header">
       <h1>Gestión de Clientes</h1>
-      <v-btn color="primary" prepend-icon="mdi-plus" @click="abrirModalCrear">
+      <v-btn color="primary" prepend-icon="mdi-plus" @click="abrirModalCrear" class="responsive-header-btn">
         Registrar Cliente
       </v-btn>
     </header>
@@ -26,7 +26,7 @@
     </div>
 
     <v-text-field ref="searchInputRef" v-model="busqueda"
-      label="Buscar cliente por nombre, teléfono, cód. receta, nro. sobre o pedido." prepend-inner-icon="mdi-magnify"
+      label="Buscar cliente..." placeholder="Por nombre, teléfono, receta, sobre o pedido" prepend-inner-icon="mdi-magnify"
       variant="outlined" density="compact" clearable class="mb-4" hide-details></v-text-field>
 
     <v-data-table-server v-model:items-per-page="itemsPerPage" :headers="headers" :items="clientes"
@@ -692,9 +692,15 @@ function responderConfirmacion(respuesta) {
 <style scoped>
 .page-container {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  padding: 1rem 2rem;
+  padding: 1rem 0.75rem;
   background-color: #f8f9fa;
   color: #212529;
+}
+
+@media (min-width: 600px) {
+  .page-container {
+    padding: 1rem 2rem;
+  }
 }
 
 .page-header {
@@ -710,6 +716,19 @@ function responderConfirmacion(respuesta) {
   margin: 0;
   font-size: 1.75rem;
   font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    text-align: center;
+  }
+
+  .responsive-header-btn {
+    width: 100% !important;
+  }
 }
 
 .text-uppercase-input :deep(input) {

@@ -44,32 +44,54 @@
                 <v-card-title class="text-subtitle-1 font-weight-bold pt-2 pb-1">Lente 1</v-card-title>
                 <v-divider></v-divider>
                 <v-card-text>
-                  <v-row>
-                    <v-col cols="4">
-                      <v-autocomplete label="DISTANCIA" v-model="formData.distancia_lente1"
-                        :items="tipoLenteDistanciaOptions" item-title="label" item-value="value" variant="outlined"
-                        density="compact" class="mb-2"></v-autocomplete>
-                      <v-text-field label="DIP" v-model="formData.l1_dip" variant="outlined"
-                        density="compact"></v-text-field>
+                  <v-row dense>
+                    <v-col cols="12" sm="4">
+                      <v-row dense>
+                        <v-col cols="6" sm="12">
+                          <v-autocomplete label="DISTANCIA" v-model="formData.distancia_lente1"
+                            :items="tipoLenteDistanciaOptions" item-title="label" item-value="value" variant="outlined"
+                            density="compact" class="mb-2"></v-autocomplete>
+                        </v-col>
+                        <v-col cols="6" sm="12">
+                          <v-text-field label="DIP" v-model="formData.l1_dip" variant="outlined"
+                            density="compact"></v-text-field>
+                        </v-col>
+                      </v-row>
                     </v-col>
-                    <v-col cols="8">
-                      <div class="d-flex align-center">
-                        <span class="font-weight-bold mr-3">OD</span>
-                        <v-text-field label="ESF" v-model="formData.l1_esf_od" variant="outlined" density="compact"
-                          class="mr-2"></v-text-field>
-                        <v-text-field label="CIL" v-model="formData.l1_cil_od" variant="outlined" density="compact"
-                          class="mr-2"></v-text-field>
-                        <v-text-field label="EJE" v-model="formData.l1_eje_od" variant="outlined"
-                          density="compact"></v-text-field>
+                    <v-col cols="12" sm="8" class="mt-2 mt-sm-0">
+                      <div class="d-flex flex-column flex-sm-row align-start align-sm-center mb-2">
+                        <span class="font-weight-bold mb-1 mb-sm-0 mr-3" style="min-width: 24px;">OD</span>
+                        <v-row dense class="flex-grow-1 w-100">
+                          <v-col cols="12" sm="4">
+                            <v-text-field label="ESF" v-model="formData.l1_esf_od" variant="outlined" density="compact"
+                              hide-details class="mobile-font-field"></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="4">
+                            <v-text-field label="CIL" v-model="formData.l1_cil_od" variant="outlined" density="compact"
+                              hide-details class="mobile-font-field"></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="4">
+                            <v-text-field label="EJE" v-model="formData.l1_eje_od" variant="outlined"
+                              density="compact" hide-details class="mobile-font-field"></v-text-field>
+                          </v-col>
+                        </v-row>
                       </div>
-                      <div class="d-flex align-center mt-2">
-                        <span class="font-weight-bold mr-4">OI</span>
-                        <v-text-field label="ESF" v-model="formData.l1_esf_oi" variant="outlined" density="compact"
-                          class="mr-2"></v-text-field>
-                        <v-text-field label="CIL" v-model="formData.l1_cil_oi" variant="outlined" density="compact"
-                          class="mr-2"></v-text-field>
-                        <v-text-field label="EJE" v-model="formData.l1_eje_oi" variant="outlined"
-                          density="compact"></v-text-field>
+                      <div class="d-flex flex-column flex-sm-row align-start align-sm-center">
+                        <span class="font-weight-bold mb-1 mb-sm-0 mr-3" style="min-width: 24px;">OI</span>
+                        <v-row dense class="flex-grow-1 w-100">
+                          <v-col cols="12" sm="4">
+                            <v-text-field label="ESF" v-model="formData.l1_esf_oi" variant="outlined" density="compact"
+                              hide-details class="mobile-font-field"></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="4">
+                            <v-text-field label="CIL" v-model="formData.l1_cil_oi" variant="outlined" density="compact"
+                              hide-details class="mobile-font-field"></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="4">
+                            <v-text-field label="EJE" v-model="formData.l1_eje_oi" variant="outlined"
+                              density="compact" hide-details class="mobile-font-field"></v-text-field>
+                          </v-col>
+                        </v-row>
                       </div>
                     </v-col>
                   </v-row>
@@ -82,32 +104,54 @@
                 <v-card-title class="text-subtitle-1 font-weight-bold pt-2 pb-1">Lente 2</v-card-title>
                 <v-divider></v-divider>
                 <v-card-text>
-                  <v-row>
-                    <v-col cols="4">
-                      <v-autocomplete label="DISTANCIA" v-model="formData.distancia_lente2"
-                        :items="tipoLenteDistanciaOptions" item-title="label" item-value="value" variant="outlined"
-                        density="compact" class="mb-2"></v-autocomplete>
-                      <v-text-field label="DIP" v-model="formData.l2_dip" variant="outlined"
-                        density="compact"></v-text-field>
+                  <v-row dense>
+                    <v-col cols="12" sm="4">
+                      <v-row dense>
+                        <v-col cols="6" sm="12">
+                          <v-autocomplete label="DISTANCIA" v-model="formData.distancia_lente2"
+                            :items="tipoLenteDistanciaOptions" item-title="label" item-value="value" variant="outlined"
+                            density="compact" class="mb-2"></v-autocomplete>
+                        </v-col>
+                        <v-col cols="6" sm="12">
+                          <v-text-field label="DIP" v-model="formData.l2_dip" variant="outlined"
+                            density="compact"></v-text-field>
+                        </v-col>
+                      </v-row>
                     </v-col>
-                    <v-col cols="8">
-                      <div class="d-flex align-center">
-                        <span class="font-weight-bold mr-3">OD</span>
-                        <v-text-field label="ESF" v-model="formData.l2_esf_od" variant="outlined" density="compact"
-                          class="mr-2"></v-text-field>
-                        <v-text-field label="CIL" v-model="formData.l2_cil_od" variant="outlined" density="compact"
-                          class="mr-2"></v-text-field>
-                        <v-text-field label="EJE" v-model="formData.l2_eje_od" variant="outlined"
-                          density="compact"></v-text-field>
+                    <v-col cols="12" sm="8" class="mt-2 mt-sm-0">
+                      <div class="d-flex flex-column flex-sm-row align-start align-sm-center mb-2">
+                        <span class="font-weight-bold mb-1 mb-sm-0 mr-3" style="min-width: 24px;">OD</span>
+                        <v-row dense class="flex-grow-1 w-100">
+                          <v-col cols="12" sm="4">
+                            <v-text-field label="ESF" v-model="formData.l2_esf_od" variant="outlined" density="compact"
+                              hide-details class="mobile-font-field"></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="4">
+                            <v-text-field label="CIL" v-model="formData.l2_cil_od" variant="outlined" density="compact"
+                              hide-details class="mobile-font-field"></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="4">
+                            <v-text-field label="EJE" v-model="formData.l2_eje_od" variant="outlined"
+                              density="compact" hide-details class="mobile-font-field"></v-text-field>
+                          </v-col>
+                        </v-row>
                       </div>
-                      <div class="d-flex align-center mt-2">
-                        <span class="font-weight-bold mr-4">OI</span>
-                        <v-text-field label="ESF" v-model="formData.l2_esf_oi" variant="outlined" density="compact"
-                          class="mr-2"></v-text-field>
-                        <v-text-field label="CIL" v-model="formData.l2_cil_oi" variant="outlined" density="compact"
-                          class="mr-2"></v-text-field>
-                        <v-text-field label="EJE" v-model="formData.l2_eje_oi" variant="outlined"
-                          density="compact"></v-text-field>
+                      <div class="d-flex flex-column flex-sm-row align-start align-sm-center">
+                        <span class="font-weight-bold mb-1 mb-sm-0 mr-3" style="min-width: 24px;">OI</span>
+                        <v-row dense class="flex-grow-1 w-100">
+                          <v-col cols="12" sm="4">
+                            <v-text-field label="ESF" v-model="formData.l2_esf_oi" variant="outlined" density="compact"
+                              hide-details class="mobile-font-field"></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="4">
+                            <v-text-field label="CIL" v-model="formData.l2_cil_oi" variant="outlined" density="compact"
+                              hide-details class="mobile-font-field"></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="4">
+                            <v-text-field label="EJE" v-model="formData.l2_eje_oi" variant="outlined"
+                              density="compact" hide-details class="mobile-font-field"></v-text-field>
+                          </v-col>
+                        </v-row>
                       </div>
                     </v-col>
                   </v-row>
@@ -119,11 +163,11 @@
           <v-divider class="my-4"></v-divider>
           <v-row dense>
             <v-col cols="12"><strong class="text-subtitle-1">Cristal 1:</strong></v-col>
-            <v-col cols="3" sm="2" md="1">
+            <v-col cols="4" sm="2" md="1">
               <v-text-field type="number" min="0" v-model.number="formData.l1_cantidad_cristal" label="Cant."
                 variant="outlined" density="compact"></v-text-field>
             </v-col>
-            <v-col cols="9" sm="10" md="2">
+            <v-col cols="8" sm="10" md="2">
               <v-autocomplete label="Material" v-model="formData.l1_material_cristal" :items="materialesOptions"
                 item-title="label" item-value="value" variant="outlined" density="compact"></v-autocomplete>
             </v-col>
@@ -149,11 +193,11 @@
 
           <v-row dense class="mt-2">
             <v-col cols="12"><strong class="text-subtitle-1">Cristal 2:</strong></v-col>
-            <v-col cols="3" sm="2" md="1">
+            <v-col cols="4" sm="2" md="1">
               <v-text-field type="number" min="0" v-model.number="formData.l2_cantidad_cristal" label="Cant."
                 variant="outlined" density="compact"></v-text-field>
             </v-col>
-            <v-col cols="9" sm="10" md="2">
+            <v-col cols="8" sm="10" md="2">
               <v-autocomplete label="Material" v-model="formData.l2_material_cristal" :items="materialesOptions"
                 item-title="label" item-value="value" variant="outlined" density="compact"></v-autocomplete>
             </v-col>
@@ -216,10 +260,10 @@
           </v-row>
         </v-card-text>
 
-        <v-card-actions class="pa-4 border-t">
-          <v-spacer></v-spacer>
-          <v-btn @click="cancelar" variant="text">Cancelar</v-btn>
-          <v-btn type="submit" color="primary" variant="flat" :loading="guardando" :disabled="cargando || guardando">
+        <v-card-actions class="pa-4 border-t d-flex flex-column-reverse flex-sm-row">
+          <v-spacer class="d-none d-sm-block"></v-spacer>
+          <v-btn @click="cancelar" variant="text" class="responsive-btn mt-2 mt-sm-0 mr-sm-2">Cancelar</v-btn>
+          <v-btn type="submit" color="primary" variant="flat" :loading="guardando" :disabled="cargando || guardando" class="responsive-btn">
             {{ isEditing ? 'Actualizar Prescripción' : 'Guardar Prescripción' }}
           </v-btn>
         </v-card-actions>
@@ -725,5 +769,16 @@ function manejarEnterComoTab(event) {
 
 .border-t {
   border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+@media (max-width: 600px) {
+  .mobile-font-field :deep(.v-field__input),
+  .mobile-font-field :deep(.v-label) {
+    font-size: 0.82rem !important;
+  }
+
+  .responsive-btn {
+    width: 100% !important;
+  }
 }
 </style>

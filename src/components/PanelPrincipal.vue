@@ -2,187 +2,192 @@
   <v-container>
     <v-row>
       <!-- Módulo: Productos -->
-      <v-col cols="6" sm="6" md="4" lg="4">
+      <v-col cols="12" sm="6" md="4" lg="4">
         <v-card @click="navegarA('/productos/registrar')" hover
-          class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2" elevation="4" rounded="xl"
+          class="text-left text-sm-center fill-height d-flex flex-row flex-sm-column pt-3 pb-3 px-3 pa-sm-5 align-center" elevation="4" rounded="xl"
           variant="elevated" color="white">
-          <v-card-item class="d-flex flex-column justify-center align-center">
-            <v-icon icon="mdi-package-variant-closed-plus" color="primary" size="50"></v-icon>
-
-            <v-card-title class="font-weight-bold mt-1">
+          <v-avatar color="primary" variant="tonal" size="56" class="mr-3 mr-sm-0 mb-0 mb-sm-3 flex-shrink-0">
+            <v-icon icon="mdi-package-variant-closed-plus" size="28"></v-icon>
+          </v-avatar>
+          <div class="d-flex flex-column flex-grow-1">
+            <h3 class="text-subtitle-1 font-weight-bold text-sm-h6">
               Productos
-            </v-card-title>
-
-            <v-card-text class="text-medium-emphasis">
+            </h3>
+            <p class="text-caption text-sm-body-2 text-medium-emphasis mt-0 mt-sm-1">
               Creación de nuevos productos en el sistema.
-            </v-card-text>
-          </v-card-item>
+            </p>
+          </div>
         </v-card>
       </v-col>
 
       <!-- Módulo: Características -->
-      <v-col cols="6" sm="6" md="4" lg="4">
+      <v-col cols="12" sm="6" md="4" lg="4">
         <v-card @click="navegarA('/productos/caracteristicas')" hover
-          class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2" elevation="4" rounded="xl"
+          class="text-left text-sm-center fill-height d-flex flex-row flex-sm-column pt-3 pb-3 px-3 pa-sm-5 align-center" elevation="4" rounded="xl"
           variant="elevated" color="white">
-          <v-card-item class="d-flex flex-column justify-center align-center">
-            <v-icon icon="mdi-format-list-bulleted-type" color="primary" size="50"></v-icon>
-
-            <v-card-title class="font-weight-bold mt-1">
+          <v-avatar color="primary" variant="tonal" size="56" class="mr-3 mr-sm-0 mb-0 mb-sm-3 flex-shrink-0">
+            <v-icon icon="mdi-format-list-bulleted-type" size="28"></v-icon>
+          </v-avatar>
+          <div class="d-flex flex-column flex-grow-1">
+            <h3 class="text-subtitle-1 font-weight-bold text-sm-h6">
               Características
-            </v-card-title>
-
-            <v-card-text class="text-medium-emphasis">
+            </h3>
+            <p class="text-caption text-sm-body-2 text-medium-emphasis mt-0 mt-sm-1">
               Gestiona categorías, proveedores, materiales y más.
-            </v-card-text>
-          </v-card-item>
+            </p>
+          </div>
         </v-card>
       </v-col>
 
       <!-- Módulo: Inventario -->
-      <v-col cols="6" sm="6" md="4" lg="4">
-        <v-card @click="navegarA('/inventario')" hover class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2"
-          elevation="4" rounded="xl" variant="elevated" color="white">
-          <v-card-item class="d-flex flex-column justify-center align-center">
-            <v-icon icon="mdi-store-cog" color="primary" size="50"></v-icon>
-
-            <v-card-title class="font-weight-bold mt-1">
+      <v-col cols="12" sm="6" md="4" lg="4">
+        <v-card @click="navegarA('/inventario')" hover
+          class="text-left text-sm-center fill-height d-flex flex-row flex-sm-column pt-3 pb-3 px-3 pa-sm-5 align-center" elevation="4" rounded="xl"
+          variant="elevated" color="white">
+          <v-avatar color="primary" variant="tonal" size="56" class="mr-3 mr-sm-0 mb-0 mb-sm-3 flex-shrink-0">
+            <v-icon icon="mdi-store-cog" size="28"></v-icon>
+          </v-avatar>
+          <div class="d-flex flex-column flex-grow-1">
+            <h3 class="text-subtitle-1 font-weight-bold text-sm-h6">
               Inventario
-            </v-card-title>
-
-            <v-card-text class="text-medium-emphasis">
+            </h3>
+            <p class="text-caption text-sm-body-2 text-medium-emphasis mt-0 mt-sm-1">
               Gestión de entradas, salidas o traspasos de stock.
-            </v-card-text>
-          </v-card-item>
+            </p>
+          </div>
         </v-card>
       </v-col>
 
       <!-- Módulo: Consultar Stock -->
-      <v-col cols="6" sm="6" md="4" lg="4">
-        <v-card @click="navegarA('/stock')" hover class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2"
-          elevation="4" rounded="xl" variant="elevated" color="white">
-          <v-card-item class="d-flex flex-column justify-center align-center">
-            <v-icon icon="mdi-magnify-scan" color="primary" size="50"></v-icon>
-
-            <v-card-title class="font-weight-bold mt-1">
+      <v-col cols="12" sm="6" md="4" lg="4">
+        <v-card @click="navegarA('/stock')" hover
+          class="text-left text-sm-center fill-height d-flex flex-row flex-sm-column pt-3 pb-3 px-3 pa-sm-5 align-center" elevation="4" rounded="xl"
+          variant="elevated" color="white">
+          <v-avatar color="primary" variant="tonal" size="56" class="mr-3 mr-sm-0 mb-0 mb-sm-3 flex-shrink-0">
+            <v-icon icon="mdi-magnify-scan" size="28"></v-icon>
+          </v-avatar>
+          <div class="d-flex flex-column flex-grow-1">
+            <h3 class="text-subtitle-1 font-weight-bold text-sm-h6">
               Consultar Stock
-            </v-card-title>
-
-            <v-card-text class="text-medium-emphasis">
+            </h3>
+            <p class="text-caption text-sm-body-2 text-medium-emphasis mt-0 mt-sm-1">
               Visualiza las cantidades actuales del inventario.
-            </v-card-text>
-          </v-card-item>
+            </p>
+          </div>
         </v-card>
       </v-col>
 
       <!-- Módulo: Clientes -->
-      <v-col cols="6" sm="6" md="4" lg="4">
-        <v-card @click="navegarA('/clientes')" hover class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2"
-          elevation="4" rounded="xl" variant="elevated" color="white">
-          <v-card-item class="d-flex flex-column justify-center align-center">
-            <v-icon icon="mdi-account-group-outline" color="primary" size="50"></v-icon>
-
-            <v-card-title class="font-weight-bold mt-1">
+      <v-col cols="12" sm="6" md="4" lg="4">
+        <v-card @click="navegarA('/clientes')" hover
+          class="text-left text-sm-center fill-height d-flex flex-row flex-sm-column pt-3 pb-3 px-3 pa-sm-5 align-center" elevation="4" rounded="xl"
+          variant="elevated" color="white">
+          <v-avatar color="primary" variant="tonal" size="56" class="mr-3 mr-sm-0 mb-0 mb-sm-3 flex-shrink-0">
+            <v-icon icon="mdi-account-group-outline" size="28"></v-icon>
+          </v-avatar>
+          <div class="d-flex flex-column flex-grow-1">
+            <h3 class="text-subtitle-1 font-weight-bold text-sm-h6">
               Clientes
-            </v-card-title>
-
-            <v-card-text class="text-medium-emphasis">
+            </h3>
+            <p class="text-caption text-sm-body-2 text-medium-emphasis mt-0 mt-sm-1">
               Gestión de clientes y registro de prescripciones.
-            </v-card-text>
-          </v-card-item>
+            </p>
+          </div>
         </v-card>
       </v-col>
 
       <!-- Módulo: Órdenes de Trabajo -->
-      <v-col cols="6" sm="6" md="4" lg="4">
-        <v-card @click="navegarA('/ordenes')" hover class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2"
-          elevation="4" rounded="xl" variant="elevated" color="white">
-          <v-card-item class="d-flex flex-column justify-center align-center">
-            <v-icon icon="mdi-clipboard-text-clock" color="primary" size="50"></v-icon>
-
-            <v-card-title class="font-weight-bold mt-1">
+      <v-col cols="12" sm="6" md="4" lg="4">
+        <v-card @click="navegarA('/ordenes')" hover
+          class="text-left text-sm-center fill-height d-flex flex-row flex-sm-column pt-3 pb-3 px-3 pa-sm-5 align-center" elevation="4" rounded="xl"
+          variant="elevated" color="white">
+          <v-avatar color="primary" variant="tonal" size="56" class="mr-3 mr-sm-0 mb-0 mb-sm-3 flex-shrink-0">
+            <v-icon icon="mdi-clipboard-text-clock" size="28"></v-icon>
+          </v-avatar>
+          <div class="d-flex flex-column flex-grow-1">
+            <h3 class="text-subtitle-1 font-weight-bold text-sm-h6">
               Órdenes de Trabajo
-            </v-card-title>
-
-            <v-card-text class="text-medium-emphasis">
+            </h3>
+            <p class="text-caption text-sm-body-2 text-medium-emphasis mt-0 mt-sm-1">
               Gestión completa de órdenes de trabajo y seguimiento.
-            </v-card-text>
-          </v-card-item>
+            </p>
+          </div>
         </v-card>
       </v-col>
 
       <!-- Módulo: Caja -->
-      <v-col cols="6" sm="6" md="4" lg="4">
-        <v-card @click="navegarA('/ordenes')" hover class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2"
-          elevation="4" rounded="xl" variant="elevated" color="white">
-          <v-card-item class="d-flex flex-column justify-center align-center">
-            <v-icon icon="mdi-cash-register" color="primary" size="50"></v-icon>
-
-            <v-card-title class="font-weight-bold mt-1">
+      <v-col cols="12" sm="6" md="4" lg="4">
+        <v-card @click="navegarA('/ordenes')" hover
+          class="text-left text-sm-center fill-height d-flex flex-row flex-sm-column pt-3 pb-3 px-3 pa-sm-5 align-center" elevation="4" rounded="xl"
+          variant="elevated" color="white">
+          <v-avatar color="primary" variant="tonal" size="56" class="mr-3 mr-sm-0 mb-0 mb-sm-3 flex-shrink-0">
+            <v-icon icon="mdi-cash-register" size="28"></v-icon>
+          </v-avatar>
+          <div class="d-flex flex-column flex-grow-1">
+            <h3 class="text-subtitle-1 font-weight-bold text-sm-h6">
               Caja
-            </v-card-title>
-
-            <v-card-text class="text-medium-emphasis">
+            </h3>
+            <p class="text-caption text-sm-body-2 text-medium-emphasis mt-0 mt-sm-1">
               Registro de órdenes de trabajo y gestión de pagos.
-            </v-card-text>
-          </v-card-item>
+            </p>
+          </div>
         </v-card>
       </v-col>
 
       <!-- Módulo: Reportes -->
-      <v-col cols="6" sm="6" md="4" lg="4">
+      <v-col cols="12" sm="6" md="4" lg="4">
         <v-card @click="navegarA('/reportes/prescripciones')" hover
-          class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2" elevation="4" rounded="xl"
+          class="text-left text-sm-center fill-height d-flex flex-row flex-sm-column pt-3 pb-3 px-3 pa-sm-5 align-center" elevation="4" rounded="xl"
           variant="elevated" color="white">
-          <v-card-item class="d-flex flex-column justify-center align-center">
-            <v-icon icon="mdi-chart-line" color="primary" size="50"></v-icon>
-
-            <v-card-title class="font-weight-bold mt-1">
+          <v-avatar color="primary" variant="tonal" size="56" class="mr-3 mr-sm-0 mb-0 mb-sm-3 flex-shrink-0">
+            <v-icon icon="mdi-chart-line" size="28"></v-icon>
+          </v-avatar>
+          <div class="d-flex flex-column flex-grow-1">
+            <h3 class="text-subtitle-1 font-weight-bold text-sm-h6">
               Reportes
-            </v-card-title>
-
-            <v-card-text class="text-medium-emphasis">
+            </h3>
+            <p class="text-caption text-sm-body-2 text-medium-emphasis mt-0 mt-sm-1">
               Análisis y reportes de prescripciones médicas.
-            </v-card-text>
-          </v-card-item>
+            </p>
+          </div>
         </v-card>
       </v-col>
 
       <!-- Módulo: Sobres -->
-      <v-col cols="6" sm="6" md="4" lg="4">
+      <v-col cols="12" sm="6" md="4" lg="4">
         <v-card @click="navegarA('/sobres/registrar')" hover
-          class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2" elevation="4" rounded="xl"
+          class="text-left text-sm-center fill-height d-flex flex-row flex-sm-column pt-3 pb-3 px-3 pa-sm-5 align-center" elevation="4" rounded="xl"
           variant="elevated" color="white">
-          <v-card-item class="d-flex flex-column justify-center align-center">
-            <v-icon icon="mdi-email-outline" color="primary" size="50"></v-icon>
-
-            <v-card-title class="font-weight-bold mt-1">
+          <v-avatar color="primary" variant="tonal" size="56" class="mr-3 mr-sm-0 mb-0 mb-sm-3 flex-shrink-0">
+            <v-icon icon="mdi-email-outline" size="28"></v-icon>
+          </v-avatar>
+          <div class="d-flex flex-column flex-grow-1">
+            <h3 class="text-subtitle-1 font-weight-bold text-sm-h6">
               Sobres
-            </v-card-title>
-
-            <v-card-text class="text-medium-emphasis">
+            </h3>
+            <p class="text-caption text-sm-body-2 text-medium-emphasis mt-0 mt-sm-1">
               Registro de pedidos de sobres.
-            </v-card-text>
-          </v-card-item>
+            </p>
+          </div>
         </v-card>
       </v-col>
 
       <!-- Módulo: Recetas Legacy -->
-      <v-col cols="6" sm="6" md="4" lg="4">
+      <v-col cols="12" sm="6" md="4" lg="4">
         <v-card @click="navegarA('/recetas-legacy')" hover
-          class="text-center fill-height d-flex flex-column pt-4 pb-2 px-2" elevation="4" rounded="xl"
+          class="text-left text-sm-center fill-height d-flex flex-row flex-sm-column pt-3 pb-3 px-3 pa-sm-5 align-center" elevation="4" rounded="xl"
           variant="elevated" color="white">
-          <v-card-item class="d-flex flex-column justify-center align-center">
-            <v-icon icon="mdi-database-clock-outline" color="primary" size="50"></v-icon>
-
-            <v-card-title class="font-weight-bold mt-1">
+          <v-avatar color="primary" variant="tonal" size="56" class="mr-3 mr-sm-0 mb-0 mb-sm-3 flex-shrink-0">
+            <v-icon icon="mdi-database-clock-outline" size="28"></v-icon>
+          </v-avatar>
+          <div class="d-flex flex-column flex-grow-1">
+            <h3 class="text-subtitle-1 font-weight-bold text-sm-h6">
               Recetas Legacy
-            </v-card-title>
-
-            <v-card-text class="text-medium-emphasis">
+            </h3>
+            <p class="text-caption text-sm-body-2 text-medium-emphasis mt-0 mt-sm-1">
               Consulta histórico de recetas antiguas.
-            </v-card-text>
-          </v-card-item>
+            </p>
+          </div>
         </v-card>
       </v-col>
     </v-row>

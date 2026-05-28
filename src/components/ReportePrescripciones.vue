@@ -1,19 +1,19 @@
 <template>
-  <v-container fluid class="bg-grey-lighten-4 pa-6" style="min-height: 100vh;">
+  <v-container fluid class="bg-grey-lighten-4 pa-3 pa-sm-6" style="min-height: 100vh;">
     <!-- Encabezado -->
     <div class="d-flex flex-wrap justify-space-between align-center mb-6">
       <div>
-        <h1 class="text-h4 font-weight-bold text-grey-darken-3">Dashboard de Prescripciones</h1>
-        <p class="text-subtitle-1 text-grey-darken-1 mb-0">Analítica avanzada de ventas, tratamientos y tipos de lentes.</p>
+        <h1 class="text-h5 text-sm-h4 font-weight-bold text-grey-darken-3">Dashboard de Prescripciones</h1>
+        <p class="text-subtitle-2 text-sm-subtitle-1 text-grey-darken-1 mb-0">Analítica avanzada de ventas, tratamientos y tipos de lentes.</p>
       </div>
-      <div class="mt-4 mt-sm-0 d-flex flex-wrap gap-2">
-        <v-btn color="info" prepend-icon="mdi-chart-box-outline" @click="exportarDashboardPDF" :loading="cargandoDashboardPdf" :disabled="resultadosBusqueda.length === 0 || cargando">
+      <div class="mt-4 mt-sm-0 d-flex flex-wrap gap-2 w-100 w-sm-auto">
+        <v-btn color="info" prepend-icon="mdi-chart-box-outline" @click="exportarDashboardPDF" :loading="cargandoDashboardPdf" :disabled="resultadosBusqueda.length === 0 || cargando" class="flex-grow-1 flex-sm-grow-0">
           Gráficas PDF
         </v-btn>
-        <v-btn color="success" prepend-icon="mdi-file-excel" @click="exportarCSV" :disabled="resultadosBusqueda.length === 0 || cargando">
+        <v-btn color="success" prepend-icon="mdi-file-excel" @click="exportarCSV" :disabled="resultadosBusqueda.length === 0 || cargando" class="flex-grow-1 flex-sm-grow-0">
           Tabla CSV
         </v-btn>
-        <v-btn color="error" prepend-icon="mdi-file-pdf-box" @click="exportarPDF" :disabled="resultadosBusqueda.length === 0 || cargando">
+        <v-btn color="error" prepend-icon="mdi-file-pdf-box" @click="exportarPDF" :disabled="resultadosBusqueda.length === 0 || cargando" class="flex-grow-1 flex-sm-grow-0">
           Tabla PDF
         </v-btn>
       </div>
@@ -634,4 +634,15 @@ const exportarCSV = () => {
 .border-l-info { border-left: 5px solid #2196F3 !important; }
 .border-l-success { border-left: 5px solid #4CAF50 !important; }
 .border-l-warning { border-left: 5px solid #FB8C00 !important; }
+
+@media (max-width: 600px) {
+  :deep(.v-data-table tbody tr td) {
+    padding: 0 6px !important;
+    font-size: 0.8rem !important;
+  }
+  :deep(.v-data-table th) {
+    padding: 0 6px !important;
+    font-size: 0.8rem !important;
+  }
+}
 </style>

@@ -20,9 +20,9 @@
             </v-chip>
         </div>
 
-        <v-text-field ref="searchInputRef" v-model="busqueda" label="Buscar por Nro. Receta, Nombres o Apellidos"
-            prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" clearable class="mb-4"
-            hide-details></v-text-field>
+        <v-text-field ref="searchInputRef" v-model="busqueda" label="Buscar receta..."
+            placeholder="Por número de receta, nombre o apellido" prepend-inner-icon="mdi-magnify"
+            variant="outlined" density="compact" clearable class="mb-4" hide-details></v-text-field>
 
         <v-data-table-server v-model:items-per-page="itemsPerPage" :headers="headers" :items="recetas"
             :items-length="totalRecetas" :loading="cargando" :search="busqueda" item-value="id" class="elevation-1 mt-4 cursor-pointer"
@@ -360,9 +360,15 @@ const formatearFecha = (fecha) => {
 <style scoped>
 .page-container {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    padding: 1rem 2rem;
+    padding: 1rem 0.75rem;
     background-color: #f8f9fa;
     color: #212529;
+}
+
+@media (min-width: 600px) {
+    .page-container {
+        padding: 1rem 2rem;
+    }
 }
 
 .page-header {
@@ -409,5 +415,17 @@ const formatearFecha = (fecha) => {
 
 :deep(.v-data-table-header__sort-icon) {
     color: rgba(255, 255, 255, 0.7) !important;
+}
+
+@media (max-width: 600px) {
+    .page-header h1 {
+        font-size: 1.4rem;
+    }
+
+    :deep(.v-table .v-table__wrapper table th),
+    :deep(.v-table .v-table__wrapper table td) {
+        padding: 0 4px !important;
+        font-size: 0.75rem !important;
+    }
 }
 </style>
