@@ -24,10 +24,10 @@
       <v-card-text class="pa-4">
         <v-row dense align="center">
           <v-col cols="12" md="2">
-            <v-text-field v-model="filtros.fechaInicio" label="Desde (Prescrip.)" type="date" variant="outlined" density="compact" hide-details></v-text-field>
+            <v-text-field v-model="filtros.fechaInicio" label="Desde (Prescrip.)" type="date" variant="outlined" density="compact" hide-details append-inner-icon="mdi-calendar"></v-text-field>
           </v-col>
           <v-col cols="12" md="2">
-            <v-text-field v-model="filtros.fechaFin" label="Hasta (Prescrip.)" type="date" variant="outlined" density="compact" hide-details></v-text-field>
+            <v-text-field v-model="filtros.fechaFin" label="Hasta (Prescrip.)" type="date" variant="outlined" density="compact" hide-details append-inner-icon="mdi-calendar"></v-text-field>
           </v-col>
           <v-col cols="12" md="2">
             <v-autocomplete v-model="filtros.doctor" :items="doctoresOptions" item-title="label" item-value="value" label="Doctor" variant="outlined" density="compact" hide-details clearable></v-autocomplete>

@@ -36,6 +36,24 @@ html,
 body {
   overflow-y: auto !important;
 }
+
+/* Ocultar el icono nativo de calendario desalineado y hacer que todo el campo de fecha sea clickeable en toda la app */
+.v-text-field input[type="date"] {
+  position: relative !important;
+}
+
+.v-text-field input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+  z-index: 1 !important;
+}
 </style>
 
 <style scoped>

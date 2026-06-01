@@ -7,29 +7,29 @@
 
     <v-form ref="formRef" @submit.prevent="guardarPrescripcion" @keydown="manejarEnterComoTab" v-else>
       <v-card>
-        <v-card-title class="text-h5 border-b">
+        <v-card-title class="text-h6 font-weight-bold py-3 border-b">
           {{ pageTitle }}
         </v-card-title>
 
-        <v-card-text class="py-4">
+        <v-card-text class="py-2 px-3">
           <v-row dense>
             <v-col cols="12" md="3">
               <v-text-field label="Cliente" :model-value="clienteNombreCompleto" readonly variant="outlined"
-                density="compact"></v-text-field>
+                density="compact" hide-details="auto"></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" md="3">
               <v-text-field ref="recetaInputRef" v-model="recetaNumerica" :error-messages="mensajeErrorReceta"
                 :loading="verificandoReceta" label="Cód. Receta *" placeholder="Ej. 1234" :suffix="sufijoReceta"
                 @input="formateaRecetaInput" variant="outlined" density="compact" counter="4"
-                :rules="requiredRule"></v-text-field>
+                :rules="requiredRule" hide-details="auto"></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" md="2">
               <v-text-field v-model="formData.fecha_prescripcion" label="Fecha Prescripción" type="date"
-                variant="outlined" density="compact"></v-text-field>
+                variant="outlined" density="compact" hide-details="auto" append-inner-icon="mdi-calendar"></v-text-field>
             </v-col>
             <v-col cols="12" md="4">
               <v-autocomplete v-model="formData.doctor_prescriptor" :items="doctoresOptions" item-title="label"
-                item-value="value" label="Doctor Prescriptor" variant="outlined" density="compact">
+                item-value="value" label="Doctor Prescriptor" variant="outlined" density="compact" hide-details="auto">
                 <template #append-inner>
                   <v-btn icon="mdi-plus-box" variant="text" size="small"
                     @click.stop="abrirModal({ tableName: 'doctores', fieldName: 'nombre_doctor', idField: 'cod_doctor', fieldToUpdate: 'doctor_prescriptor', placeholder: 'Nombre del Doctor', title: 'Añadir Nuevo Doctor' })"></v-btn>
@@ -38,29 +38,29 @@
             </v-col>
           </v-row>
 
-          <v-row>
+          <v-row dense class="mt-2">
             <v-col cols="12" md="6">
-              <v-card variant="outlined">
-                <v-card-title class="text-subtitle-1 font-weight-bold pt-2 pb-1">Lente 1</v-card-title>
+              <v-card variant="outlined" class="rounded-lg">
+                <v-card-title class="text-subtitle-2 font-weight-bold py-2 px-3 border-b text-primary">Lente 1</v-card-title>
                 <v-divider></v-divider>
-                <v-card-text>
+                <v-card-text class="pa-3">
                   <v-row dense>
                     <v-col cols="12" sm="4">
                       <v-row dense>
                         <v-col cols="6" sm="12">
                           <v-autocomplete label="DISTANCIA" v-model="formData.distancia_lente1"
                             :items="tipoLenteDistanciaOptions" item-title="label" item-value="value" variant="outlined"
-                            density="compact" class="mb-2"></v-autocomplete>
+                            density="compact" class="mb-1" hide-details="auto"></v-autocomplete>
                         </v-col>
                         <v-col cols="6" sm="12">
                           <v-text-field label="DIP" v-model="formData.l1_dip" variant="outlined"
-                            density="compact"></v-text-field>
+                            density="compact" hide-details="auto"></v-text-field>
                         </v-col>
                       </v-row>
                     </v-col>
                     <v-col cols="12" sm="8" class="mt-2 mt-sm-0">
                       <div class="d-flex flex-column flex-sm-row align-start align-sm-center mb-2">
-                        <span class="font-weight-bold mb-1 mb-sm-0 mr-3" style="min-width: 24px;">OD</span>
+                        <span class="font-weight-bold text-subtitle-2 mb-1 mb-sm-0 mr-3" style="min-width: 24px;">OD</span>
                         <v-row dense class="flex-grow-1 w-100">
                           <v-col cols="12" sm="4">
                             <v-text-field label="ESF" v-model="formData.l1_esf_od" variant="outlined" density="compact"
@@ -77,7 +77,7 @@
                         </v-row>
                       </div>
                       <div class="d-flex flex-column flex-sm-row align-start align-sm-center">
-                        <span class="font-weight-bold mb-1 mb-sm-0 mr-3" style="min-width: 24px;">OI</span>
+                        <span class="font-weight-bold text-subtitle-2 mb-1 mb-sm-0 mr-3" style="min-width: 24px;">OI</span>
                         <v-row dense class="flex-grow-1 w-100">
                           <v-col cols="12" sm="4">
                             <v-text-field label="ESF" v-model="formData.l1_esf_oi" variant="outlined" density="compact"
@@ -100,27 +100,27 @@
             </v-col>
 
             <v-col cols="12" md="6">
-              <v-card variant="outlined">
-                <v-card-title class="text-subtitle-1 font-weight-bold pt-2 pb-1">Lente 2</v-card-title>
+              <v-card variant="outlined" class="rounded-lg">
+                <v-card-title class="text-subtitle-2 font-weight-bold py-2 px-3 border-b text-primary">Lente 2</v-card-title>
                 <v-divider></v-divider>
-                <v-card-text>
+                <v-card-text class="pa-3">
                   <v-row dense>
                     <v-col cols="12" sm="4">
                       <v-row dense>
                         <v-col cols="6" sm="12">
                           <v-autocomplete label="DISTANCIA" v-model="formData.distancia_lente2"
                             :items="tipoLenteDistanciaOptions" item-title="label" item-value="value" variant="outlined"
-                            density="compact" class="mb-2"></v-autocomplete>
+                            density="compact" class="mb-1" hide-details="auto"></v-autocomplete>
                         </v-col>
                         <v-col cols="6" sm="12">
                           <v-text-field label="DIP" v-model="formData.l2_dip" variant="outlined"
-                            density="compact"></v-text-field>
+                            density="compact" hide-details="auto"></v-text-field>
                         </v-col>
                       </v-row>
                     </v-col>
                     <v-col cols="12" sm="8" class="mt-2 mt-sm-0">
                       <div class="d-flex flex-column flex-sm-row align-start align-sm-center mb-2">
-                        <span class="font-weight-bold mb-1 mb-sm-0 mr-3" style="min-width: 24px;">OD</span>
+                        <span class="font-weight-bold text-subtitle-2 mb-1 mb-sm-0 mr-3" style="min-width: 24px;">OD</span>
                         <v-row dense class="flex-grow-1 w-100">
                           <v-col cols="12" sm="4">
                             <v-text-field label="ESF" v-model="formData.l2_esf_od" variant="outlined" density="compact"
@@ -137,7 +137,7 @@
                         </v-row>
                       </div>
                       <div class="d-flex flex-column flex-sm-row align-start align-sm-center">
-                        <span class="font-weight-bold mb-1 mb-sm-0 mr-3" style="min-width: 24px;">OI</span>
+                        <span class="font-weight-bold text-subtitle-2 mb-1 mb-sm-0 mr-3" style="min-width: 24px;">OI</span>
                         <v-row dense class="flex-grow-1 w-100">
                           <v-col cols="12" sm="4">
                             <v-text-field label="ESF" v-model="formData.l2_esf_oi" variant="outlined" density="compact"
@@ -160,21 +160,22 @@
             </v-col>
           </v-row>
 
-          <v-divider class="my-4"></v-divider>
+          <v-divider class="my-3"></v-divider>
+
           <v-row dense>
-            <v-col cols="12"><strong class="text-subtitle-1">Cristal 1:</strong></v-col>
+            <v-col cols="12" class="py-1"><strong class="text-subtitle-2 text-primary">Cristal 1:</strong></v-col>
             <v-col cols="4" sm="2" md="1">
               <v-text-field type="number" min="0" v-model.number="formData.l1_cantidad_cristal" label="Cant."
-                variant="outlined" density="compact"></v-text-field>
+                variant="outlined" density="compact" hide-details="auto"></v-text-field>
             </v-col>
             <v-col cols="8" sm="10" md="2">
               <v-autocomplete label="Material" v-model="formData.l1_material_cristal" :items="materialesOptions"
-                item-title="label" item-value="value" variant="outlined" density="compact"></v-autocomplete>
+                item-title="label" item-value="value" variant="outlined" density="compact" hide-details="auto"></v-autocomplete>
             </v-col>
             <v-col cols="12" md="5">
               <v-autocomplete v-model="formData.l1_tratamientos" :items="tratamientosOptions" item-title="label"
                 item-value="value" label="Tratamientos" multiple chips closable-chips variant="outlined"
-                density="compact">
+                density="compact" hide-details="auto">
                 <template #append-inner>
                   <v-btn icon="mdi-plus-box" variant="text" size="small"
                     @click.stop="abrirModal({ tableName: 'tratamientos', fieldName: 'nombre_tratamiento', placeholder: 'Nombre del Tratamiento', title: 'Añadir Nuevo Tratamiento' })"></v-btn>
@@ -183,44 +184,45 @@
             </v-col>
             <v-col cols="6" md="2">
               <v-autocomplete label="Color" v-model="formData.l1_color_cristal" :items="coloresOptions"
-                item-title="label" item-value="value" variant="outlined" density="compact"></v-autocomplete>
+                item-title="label" item-value="value" variant="outlined" density="compact" hide-details="auto"></v-autocomplete>
             </v-col>
             <v-col cols="6" md="2">
               <v-text-field label="Extras" v-model="formData.l1_extra_cristal" variant="outlined"
-                density="compact"></v-text-field>
+                density="compact" hide-details="auto"></v-text-field>
             </v-col>
           </v-row>
 
-          <v-row dense class="mt-2">
-            <v-col cols="12"><strong class="text-subtitle-1">Cristal 2:</strong></v-col>
+          <v-row dense class="mt-1">
+            <v-col cols="12" class="py-1"><strong class="text-subtitle-2 text-primary">Cristal 2:</strong></v-col>
             <v-col cols="4" sm="2" md="1">
               <v-text-field type="number" min="0" v-model.number="formData.l2_cantidad_cristal" label="Cant."
-                variant="outlined" density="compact"></v-text-field>
+                variant="outlined" density="compact" hide-details="auto"></v-text-field>
             </v-col>
             <v-col cols="8" sm="10" md="2">
               <v-autocomplete label="Material" v-model="formData.l2_material_cristal" :items="materialesOptions"
-                item-title="label" item-value="value" variant="outlined" density="compact"></v-autocomplete>
+                item-title="label" item-value="value" variant="outlined" density="compact" hide-details="auto"></v-autocomplete>
             </v-col>
             <v-col cols="12" md="5">
               <v-autocomplete v-model="formData.l2_tratamientos" :items="tratamientosOptions" item-title="label"
                 item-value="value" label="Tratamientos" multiple chips closable-chips variant="outlined"
-                density="compact"></v-autocomplete>
+                density="compact" hide-details="auto"></v-autocomplete>
             </v-col>
             <v-col cols="6" md="2">
               <v-autocomplete label="Color" v-model="formData.l2_color_cristal" :items="coloresOptions"
-                item-title="label" item-value="value" variant="outlined" density="compact"></v-autocomplete>
+                item-title="label" item-value="value" variant="outlined" density="compact" hide-details="auto"></v-autocomplete>
             </v-col>
             <v-col cols="6" md="2">
               <v-text-field label="Extras" v-model="formData.l2_extra_cristal" variant="outlined"
-                density="compact"></v-text-field>
+                density="compact" hide-details="auto"></v-text-field>
             </v-col>
           </v-row>
 
-          <v-divider class="my-4"></v-divider>
+          <v-divider class="my-3"></v-divider>
+
           <v-row dense>
             <v-col cols="12" md="4">
               <v-autocomplete v-model="formData.cod_proveedor" :items="proveedoresOptions" item-title="label"
-                item-value="value" label="Proveedor" variant="outlined" density="compact">
+                item-value="value" label="Proveedor" variant="outlined" density="compact" hide-details="auto">
                 <template #append-inner>
                   <v-btn icon="mdi-plus-box" variant="text" size="small"
                     @click.stop="abrirModal({ tableName: 'proveedores', fieldName: 'nombre_proveedor', idField: 'cod_proveedor', fieldToUpdate: 'cod_proveedor', placeholder: 'Nombre del Proveedor', title: 'Añadir Nuevo Proveedor' })"></v-btn>
@@ -229,11 +231,11 @@
             </v-col>
             <v-col cols="12" md="4">
               <v-autocomplete v-model="formData.cod_armador" :items="armadoresOptions" item-title="label"
-                item-value="value" label="Armador" variant="outlined" density="compact"></v-autocomplete>
+                item-value="value" label="Armador" variant="outlined" density="compact" hide-details="auto"></v-autocomplete>
             </v-col>
             <v-col cols="12" md="4">
               <v-autocomplete v-model="formData.cod_armazon" :items="armazonesOptions" item-title="label"
-                item-value="value" label="Armazón" variant="outlined" density="compact">
+                item-value="value" label="Armazón" variant="outlined" density="compact" hide-details="auto">
                 <template #append-inner>
                   <v-btn icon="mdi-plus-box" variant="text" size="small"
                     @click.stop="abrirModal({ tableName: 'armazon_lente', fieldName: 'nombre_armazon', idField: 'cod_armazon', fieldToUpdate: 'cod_armazon', placeholder: 'Nombre del Armazón', title: 'Añadir Nuevo Armazón' })"></v-btn>
@@ -242,20 +244,28 @@
             </v-col>
           </v-row>
           <v-row dense>
-            <v-col cols="6" md="3"><v-text-field v-model="formData.num_sobre" label="Núm. Sobre *" variant="outlined"
-                density="compact" :rules="requiredRule"></v-text-field></v-col>
-            <v-col cols="6" md="3"><v-text-field v-model="formData.fecha_entrega" label="Fecha Entrega" type="date"
-                variant="outlined" density="compact"></v-text-field></v-col>
-            <v-col cols="6" md="3"><v-text-field v-model="formData.cod_pedido1" label="Núm. Pedido 1" variant="outlined"
-                density="compact"></v-text-field></v-col>
-            <v-col cols="6" md="3"><v-text-field v-model="formData.cod_pedido2" label="Núm. Pedido 2" variant="outlined"
-                density="compact"></v-text-field></v-col>
+            <v-col cols="6" md="3">
+              <v-text-field v-model="formData.num_sobre" label="Núm. Sobre *" variant="outlined"
+                density="compact" :rules="requiredRule" hide-details="auto"></v-text-field>
+            </v-col>
+            <v-col cols="6" md="3">
+              <v-text-field v-model="formData.fecha_entrega" label="Fecha Entrega" type="date"
+                variant="outlined" density="compact" hide-details="auto" append-inner-icon="mdi-calendar"></v-text-field>
+            </v-col>
+            <v-col cols="6" md="3">
+              <v-text-field v-model="formData.cod_pedido1" label="Núm. Pedido 1" variant="outlined"
+                density="compact" hide-details="auto"></v-text-field>
+            </v-col>
+            <v-col cols="6" md="3">
+              <v-text-field v-model="formData.cod_pedido2" label="Núm. Pedido 2" variant="outlined"
+                density="compact" hide-details="auto"></v-text-field>
+            </v-col>
           </v-row>
 
-          <v-row dense>
+          <v-row dense class="mt-1">
             <v-col cols="12">
               <v-textarea v-model="formData.notas_adicionales" label="Observaciones o notas adicionales" rows="2"
-                variant="outlined" density="compact"></v-textarea>
+                variant="outlined" density="compact" hide-details="auto"></v-textarea>
             </v-col>
           </v-row>
         </v-card-text>
@@ -758,9 +768,32 @@ function manejarEnterComoTab(event) {
 </script>
 
 <style scoped>
+.text-uppercase-container {
+  max-width: 1280px !important;
+  margin: 0 auto;
+}
+
 .text-uppercase-container :deep(input:not([type="number"]):not([type="date"])),
 .text-uppercase-container :deep(textarea) {
   text-transform: uppercase;
+}
+
+/* Ocultar el icono nativo de calendario desalineado y hacer que todo el campo de fecha sea clickeable */
+.text-uppercase-container :deep(input[type="date"]) {
+  position: relative;
+}
+
+.text-uppercase-container :deep(input[type="date"]::-webkit-calendar-picker-indicator) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
 }
 
 .border-b {

@@ -84,10 +84,10 @@
                 ></v-autocomplete>
               </v-col>
               <v-col cols="12" sm="6" md="4">
-                <v-text-field v-model="formOrden.fecha_pedido" label="Fecha Pedido" type="date" variant="outlined" density="compact"></v-text-field>
+                <v-text-field v-model="formOrden.fecha_pedido" label="Fecha Pedido" type="date" variant="outlined" density="compact" append-inner-icon="mdi-calendar"></v-text-field>
               </v-col>
               <v-col cols="12" sm="6" md="4">
-                <v-text-field v-model="formOrden.fecha_entrega" label="Fecha Entrega" type="date" variant="outlined" density="compact"></v-text-field>
+                <v-text-field v-model="formOrden.fecha_entrega" label="Fecha Entrega" type="date" variant="outlined" density="compact" append-inner-icon="mdi-calendar"></v-text-field>
               </v-col>
               <v-col cols="12" sm="6" md="4">
                  <v-select

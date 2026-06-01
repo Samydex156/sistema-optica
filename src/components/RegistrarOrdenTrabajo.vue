@@ -172,6 +172,7 @@
                   type="date"
                   variant="outlined"
                   density="compact"
+                  append-inner-icon="mdi-calendar"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" md="4">
@@ -193,6 +194,7 @@
                   type="date"
                   variant="outlined"
                   density="compact"
+                  append-inner-icon="mdi-calendar"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" md="4">
@@ -383,6 +385,7 @@
                     type="date"
                     variant="outlined"
                     density="compact"
+                    append-inner-icon="mdi-calendar"
                   ></v-text-field>
                 </v-col>
                 <v-col cols="12" md="3">

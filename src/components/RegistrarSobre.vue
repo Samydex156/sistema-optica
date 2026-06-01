@@ -25,11 +25,11 @@
             </v-col>
             <v-col cols="12" md="2">
               <v-text-field v-model="formData.fecha_pedido" label="Fecha Pedido" type="date" variant="outlined"
-                density="compact"></v-text-field>
+                density="compact" append-inner-icon="mdi-calendar"></v-text-field>
             </v-col>
             <v-col cols="12" md="2">
               <v-text-field v-model="formData.fecha_entrega" label="Fecha Entrega" type="date" variant="outlined"
-                density="compact"></v-text-field>
+                density="compact" append-inner-icon="mdi-calendar"></v-text-field>
             </v-col>
             <v-col cols="12" md="2">
               <v-text-field v-model="formData.hora_entrega" label="Hora Entrega" type="time" variant="outlined"
@@ -58,7 +58,7 @@
             </v-col>
             <v-col cols="12" md="2">
               <v-text-field v-model="formData.fecha_cancelacion_total" label="Fecha Cancelación" type="date"
-                variant="outlined" density="compact"></v-text-field>
+                variant="outlined" density="compact" append-inner-icon="mdi-calendar"></v-text-field>
             </v-col>
           </v-row>
 
