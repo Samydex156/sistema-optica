@@ -324,3 +324,10 @@ create table public.pedidos_sobres (
   constraint pedidos_sobres_cod_doctor_fkey foreign KEY (cod_doctor) references doctores (cod_doctor),
   constraint pedidos_sobres_cod_tienda_fkey foreign KEY (cod_tienda) references tiendas (cod_tienda)
 ) TABLESPACE pg_default;
+
+-- Vista para obtener los clientes que no tienen ninguna prescripción registrada
+create or replace view public.clientes_sin_prescripcion as
+select c.*
+from public.clientes c
+left join public.prescripcion_clienten p on c.cod_cliente = p.cod_cliente
+where p.cod_prescripcion is null;

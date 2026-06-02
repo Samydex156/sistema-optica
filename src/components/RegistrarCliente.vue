@@ -357,7 +357,7 @@ async function fetchClientes({ page, itemsPerPage, sortBy }) {
     // CASO 2: Navegación Estándar (Filtros o Lista Completa)
     else {
       let query = supabase
-        .from('clientes')
+        .from(filtroSinReceta.value ? 'clientes_sin_prescripcion' : 'clientes')
         .select('*', { count: 'exact' });
 
       // -- Filtros --
@@ -368,15 +368,6 @@ async function fetchClientes({ page, itemsPerPage, sortBy }) {
           query = query.ilike('apellido_paterno_cliente', 'LL%');
         } else {
           query = query.ilike('apellido_paterno_cliente', `${filtroLetra.value}%`);
-        }
-      }
-
-      if (filtroSinReceta.value) {
-        const { data: pData, error: pError } = await supabase.from('prescripcion_clienten').select('cod_cliente');
-        if (pError) throw pError;
-        if (pData && pData.length > 0) {
-          const idsConReceta = [...new Set(pData.map(p => p.cod_cliente))];
-          query = query.not('cod_cliente', 'in', `(${idsConReceta.join(',')})`);
         }
       }
 
