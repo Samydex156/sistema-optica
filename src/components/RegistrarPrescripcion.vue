@@ -778,23 +778,6 @@ function manejarEnterComoTab(event) {
   text-transform: uppercase;
 }
 
-/* Ocultar el icono nativo de calendario desalineado y hacer que todo el campo de fecha sea clickeable */
-.text-uppercase-container :deep(input[type="date"]) {
-  position: relative;
-}
-
-.text-uppercase-container :deep(input[type="date"]::-webkit-calendar-picker-indicator) {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-  z-index: 1;
-}
 
 .border-b {
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);

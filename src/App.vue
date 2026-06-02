@@ -17,6 +17,7 @@
 </template>
 
 <script setup>
+import { onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import NavbarPrincipal from './components/NavbarPrincipal.vue';
 import { useAuth } from './composables/useAuth';
@@ -28,6 +29,25 @@ const handleLogout = () => {
   logout();
   router.push('/login');
 };
+
+const manejarClickIconoCalendario = (event) => {
+  const appendInner = event.target.closest('.v-field__append-inner');
+  if (appendInner && !event.target.closest('.v-field__clearable')) {
+    const field = appendInner.closest('.v-field');
+    const input = field?.querySelector('input[type="date"]');
+    if (input && typeof input.showPicker === 'function') {
+      input.showPicker();
+    }
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('click', manejarClickIconoCalendario);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', manejarClickIconoCalendario);
+});
 </script>
 
 <style>
@@ -37,22 +57,13 @@ body {
   overflow-y: auto !important;
 }
 
-/* Ocultar el icono nativo de calendario desalineado y hacer que todo el campo de fecha sea clickeable en toda la app */
-.v-text-field input[type="date"] {
-  position: relative !important;
-}
-
-.v-text-field input[type="date"]::-webkit-calendar-picker-indicator {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  padding: 0 !important;
-  margin: 0 !important;
+/* Ocultar el icono nativo de calendario por completo en toda la app (móvil y escritorio) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none !important;
+  -webkit-appearance: none !important;
+  width: 0 !important;
+  height: 0 !important;
   opacity: 0 !important;
-  cursor: pointer !important;
-  z-index: 1 !important;
 }
 </style>
 
